@@ -1,0 +1,22 @@
+Listados hardcodeados previo a BD
+
+1) anotadores
+2) accesorios
+3) usuarios
+4) paridasRegistradas
+
+----------
+clases:
+
+1) User (id, username, email, password, listadoJugadores)
+2) Jugador (id, username)
+3) Notepad (id, titulo, cantMinJugadores y cantMaxJugadores)
+
+4) GameBurako ()
+5) GameTruco ()
+6) GameVP ()
+7) GameHP ()
+8) GameAkropolis ()
+9) GameGenerala ()
+
+theme
