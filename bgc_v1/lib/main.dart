@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'core/app_router.dart';
+import 'core/theme/app_theme.dart';
 
 void main() {
   runApp(const MainApp());
@@ -9,8 +11,11 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(body: Center(child: Text('BG Companion!!!!'))),
+    return MaterialApp.router(
+      title: 'BG Companion',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme().getTheme(),
+      routerConfig: appRouter,
     );
   }
 }
