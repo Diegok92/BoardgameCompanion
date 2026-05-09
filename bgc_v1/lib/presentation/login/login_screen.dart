@@ -1,9 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import '../../data/mock/mock_database.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  void _login() {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    final user = MockDatabase.authenticate(email, password);
+
+    if (user != null) {
+      // Login exitoso
+      context.go('/home', extra: user);
+    } else {
+      // Login fallido
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Credenciales incorrectas. (Pista: m@m.com / 123)'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,8 +77,9 @@ class LoginScreen extends StatelessWidget {
                       Text('EMAIL', style: textTheme.labelSmall),
                       const SizedBox(height: 8),
                       TextFormField(
+                        controller: _emailController,
                         decoration: const InputDecoration(
-                          hintText: 'nombre@ejemplo.com',
+                          hintText: 'ej: mago@test.com',
                         ),
                       ),
                     ],
@@ -56,6 +93,7 @@ class LoginScreen extends StatelessWidget {
                       Text('CONTRASEÑA', style: textTheme.labelSmall),
                       const SizedBox(height: 8),
                       TextFormField(
+                        controller: _passwordController,
                         obscureText: true,
                         decoration: const InputDecoration(
                           hintText: '............',
@@ -70,9 +108,7 @@ class LoginScreen extends StatelessWidget {
                     width: double.infinity,
                     height: 50,
                     child: FilledButton(
-                      onPressed: () {
-                        // Acción de ingresar
-                      },
+                      onPressed: _login,
                       child: const Text('INGRESAR'),
                     ),
                   ),
