@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 import '../../domain/models/user_model.dart';
 import 'widgets/home_menu_button.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   final User user;
 
   const HomeScreen({super.key, required this.user});
 
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
@@ -27,14 +33,11 @@ class HomeScreen extends StatelessWidget {
               'BG Companion',
               style: textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
-                fontSize: 20, // Un poco más pequeño para el AppBar
+                fontSize: 20,
               ),
             ),
             const SizedBox(width: 8),
-            SvgPicture.asset(
-              'assets/images/logo.svg',
-              height: 24, // Ajustado para AppBar
-            ),
+            SvgPicture.asset('assets/images/logo.svg', height: 24),
           ],
         ),
         centerTitle: true,
@@ -55,18 +58,44 @@ class HomeScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     // --- SECCIÓN 1: PERFIL ---
-                    CircleAvatar(
-                      radius: 40,
-                      backgroundColor: Colors.grey[300],
-                      child: const Icon(
-                        Icons.person,
-                        size: 50,
-                        color: Colors.grey,
+                    GestureDetector(
+                      onTap: () async {
+                        // Navegar a editar usuario y esperar a que vuelva
+                        await context.push('/user-edit', extra: widget.user);
+                        // Al volver, refrescamos la pantalla
+                        setState(() {});
+                      },
+                      child: Stack(
+                        alignment: Alignment.bottomRight,
+                        children: [
+                          CircleAvatar(
+                            radius: 40,
+                            backgroundColor:
+                                widget.user.favoriteColor ?? Colors.grey[300],
+                            child: const Icon(
+                              Icons.person,
+                              size: 50,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.blue,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.edit,
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Hola, ${user.username}!',
+                      'Hola, ${widget.user.username}!',
                       style: textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: const Color(0xFF1E293B),
@@ -89,7 +118,7 @@ class HomeScreen extends StatelessWidget {
                       label: '+ AGREGAR INVITADOS',
                       backgroundColor: const Color(0xFFEF4444), // Rojo
                       onPressed: () {
-                        // Navegar a agregar invitados
+                        context.push('/invitados', extra: widget.user);
                       },
                     ),
                     const SizedBox(height: 16),
