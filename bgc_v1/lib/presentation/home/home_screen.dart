@@ -128,7 +128,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       label: 'ANOTADORES',
                       backgroundColor: const Color(0xFF10B981), // Verde
                       onPressed: () {
-                        // Navegar a anotadores
+                        context.push('/score-selector', extra: widget.user);
                       },
                     ),
                     const SizedBox(height: 16),
