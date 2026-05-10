@@ -138,7 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       label: 'ACCESORIOS',
                       backgroundColor: const Color(0xFF3B82F6), // Azul
                       onPressed: () {
-                        // Navegar a accesorios
+                        context.push('/accessories', extra: widget.user);
                       },
                     ),
 

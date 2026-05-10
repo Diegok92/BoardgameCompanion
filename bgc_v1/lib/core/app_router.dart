@@ -5,6 +5,7 @@ import '../presentation/home/home_screen.dart';
 import '../presentation/invitados/register_invitado_screen.dart';
 import '../presentation/profile/user_edit_screen.dart';
 import '../presentation/scores/score_selector_screen.dart';
+import '../presentation/accessories/accessories_screen.dart';
 import '../domain/models/user_model.dart';
 
 final appRouter = GoRouter(
@@ -41,6 +42,13 @@ final appRouter = GoRouter(
       builder: (context, state) {
         final user = state.extra as User;
         return ScoreSelectorScreen(user: user);
+      },
+    ),
+    GoRoute(
+      path: '/accessories',
+      builder: (context, state) {
+        final user = state.extra as User;
+        return AccessoriesScreen(user: user);
       },
     ),
   ],
