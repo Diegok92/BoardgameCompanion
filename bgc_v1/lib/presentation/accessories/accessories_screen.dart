@@ -15,10 +15,7 @@ class AccessoriesScreen extends StatelessWidget {
     final accessoryName = accessory.name.toLowerCase();
 
     if (accessoryName.contains('moneda') || accessoryName.contains('coin')) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const CoinFlipScreen()),
-      );
+      context.push('/coin-flip');
       return;
     }
 

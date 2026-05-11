@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 class CoinFlipScreen extends StatefulWidget {
@@ -57,15 +58,6 @@ class _CoinFlipScreenState extends State<CoinFlipScreen>
     _controller.forward();
   }
 
-  void _goBackToAccessories() {
-    if (context.canPop()) {
-      context.pop();
-      return;
-    }
-
-    Navigator.of(context).pop();
-  }
-
   @override
   void dispose() {
     _controller.dispose();
@@ -75,47 +67,25 @@ class _CoinFlipScreenState extends State<CoinFlipScreen>
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       leading: IconButton(
-        icon: const Icon(Icons.menu, size: 28, color: Color(0xFF1F2937)),
-        onPressed: () {},
+        icon: const Icon(Icons.chevron_left, size: 32),
+        onPressed: () => context.pop(),
       ),
-      title: const Text(
-        'BG Companion',
-        style: TextStyle(
-          fontWeight: FontWeight.w900,
-          fontSize: 20,
-          color: Color(0xFF1F2937),
-        ),
+      title: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'BG Companion',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+          ),
+          const SizedBox(width: 8),
+          SvgPicture.asset('assets/images/logo.svg', height: 24),
+        ],
       ),
       centerTitle: true,
-      actions: [
-        Padding(
-          padding: const EdgeInsets.only(right: 16),
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              const Icon(
-                Icons.cases_rounded,
-                color: Color(0xFFEF3743),
-                size: 28,
-              ),
-              Positioned(
-                right: -4,
-                bottom: -4,
-                child: Container(
-                  width: 15,
-                  height: 15,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFEF3743),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.add, size: 10, color: Colors.white),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-      backgroundColor: const Color(0xFFF3F6FA),
+      backgroundColor: Colors.transparent,
       elevation: 0,
     );
   }
@@ -123,7 +93,6 @@ class _CoinFlipScreenState extends State<CoinFlipScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F6FA),
       appBar: _buildAppBar(),
       body: SafeArea(
         child: Padding(
@@ -168,34 +137,6 @@ class _CoinFlipScreenState extends State<CoinFlipScreen>
                       fontWeight: FontWeight.w900,
                       fontSize: 15,
                       letterSpacing: 0.4,
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 14),
-
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: OutlinedButton(
-                  onPressed: _goBackToAccessories,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF4B5563),
-                    side: const BorderSide(
-                      color: Color(0xFF4B5563),
-                      width: 1.3,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(9),
-                    ),
-                  ),
-                  child: const Text(
-                    'VOLVER A ACCESORIOS',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 12,
-                      letterSpacing: 0.3,
                     ),
                   ),
                 ),
