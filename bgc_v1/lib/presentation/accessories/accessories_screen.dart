@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../domain/models/user_model.dart';
 import '../../domain/models/accessory_model.dart';
 import '../../data/mock/mock_accessories_database.dart';
+import 'coin_flip_screen.dart';
 
 class AccessoriesScreen extends StatelessWidget {
   final User user;
@@ -11,6 +12,16 @@ class AccessoriesScreen extends StatelessWidget {
   const AccessoriesScreen({super.key, required this.user});
 
   void _openAccessory(BuildContext context, Accessory accessory) {
+    final accessoryName = accessory.name.toLowerCase();
+
+    if (accessoryName.contains('moneda') || accessoryName.contains('coin')) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const CoinFlipScreen()),
+      );
+      return;
+    }
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Abriendo accesorio: ${accessory.name}...'),
