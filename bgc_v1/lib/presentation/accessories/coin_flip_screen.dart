@@ -212,7 +212,7 @@ class CoinPainter extends CustomPainter {
       ..strokeWidth = 1.4;
 
     final rayPaint = Paint()
-      ..color = orangeColor.withOpacity(0.45)
+      ..color = orangeColor.withValues(alpha: 0.45)
       ..strokeWidth = 2
       ..strokeCap = StrokeCap.round;
 

@@ -1,39 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/game_model.dart';
-import '../../data/mock/mock_games_database.dart';
+import '../providers/games_provider.dart';
 
-class ScoreSelectorScreen extends StatefulWidget {
+class ScoreSelectorScreen extends ConsumerStatefulWidget {
   const ScoreSelectorScreen({super.key});
 
   @override
-  State<ScoreSelectorScreen> createState() => _ScoreSelectorScreenState();
+  ConsumerState<ScoreSelectorScreen> createState() =>
+      _ScoreSelectorScreenState();
 }
 
-class _ScoreSelectorScreenState extends State<ScoreSelectorScreen> {
+class _ScoreSelectorScreenState extends ConsumerState<ScoreSelectorScreen> {
   final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
 
   Game? _selectedGame;
   int? _selectedPlayerCount; // Starts as null to represent "-"
-
-  List<Game> get _allGames => MockGamesDatabase.games;
-
-  List<Game> get _standardGames =>
-      _allGames.where((g) => g.isStandard).toList();
-
-  List<Game> get _filteredSpecificGames {
-    final filtered = _allGames.where((g) {
-      if (g.isStandard) return false;
-      if (_searchQuery.isEmpty) return true;
-      return g.name.toLowerCase().contains(_searchQuery.toLowerCase());
-    }).toList();
-
-    // Ordenar alfabéticamente
-    filtered.sort((a, b) => a.name.compareTo(b.name));
-    return filtered;
-  }
 
   @override
   void dispose() {
@@ -133,9 +117,7 @@ class _ScoreSelectorScreenState extends State<ScoreSelectorScreen> {
                     child: TextField(
                       controller: _searchController,
                       onChanged: (val) {
-                        setState(() {
-                          _searchQuery = val;
-                        });
+                        ref.read(searchQueryProvider.notifier).updateQuery(val);
                       },
                       decoration: InputDecoration(
                         hintText: 'Buscar juego...',
@@ -154,12 +136,12 @@ class _ScoreSelectorScreenState extends State<ScoreSelectorScreen> {
                   Expanded(
                     flex: 1,
                     child: DropdownButtonFormField<int>(
-                      value: _selectedPlayerCount,
+                      initialValue: _selectedPlayerCount,
                       hint: const Text('-'),
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: _selectedPlayerCount != null
-                            ? Colors.blue.withOpacity(0.1)
+                            ? Colors.blue.withValues(alpha: 0.1)
                             : Colors.grey[100],
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -210,136 +192,182 @@ class _ScoreSelectorScreenState extends State<ScoreSelectorScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Anotadores Rápidos (Estándares)
-              Text(
-                'Anotadores Estándar',
-                style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blueGrey,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: _standardGames.map((game) {
-                  final isSelected = _selectedGame?.id == game.id;
-                  return Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                        right: game == _standardGames.first ? 8.0 : 0,
-                        left: game == _standardGames.last ? 8.0 : 0,
-                      ),
-                      child: GestureDetector(
-                        onTap: () => _onGameSelected(game),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(vertical: 24),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? Colors.blue.withOpacity(0.1)
-                                : Colors.white,
-                            border: Border.all(
-                              color: isSelected
-                                  ? Colors.blue
-                                  : Colors.grey[300]!,
-                              width: isSelected ? 2 : 1,
+              ref
+                  .watch(filteredGamesProvider)
+                  .when(
+                    data: (games) {
+                      final standardGames = games
+                          .where((g) => g.isStandard)
+                          .toList();
+                      final specificGames = games
+                          .where((g) => !g.isStandard)
+                          .toList();
+                      specificGames.sort((a, b) => a.name.compareTo(b.name));
+
+                      return Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Anotadores Rápidos (Estándares)
+                            Text(
+                              'Anotadores Estándar',
+                              style: textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blueGrey,
+                              ),
                             ),
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              if (isSelected)
-                                BoxShadow(
-                                  color: Colors.blue.withOpacity(0.2),
-                                  blurRadius: 8,
-                                  spreadRadius: 1,
-                                ),
-                            ],
-                          ),
-                          child: Column(
-                            children: [
-                              Icon(
-                                game.id == 'hp_tracker'
-                                    ? Icons.favorite
-                                    : Icons.star,
-                                color: game.id == 'hp_tracker'
-                                    ? Colors.red
-                                    : Colors.amber,
-                                size: 32,
+                            const SizedBox(height: 12),
+                            Row(
+                              children: standardGames.map((game) {
+                                final isSelected = _selectedGame?.id == game.id;
+                                return Expanded(
+                                  child: Padding(
+                                    padding: EdgeInsets.only(
+                                      right: game == standardGames.first
+                                          ? 8.0
+                                          : 0,
+                                      left: game == standardGames.last
+                                          ? 8.0
+                                          : 0,
+                                    ),
+                                    child: GestureDetector(
+                                      onTap: () => _onGameSelected(game),
+                                      child: AnimatedContainer(
+                                        duration: const Duration(
+                                          milliseconds: 200,
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 24,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: isSelected
+                                              ? Colors.blue.withValues(
+                                                  alpha: 0.1,
+                                                )
+                                              : Colors.white,
+                                          border: Border.all(
+                                            color: isSelected
+                                                ? Colors.blue
+                                                : Colors.grey[300]!,
+                                            width: isSelected ? 2 : 1,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
+                                          boxShadow: [
+                                            if (isSelected)
+                                              BoxShadow(
+                                                color: Colors.blue.withValues(
+                                                  alpha: 0.2,
+                                                ),
+                                                blurRadius: 8,
+                                                spreadRadius: 1,
+                                              ),
+                                          ],
+                                        ),
+                                        child: Column(
+                                          children: [
+                                            Icon(
+                                              game.id == 'hp_tracker'
+                                                  ? Icons.favorite
+                                                  : Icons.star,
+                                              color: game.id == 'hp_tracker'
+                                                  ? Colors.red
+                                                  : Colors.amber,
+                                              size: 32,
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              game.name,
+                                              textAlign: TextAlign.center,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                            const SizedBox(height: 24),
+
+                            // Otros Juegos
+                            Text(
+                              'Anotadores Personalizados',
+                              style: textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blueGrey,
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                game.name,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                ),
+                            ),
+                            const SizedBox(height: 12),
+                            Expanded(
+                              child: ListView.builder(
+                                itemCount: specificGames.length,
+                                itemBuilder: (context, index) {
+                                  final game = specificGames[index];
+                                  final isSelected =
+                                      _selectedGame?.id == game.id;
+
+                                  return Card(
+                                    elevation: 0,
+                                    margin: const EdgeInsets.only(bottom: 8),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      side: BorderSide(
+                                        color: isSelected
+                                            ? Colors.blue
+                                            : Colors.grey[300]!,
+                                        width: isSelected ? 2 : 1,
+                                      ),
+                                    ),
+                                    color: isSelected
+                                        ? Colors.blue.withValues(alpha: 0.05)
+                                        : Colors.white,
+                                    child: ListTile(
+                                      onTap: () => _onGameSelected(game),
+                                      leading: CircleAvatar(
+                                        backgroundColor: Colors.grey[200],
+                                        child: const Icon(
+                                          Icons.casino,
+                                          color: Colors.blueGrey,
+                                        ),
+                                      ),
+                                      title: Text(
+                                        game.name,
+                                        style: TextStyle(
+                                          fontWeight: isSelected
+                                              ? FontWeight.bold
+                                              : FontWeight.normal,
+                                        ),
+                                      ),
+                                      trailing: isSelected
+                                          ? const Icon(
+                                              Icons.check_circle,
+                                              color: Colors.blue,
+                                            )
+                                          : const Icon(
+                                              Icons.chevron_right,
+                                              color: Colors.grey,
+                                            ),
+                                    ),
+                                  );
+                                },
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ),
+                      );
+                    },
+                    loading: () => const Expanded(
+                      child: Center(child: CircularProgressIndicator()),
                     ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 24),
-
-              // Otros Juegos
-              Text(
-                'Anotadores Personalizados',
-                style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blueGrey,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: _filteredSpecificGames.length,
-                  itemBuilder: (context, index) {
-                    final game = _filteredSpecificGames[index];
-                    final isSelected = _selectedGame?.id == game.id;
-
-                    return Card(
-                      elevation: 0,
-                      margin: const EdgeInsets.only(bottom: 8),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(
-                          color: isSelected ? Colors.blue : Colors.grey[300]!,
-                          width: isSelected ? 2 : 1,
-                        ),
-                      ),
-                      color: isSelected
-                          ? Colors.blue.withOpacity(0.05)
-                          : Colors.white,
-                      child: ListTile(
-                        onTap: () => _onGameSelected(game),
-                        leading: CircleAvatar(
-                          backgroundColor: Colors.grey[200],
-                          child: const Icon(
-                            Icons.casino,
-                            color: Colors.blueGrey,
-                          ),
-                        ),
-                        title: Text(
-                          game.name,
-                          style: TextStyle(
-                            fontWeight: isSelected
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                          ),
-                        ),
-                        trailing: isSelected
-                            ? const Icon(Icons.check_circle, color: Colors.blue)
-                            : const Icon(
-                                Icons.chevron_right,
-                                color: Colors.grey,
-                              ),
-                      ),
-                    );
-                  },
-                ),
-              ),
+                    error: (err, stack) =>
+                        Expanded(child: Center(child: Text('Error: $err'))),
+                  ),
               const SizedBox(height: 16),
 
               // Botón de Confirmar

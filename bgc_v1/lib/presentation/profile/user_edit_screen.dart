@@ -188,7 +188,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                   runSpacing: 12,
                   alignment: WrapAlignment.center,
                   children: _availableColors.map((color) {
-                    final isSelected = _selectedColor?.value == color.value;
+                    final isSelected = _selectedColor == color;
                     return GestureDetector(
                       onTap: () {
                         setState(() {
@@ -207,7 +207,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                           boxShadow: [
                             if (isSelected)
                               BoxShadow(
-                                color: color.withOpacity(0.5),
+                                color: color.withValues(alpha: 0.5),
                                 blurRadius: 8,
                                 spreadRadius: 2,
                               ),

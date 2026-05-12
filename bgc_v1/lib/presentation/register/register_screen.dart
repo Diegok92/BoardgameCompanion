@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:math';
+import '../../domain/models/user_model.dart';
+import '../providers/auth_provider.dart';
 
-class RegisterScreen extends StatefulWidget {
+class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   // Lista de colores para elegir, basados en la imagen
   final List<Color> _availableColors = [
     const Color(0xFFE53935), // Rojo
@@ -25,6 +29,63 @@ class _RegisterScreenState extends State<RegisterScreen> {
   ];
 
   Color? _selectedColor;
+
+  final _emailController = TextEditingController();
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _repeatPasswordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _usernameController.dispose();
+    _passwordController.dispose();
+    _repeatPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _register() async {
+    final email = _emailController.text.trim();
+    final username = _usernameController.text.trim();
+    final password = _passwordController.text.trim();
+    final repeatPassword = _repeatPasswordController.text.trim();
+
+    if (email.isEmpty || username.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, completa todos los campos')),
+      );
+      return;
+    }
+
+    if (password != repeatPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Las contraseñas no coinciden')),
+      );
+      return;
+    }
+
+    final newUser = User(
+      id: Random().nextInt(10000).toString(), // ID aleatorio simple
+      username: username,
+      email: email,
+      password: password,
+      favoriteColor: _selectedColor,
+      invitados: [],
+    );
+
+    try {
+      await ref.read(authProvider.notifier).register(newUser);
+      if (mounted) {
+        context.go('/home');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.toString())));
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +147,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 32),
 
                   // Email
-                  _buildTextField('EMAIL', 'nombre@ejemplo.com', textTheme),
+                  _buildTextField(
+                    'EMAIL',
+                    'nombre@ejemplo.com',
+                    textTheme,
+                    controller: _emailController,
+                  ),
                   const SizedBox(height: 16),
 
                   // Nombre de Usuario
@@ -94,6 +160,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     'NOMBRE DE USUARIO',
                     'Ej: MagoSupremo',
                     textTheme,
+                    controller: _usernameController,
                   ),
                   const SizedBox(height: 24),
 
@@ -130,7 +197,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             boxShadow: [
                               if (isSelected)
                                 BoxShadow(
-                                  color: color.withOpacity(0.5),
+                                  color: color.withValues(alpha: 0.5),
                                   blurRadius: 8,
                                   spreadRadius: 2,
                                 ),
@@ -148,6 +215,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     '............',
                     textTheme,
                     isPassword: true,
+                    controller: _passwordController,
                   ),
                   const SizedBox(height: 16),
 
@@ -157,6 +225,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     '............',
                     textTheme,
                     isPassword: true,
+                    controller: _repeatPasswordController,
                   ),
                   const SizedBox(height: 32),
 
@@ -165,9 +234,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     width: double.infinity,
                     height: 50,
                     child: FilledButton(
-                      onPressed: () {
-                        // Acción de registro
-                      },
+                      onPressed: _register,
                       child: const Text('REGISTRARSE'),
                     ),
                   ),
@@ -204,6 +271,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     String hint,
     TextTheme textTheme, {
     bool isPassword = false,
+    TextEditingController? controller,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -211,6 +279,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         Text(label, style: textTheme.labelSmall),
         const SizedBox(height: 8),
         TextFormField(
+          controller: controller,
           obscureText: isPassword,
           decoration: InputDecoration(hintText: hint),
         ),

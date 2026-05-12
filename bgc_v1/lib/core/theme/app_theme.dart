@@ -1,20 +1,24 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Colores Base
-  static const Color primaryColor = Color(0xFF10B981); // Verde principal
-  static const Color backgroundColor = Colors.white;
-  static const Color textColor = Color(0xFF1E293B); // Texto oscuro
-  static const Color subtitleColor = Colors.blueGrey;
+  final Color seedColor;
+  final bool isDarkMode;
+
+  AppTheme({
+    this.seedColor = const Color(0xFF10B981), // Verde principal por defecto
+    this.isDarkMode = false,
+  });
 
   ThemeData getTheme() {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: seedColor,
+      brightness: isDarkMode ? Brightness.dark : Brightness.light,
+    );
+
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: primaryColor,
-        background: backgroundColor,
-      ),
-      scaffoldBackgroundColor: backgroundColor,
+      colorScheme: colorScheme,
+      scaffoldBackgroundColor: colorScheme.surface,
 
       // Configuración global de los TextFields
       inputDecorationTheme: InputDecorationTheme(
@@ -33,15 +37,15 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: primaryColor, width: 2),
+          borderSide: BorderSide(color: colorScheme.primary, width: 2),
         ),
       ),
 
       // Configuración global de los botones verdes (FilledButton)
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: primaryColor,
-          foregroundColor: Colors.white,
+          backgroundColor: colorScheme.primary,
+          foregroundColor: colorScheme.onPrimary,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -73,19 +77,22 @@ class AppTheme {
       ),
 
       // Tipografías globales
-      textTheme: const TextTheme(
+      textTheme: TextTheme(
         headlineSmall: TextStyle(
           fontSize: 24,
           fontWeight: FontWeight.bold,
-          color: textColor,
+          color: colorScheme.onSurface,
         ),
-        bodyMedium: TextStyle(fontSize: 14, color: subtitleColor),
+        bodyMedium: TextStyle(
+          fontSize: 14,
+          color: colorScheme.onSurfaceVariant,
+        ),
         labelSmall: TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.bold,
-          color: subtitleColor,
+          color: colorScheme.onSurfaceVariant,
         ),
-        bodySmall: TextStyle(fontSize: 12, color: Colors.grey),
+        bodySmall: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
       ),
     );
   }

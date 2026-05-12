@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../../data/mock/mock_database.dart';
 import '../providers/auth_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -16,34 +15,41 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  void _login() {
+  Future<void> _login() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    final isValid = MockDatabase.users.any(
-      (u) => u.email == email && u.password == password,
-    );
-
-    if (isValid) {
-      final user = MockDatabase.users.firstWhere(
-        (u) => u.email == email && u.password == password,
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Por favor, ingresa email y contraseña.'),
+          backgroundColor: Colors.red,
+        ),
       );
+      return;
+    }
 
-      // Guardamos la sesión en Riverpod
-      ref.read(authProvider.notifier).login(user);
+    final success = await ref
+        .read(authProvider.notifier)
+        .login(email, password);
 
+    if (success) {
       // Navegamos al Home
       if (mounted) {
         context.go('/home');
       }
     } else {
       // Login fallido
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Credenciales incorrectas. (Pista: m@m.com / 123)'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Credenciales incorrectas. (Pista: mago@test.com / password123)',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 

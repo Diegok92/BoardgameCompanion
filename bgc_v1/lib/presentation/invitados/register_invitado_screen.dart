@@ -189,8 +189,9 @@ class _RegisterInvitadoScreenState
                             ),
                             child: ListTile(
                               leading: CircleAvatar(
-                                backgroundColor: colorScheme.primary
-                                    .withOpacity(0.2),
+                                backgroundColor: colorScheme.primary.withValues(
+                                  alpha: 0.2,
+                                ),
                                 child: Text(
                                   invitado[0].toUpperCase(),
                                   style: TextStyle(

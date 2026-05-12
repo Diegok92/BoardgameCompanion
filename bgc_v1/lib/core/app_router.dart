@@ -7,6 +7,7 @@ import '../presentation/profile/user_edit_screen.dart';
 import '../presentation/scores/score_selector_screen.dart';
 import '../presentation/accessories/accessories_screen.dart';
 import '../presentation/accessories/coin_flip_screen.dart';
+import '../presentation/settings/config_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/login',
@@ -38,6 +39,12 @@ final appRouter = GoRouter(
       path: '/score-selector',
       builder: (context, state) {
         return const ScoreSelectorScreen();
+      },
+    ),
+    GoRoute(
+      path: '/config',
+      builder: (context, state) {
+        return const ConfigScreen();
       },
     ),
     GoRoute(

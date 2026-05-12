@@ -1,5 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/user_model.dart';
+import '../../data/repositories/auth_repository.dart';
+
+final authRepositoryProvider = Provider((ref) => AuthRepository());
 
 // Provider que expone y permite mutar el estado del usuario logueado.
 // Retorna 'null' si no hay sesión activa.
@@ -8,12 +11,25 @@ final authProvider = NotifierProvider<AuthNotifier, User?>(() {
 });
 
 class AuthNotifier extends Notifier<User?> {
+  late final AuthRepository _repository;
+
   @override
   User? build() {
+    _repository = ref.watch(authRepositoryProvider);
     return null; // Inicialmente no hay usuario logueado
   }
 
-  void login(User user) {
+  Future<bool> login(String email, String password) async {
+    final user = await _repository.login(email, password);
+    if (user != null) {
+      state = user;
+      return true;
+    }
+    return false;
+  }
+
+  Future<void> register(User newUser) async {
+    final user = await _repository.register(newUser);
     state = user;
   }
 
@@ -21,11 +37,9 @@ class AuthNotifier extends Notifier<User?> {
     state = null;
   }
 
-  void updateUser(User updatedUser) {
-    // Solo actualizamos si hay un usuario logueado
+  Future<void> updateUser(User updatedUser) async {
     if (state != null) {
-      // Opcional: También podríamos buscarlo en la DB simulada y actualizarlo ahí
-      // para que persista, pero por ahora solo actualizamos la sesión activa.
+      await _repository.updateUser(updatedUser);
       state = updatedUser;
     }
   }
