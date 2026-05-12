@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import '../../domain/models/user_model.dart';
 import '../../domain/models/game_model.dart';
 import '../../data/mock/mock_games_database.dart';
 
 class ScoreSelectorScreen extends StatefulWidget {
-  final User user;
-
-  const ScoreSelectorScreen({super.key, required this.user});
+  const ScoreSelectorScreen({super.key});
 
   @override
   State<ScoreSelectorScreen> createState() => _ScoreSelectorScreenState();

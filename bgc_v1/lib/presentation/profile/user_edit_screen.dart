@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import '../../domain/models/user_model.dart';
+import '../providers/auth_provider.dart';
 
-class UserEditScreen extends StatefulWidget {
-  final User user;
-
-  const UserEditScreen({super.key, required this.user});
+class UserEditScreen extends ConsumerStatefulWidget {
+  const UserEditScreen({super.key});
 
   @override
-  State<UserEditScreen> createState() => _UserEditScreenState();
+  ConsumerState<UserEditScreen> createState() => _UserEditScreenState();
 }
 
-class _UserEditScreenState extends State<UserEditScreen> {
+class _UserEditScreenState extends ConsumerState<UserEditScreen> {
   // Lista de colores disponibles
   final List<Color> _availableColors = [
     const Color(0xFFE53935), // Rojo
@@ -35,10 +34,26 @@ class _UserEditScreenState extends State<UserEditScreen> {
   @override
   void initState() {
     super.initState();
-    _selectedColor = widget.user.favoriteColor;
-    _emailController = TextEditingController(text: widget.user.email);
-    _usernameController = TextEditingController(text: widget.user.username);
-    _passwordController = TextEditingController(text: widget.user.password);
+    // No podemos usar ref.watch en initState, pero podemos usar ref.read
+    // Esto asegura que inicializamos los campos con los datos actuales.
+    _emailController = TextEditingController();
+    _usernameController = TextEditingController();
+    _passwordController = TextEditingController();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Leemos el usuario una sola vez para inicializar los controllers
+    if (_usernameController.text.isEmpty) {
+      final user = ref.read(authProvider);
+      if (user != null) {
+        _usernameController.text = user.username;
+        _emailController.text = user.email;
+        _passwordController.text = user.password;
+        _selectedColor = user.favoriteColor ?? Colors.blue;
+      }
+    }
   }
 
   @override
@@ -49,14 +64,27 @@ class _UserEditScreenState extends State<UserEditScreen> {
     super.dispose();
   }
 
-  void _saveChanges() {
-    // Actualizamos el objeto User en memoria
-    widget.user.email = _emailController.text.trim();
-    widget.user.username = _usernameController.text.trim();
-    widget.user.password = _passwordController.text.trim();
-    widget.user.favoriteColor = _selectedColor;
+  void _saveProfile() {
+    final user = ref.read(authProvider);
+    if (user == null) return;
 
-    // Simula guardar en base de datos y vuelve a la Home
+    final updatedUser = user.copyWith(
+      username: _usernameController.text.trim(),
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+      favoriteColor: _selectedColor,
+    );
+
+    // Actualizamos el Provider
+    ref.read(authProvider.notifier).updateUser(updatedUser);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Perfil actualizado exitosamente.'),
+        backgroundColor: Colors.green,
+      ),
+    );
+
     context.pop();
   }
 
@@ -201,16 +229,24 @@ class _UserEditScreenState extends State<UserEditScreen> {
                 ),
                 const SizedBox(height: 32),
 
-                // Botón Guardar Cambios
+                // Botón Guardar
                 SizedBox(
                   width: double.infinity,
-                  height: 50,
+                  height: 56,
                   child: FilledButton(
-                    onPressed: _saveChanges,
+                    onPressed: _saveProfile,
                     style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF10B981), // Verde
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
-                    child: const Text('GUARDAR CAMBIOS'),
+                    child: const Text(
+                      'GUARDAR CAMBIOS',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
               ],

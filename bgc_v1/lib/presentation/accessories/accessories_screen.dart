@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import '../../domain/models/user_model.dart';
 import '../../domain/models/accessory_model.dart';
 import '../../data/mock/mock_accessories_database.dart';
-import 'coin_flip_screen.dart';
 
 class AccessoriesScreen extends StatelessWidget {
-  final User user;
-
-  const AccessoriesScreen({super.key, required this.user});
+  const AccessoriesScreen({super.key});
 
   void _openAccessory(BuildContext context, Accessory accessory) {
     final accessoryName = accessory.name.toLowerCase();

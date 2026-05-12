@@ -1,22 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import '../../domain/models/user_model.dart';
+import '../providers/auth_provider.dart';
 import 'widgets/home_menu_button.dart';
 
-class HomeScreen extends StatefulWidget {
-  final User user;
-
-  const HomeScreen({super.key, required this.user});
+class HomeScreen extends ConsumerWidget {
+  const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
+    final user = ref.watch(authProvider);
+
+    if (user == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.go('/login');
+      });
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    final String initials = user.username.isNotEmpty
+        ? user.username.substring(0, 1).toUpperCase()
+        : '?';
 
     return Scaffold(
       appBar: AppBar(
@@ -59,23 +65,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     // --- SECCIÓN 1: PERFIL ---
                     GestureDetector(
-                      onTap: () async {
-                        // Navegar a editar usuario y esperar a que vuelva
-                        await context.push('/user-edit', extra: widget.user);
-                        // Al volver, refrescamos la pantalla
-                        setState(() {});
+                      onTap: () {
+                        context.push('/user-edit');
                       },
                       child: Stack(
                         alignment: Alignment.bottomRight,
                         children: [
                           CircleAvatar(
                             radius: 40,
-                            backgroundColor:
-                                widget.user.favoriteColor ?? Colors.grey[300],
-                            child: const Icon(
-                              Icons.person,
-                              size: 50,
-                              color: Colors.white,
+                            backgroundColor: user.favoriteColor ?? Colors.blue,
+                            child: Text(
+                              initials,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                           Container(
@@ -95,7 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Hola, ${widget.user.username}!',
+                      'Hola, ${user.username}!',
                       style: textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: const Color(0xFF1E293B),
@@ -118,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       label: '+ AGREGAR INVITADOS',
                       backgroundColor: const Color(0xFFEF4444), // Rojo
                       onPressed: () {
-                        context.push('/invitados', extra: widget.user);
+                        context.push('/register-invitado');
                       },
                     ),
                     const SizedBox(height: 16),
@@ -128,7 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       label: 'ANOTADORES',
                       backgroundColor: const Color(0xFF10B981), // Verde
                       onPressed: () {
-                        context.push('/score-selector', extra: widget.user);
+                        context.push('/score-selector');
                       },
                     ),
                     const SizedBox(height: 16),
@@ -138,7 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       label: 'ACCESORIOS',
                       backgroundColor: const Color(0xFF3B82F6), // Azul
                       onPressed: () {
-                        context.push('/accessories', extra: widget.user);
+                        context.push('/accessories');
                       },
                     ),
 

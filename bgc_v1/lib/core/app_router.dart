@@ -7,7 +7,6 @@ import '../presentation/profile/user_edit_screen.dart';
 import '../presentation/scores/score_selector_screen.dart';
 import '../presentation/accessories/accessories_screen.dart';
 import '../presentation/accessories/coin_flip_screen.dart';
-import '../domain/models/user_model.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/login',
@@ -20,36 +19,31 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/home',
       builder: (context, state) {
-        final user = state.extra as User;
-        return HomeScreen(user: user);
+        return const HomeScreen();
       },
     ),
     GoRoute(
-      path: '/invitados',
+      path: '/register-invitado',
       builder: (context, state) {
-        final user = state.extra as User;
-        return RegisterInvitadoScreen(user: user);
+        return const RegisterInvitadoScreen();
       },
     ),
     GoRoute(
       path: '/user-edit',
       builder: (context, state) {
-        final user = state.extra as User;
-        return UserEditScreen(user: user);
+        return const UserEditScreen();
       },
     ),
     GoRoute(
       path: '/score-selector',
       builder: (context, state) {
-        final user = state.extra as User;
-        return ScoreSelectorScreen(user: user);
+        return const ScoreSelectorScreen();
       },
     ),
     GoRoute(
       path: '/accessories',
       builder: (context, state) {
-        final user = state.extra as User;
-        return AccessoriesScreen(user: user);
+        return const AccessoriesScreen();
       },
     ),
     GoRoute(

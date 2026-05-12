@@ -1,27 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import '../../domain/models/user_model.dart';
+import '../providers/auth_provider.dart';
 
-class RegisterInvitadoScreen extends StatefulWidget {
-  final User user;
-
-  const RegisterInvitadoScreen({super.key, required this.user});
+class RegisterInvitadoScreen extends ConsumerStatefulWidget {
+  const RegisterInvitadoScreen({super.key});
 
   @override
-  State<RegisterInvitadoScreen> createState() => _RegisterInvitadoScreenState();
+  ConsumerState<RegisterInvitadoScreen> createState() =>
+      _RegisterInvitadoScreenState();
 }
 
-class _RegisterInvitadoScreenState extends State<RegisterInvitadoScreen> {
-  late List<String> _invitados;
+class _RegisterInvitadoScreenState
+    extends ConsumerState<RegisterInvitadoScreen> {
   final TextEditingController _nameController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    // Inicializamos el estado local con la lista de invitados del usuario
-    _invitados = List.from(widget.user.invitados);
-  }
 
   @override
   void dispose() {
@@ -32,24 +25,18 @@ class _RegisterInvitadoScreenState extends State<RegisterInvitadoScreen> {
   void _addInvitado() {
     final name = _nameController.text.trim();
     if (name.isNotEmpty) {
-      setState(() {
-        _invitados.add(name);
-        widget.user.invitados.add(name); // Simula guardado en BD
-      });
+      ref.read(authProvider.notifier).addInvitado(name);
       _nameController.clear();
     }
   }
 
   void _deleteInvitado(int index) {
-    setState(() {
-      final removed = _invitados.removeAt(index);
-      widget.user.invitados.remove(removed); // Simula borrado en BD
-    });
+    ref.read(authProvider.notifier).removeInvitado(index);
   }
 
-  void _editInvitado(int index) {
+  void _editInvitado(int index, String currentName) {
     final TextEditingController editController = TextEditingController(
-      text: _invitados[index],
+      text: currentName,
     );
 
     showDialog(
@@ -70,14 +57,7 @@ class _RegisterInvitadoScreenState extends State<RegisterInvitadoScreen> {
               onPressed: () {
                 final newName = editController.text.trim();
                 if (newName.isNotEmpty) {
-                  setState(() {
-                    // Simula edición en BD
-                    final oldName = _invitados[index];
-                    widget.user.invitados.remove(oldName);
-                    widget.user.invitados.add(newName);
-
-                    _invitados[index] = newName;
-                  });
+                  ref.read(authProvider.notifier).editInvitado(index, newName);
                   Navigator.pop(context);
                 }
               },
@@ -93,6 +73,9 @@ class _RegisterInvitadoScreenState extends State<RegisterInvitadoScreen> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
+
+    final user = ref.watch(authProvider);
+    final invitados = user?.invitados ?? [];
 
     return Scaffold(
       appBar: AppBar(
@@ -127,8 +110,17 @@ class _RegisterInvitadoScreenState extends State<RegisterInvitadoScreen> {
               // Avatar del usuario
               CircleAvatar(
                 radius: 40,
-                backgroundColor: Colors.grey[300],
-                child: const Icon(Icons.person, size: 50, color: Colors.grey),
+                backgroundColor: user?.favoriteColor ?? Colors.blue,
+                child: Text(
+                  user?.username.isNotEmpty == true
+                      ? user!.username.substring(0, 1).toUpperCase()
+                      : '?',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
               Text(
@@ -173,7 +165,7 @@ class _RegisterInvitadoScreenState extends State<RegisterInvitadoScreen> {
 
               // Lista de invitados
               Expanded(
-                child: _invitados.isEmpty
+                child: invitados.isEmpty
                     ? Center(
                         child: Text(
                           'Aún no tienes invitados registrados.',
@@ -183,11 +175,11 @@ class _RegisterInvitadoScreenState extends State<RegisterInvitadoScreen> {
                         ),
                       )
                     : ListView.separated(
-                        itemCount: _invitados.length,
+                        itemCount: invitados.length,
                         separatorBuilder: (context, index) =>
                             const SizedBox(height: 8),
                         itemBuilder: (context, index) {
-                          final invitado = _invitados[index];
+                          final invitado = invitados[index];
                           return Card(
                             elevation: 0,
                             color: Colors.grey[100],
@@ -221,7 +213,8 @@ class _RegisterInvitadoScreenState extends State<RegisterInvitadoScreen> {
                                       Icons.edit,
                                       color: Colors.blue,
                                     ),
-                                    onPressed: () => _editInvitado(index),
+                                    onPressed: () =>
+                                        _editInvitado(index, invitado),
                                   ),
                                   IconButton(
                                     icon: const Icon(

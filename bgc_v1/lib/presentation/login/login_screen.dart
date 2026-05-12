@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../data/mock/mock_database.dart';
+import '../providers/auth_provider.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
@@ -18,11 +20,22 @@ class _LoginScreenState extends State<LoginScreen> {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    final user = MockDatabase.authenticate(email, password);
+    final isValid = MockDatabase.users.any(
+      (u) => u.email == email && u.password == password,
+    );
 
-    if (user != null) {
-      // Login exitoso
-      context.go('/home', extra: user);
+    if (isValid) {
+      final user = MockDatabase.users.firstWhere(
+        (u) => u.email == email && u.password == password,
+      );
+
+      // Guardamos la sesión en Riverpod
+      ref.read(authProvider.notifier).login(user);
+
+      // Navegamos al Home
+      if (mounted) {
+        context.go('/home');
+      }
     } else {
       // Login fallido
       ScaffoldMessenger.of(context).showSnackBar(
