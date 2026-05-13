@@ -16,6 +16,13 @@ class AccessoriesScreen extends ConsumerWidget {
       return;
     }
 
+    // Agregue el accesorio de dado
+
+    if (accessoryName.contains('dados') || accessoryName.contains('dice')) {
+      context.push('/dice-roll');
+      return;
+    }
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Abriendo accesorio: ${accessory.name}...'),
