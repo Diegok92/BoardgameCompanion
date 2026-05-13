@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "592182688789",
+    "project_id": "bgc-tp3",
+    "storage_bucket": "bgc-tp3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:592182688789:android:ddaedfef81d8162c06e21c",
+        "android_client_info": {
+          "package_name": "com.example.bgc_v1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCAxd_mYbGEEe3QhnzwoZTMDmGkwOyRgPA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
