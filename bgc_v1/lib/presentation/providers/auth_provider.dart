@@ -44,26 +44,26 @@ class AuthNotifier extends Notifier<User?> {
     }
   }
 
-  void addInvitado(String nombreInvitado) {
+  Future<void> addInvitado(String nombreInvitado) async {
     if (state != null) {
       final updatedList = List<String>.from(state!.invitados)
         ..add(nombreInvitado);
-      state = state!.copyWith(invitados: updatedList);
+      await updateUser(state!.copyWith(invitados: updatedList));
     }
   }
 
-  void editInvitado(int index, String newName) {
+  Future<void> editInvitado(int index, String newName) async {
     if (state != null && index >= 0 && index < state!.invitados.length) {
       final updatedList = List<String>.from(state!.invitados);
       updatedList[index] = newName;
-      state = state!.copyWith(invitados: updatedList);
+      await updateUser(state!.copyWith(invitados: updatedList));
     }
   }
 
-  void removeInvitado(int index) {
+  Future<void> removeInvitado(int index) async {
     if (state != null && index >= 0 && index < state!.invitados.length) {
       final updatedList = List<String>.from(state!.invitados)..removeAt(index);
-      state = state!.copyWith(invitados: updatedList);
+      await updateUser(state!.copyWith(invitados: updatedList));
     }
   }
 }

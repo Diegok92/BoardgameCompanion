@@ -1,6 +1,6 @@
 import '../../domain/models/game_model.dart';
 
-class MockGamesDatabase {
+class LocalGamesCatalog {
   static const List<Game> games = [
     Game(
       id: 'hp_tracker',

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../domain/models/accessory_model.dart';
 
-class MockAccessoriesDatabase {
+class LocalAccessoriesCatalog {
   static const List<Accessory> accessories = [
     Accessory(
       id: 'dados',

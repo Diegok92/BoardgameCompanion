@@ -34,4 +34,28 @@ class User {
       invitados: invitados ?? this.invitados,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'username': username,
+      'email': email,
+      // Guardamos el color como entero
+      'favoriteColor': favoriteColor?.toARGB32(),
+      'invitados': invitados,
+      // IMPORTANTE: NUNCA guardamos la contraseña en Firestore
+    };
+  }
+
+  factory User.fromJson(String id, Map<String, dynamic> json) {
+    return User(
+      id: id,
+      username: json['username'] ?? '',
+      email: json['email'] ?? '',
+      password: '', // Firebase Auth maneja la contraseña, no viene de Firestore
+      favoriteColor: json['favoriteColor'] != null
+          ? Color(json['favoriteColor'])
+          : null,
+      invitados: List<String>.from(json['invitados'] ?? []),
+    );
+  }
 }
