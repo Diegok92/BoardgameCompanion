@@ -8,6 +8,6 @@ class Game {
     required this.id,
     required this.name,
     this.isStandard = false,
-    required this.validPlayerCounts,
+    this.validPlayerCounts = const [],
   });
 }

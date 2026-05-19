@@ -64,15 +64,21 @@ class _ScoreSelectorScreenState extends ConsumerState<ScoreSelectorScreen> {
       return;
     }
 
-    // Aquí iría la navegación real. Por ahora, un SnackBar de confirmación.
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Abriendo anotador para ${_selectedGame!.name} con $_selectedPlayerCount jugadores...',
+    if (_selectedGame!.id == 'hp_tracker') {
+      context.push(
+        '/hp-tracker',
+        extra: {'playerCount': _selectedPlayerCount},
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'El anotador para ${_selectedGame!.name} aún no está implementado.',
+          ),
+          backgroundColor: Colors.orange,
         ),
-        backgroundColor: Colors.green,
-      ),
-    );
+      );
+    }
   }
 
   @override

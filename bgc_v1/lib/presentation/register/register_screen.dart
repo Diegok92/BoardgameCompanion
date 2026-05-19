@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:math';
 import '../../domain/models/user_model.dart';
 import '../providers/auth_provider.dart';
+import '../../core/theme/app_colors.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -14,20 +15,6 @@ class RegisterScreen extends ConsumerStatefulWidget {
 }
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
-  // Lista de colores para elegir, basados en la imagen
-  final List<Color> _availableColors = [
-    const Color(0xFFE53935), // Rojo
-    const Color(0xFFFB8C00), // Naranja
-    const Color(0xFFFDD835), // Amarillo
-    const Color(0xFF43A047), // Verde
-    const Color(0xFF00BCD4), // Celeste
-    const Color(0xFF1E88E5), // Azul
-    const Color(0xFF8E24AA), // Violeta
-    const Color(0xFFD81B60), // Rosa
-    const Color(0xFF6D4C41), // Marrón
-    const Color(0xFF607D8B), // Gris
-  ];
-
   Color? _selectedColor;
 
   final _emailController = TextEditingController();
@@ -177,7 +164,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     spacing: 12,
                     runSpacing: 12,
                     alignment: WrapAlignment.center,
-                    children: _availableColors.map((color) {
+                    children: AppColors.availableColors.map((color) {
                       final isSelected = _selectedColor == color;
                       return GestureDetector(
                         onTap: () {

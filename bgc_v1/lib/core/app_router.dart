@@ -5,6 +5,7 @@ import '../presentation/home/home_screen.dart';
 import '../presentation/invitados/register_invitado_screen.dart';
 import '../presentation/profile/user_edit_screen.dart';
 import '../presentation/scores/score_selector_screen.dart';
+import '../presentation/scores/hp_tracker_screen.dart';
 import '../presentation/accessories/accessories_screen.dart';
 import '../presentation/accessories/coin_flip_screen.dart';
 import '../presentation/settings/config_screen.dart';
@@ -39,6 +40,14 @@ final appRouter = GoRouter(
       path: '/score-selector',
       builder: (context, state) {
         return const ScoreSelectorScreen();
+      },
+    ),
+    GoRoute(
+      path: '/hp-tracker',
+      builder: (context, state) {
+        final extras = state.extra as Map<String, dynamic>?;
+        final playerCount = extras?['playerCount'] as int? ?? 2;
+        return HpTrackerScreen(playerCount: playerCount);
       },
     ),
     GoRoute(
