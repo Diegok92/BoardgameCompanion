@@ -58,18 +58,18 @@ class _HpShieldState extends State<HpShield> {
           children: [
             // Flechas internas
             Align(
-              alignment: const Alignment(0, -0.60),
+              alignment: const Alignment(0, -0.42),
               child: Icon(
                 Icons.keyboard_arrow_up,
-                size: 64,
+                size: shieldSize * 0.28,
                 color: widget.color.withValues(alpha: 0.6),
               ),
             ),
             Align(
-              alignment: const Alignment(0, 0.60),
+              alignment: const Alignment(0, 0.42),
               child: Icon(
                 Icons.keyboard_arrow_down,
-                size: 64,
+                size: shieldSize * 0.28,
                 color: widget.color.withValues(alpha: 0.6),
               ),
             ),

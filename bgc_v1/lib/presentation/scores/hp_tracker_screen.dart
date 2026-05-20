@@ -13,6 +13,8 @@ import '../providers/hp_tracker_provider.dart';
 import '../widgets/app_drawer.dart';
 import 'widgets/hp_tracker/layouts/single_player_layout.dart';
 import 'widgets/hp_tracker/layouts/two_player_layout.dart';
+import 'widgets/hp_tracker/layouts/three_player_layout.dart';
+import 'widgets/hp_tracker/layouts/four_player_layout.dart';
 import 'widgets/hp_tracker/hp_player_card.dart';
 
 class HpTrackerScreen extends ConsumerStatefulWidget {
@@ -64,6 +66,52 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
     if (state.players.length != 2) return const SizedBox.shrink();
     final usedColors = state.players.map((p) => p.color.toARGB32()).toSet();
     return TwoPlayerLayout(
+      players: state.players,
+      invitados: invitados,
+      usedColorsArgb: usedColors,
+      onNameChanged: (index, val) {
+        if (val == 'NUEVO_INVITADO') {
+          context.push('/register-invitado');
+        } else if (val != null) {
+          ref.read(hpTrackerProvider.notifier).updatePlayerName(index, val);
+        }
+      },
+      onColorChanged: (index, color) {
+        ref.read(hpTrackerProvider.notifier).updatePlayerColor(index, color);
+      },
+      onHpChange: (index, delta) {
+        ref.read(hpTrackerProvider.notifier).addHp(index, delta);
+      },
+    );
+  }
+
+  Widget _buildFourPlayerLayout(HpTrackerState state, List<String> invitados) {
+    if (state.players.length != 4) return const SizedBox.shrink();
+    final usedColors = state.players.map((p) => p.color.toARGB32()).toSet();
+    return FourPlayerLayout(
+      players: state.players,
+      invitados: invitados,
+      usedColorsArgb: usedColors,
+      onNameChanged: (index, val) {
+        if (val == 'NUEVO_INVITADO') {
+          context.push('/register-invitado');
+        } else if (val != null) {
+          ref.read(hpTrackerProvider.notifier).updatePlayerName(index, val);
+        }
+      },
+      onColorChanged: (index, color) {
+        ref.read(hpTrackerProvider.notifier).updatePlayerColor(index, color);
+      },
+      onHpChange: (index, delta) {
+        ref.read(hpTrackerProvider.notifier).addHp(index, delta);
+      },
+    );
+  }
+
+  Widget _buildThreePlayerLayout(HpTrackerState state, List<String> invitados) {
+    if (state.players.length != 3) return const SizedBox.shrink();
+    final usedColors = state.players.map((p) => p.color.toARGB32()).toSet();
+    return ThreePlayerLayout(
       players: state.players,
       invitados: invitados,
       usedColorsArgb: usedColors,
@@ -515,17 +563,21 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8.0,
-                          vertical: 8.0,
+                          vertical: 16.0, // Aumenté el padding vertical para despegarlo del header
                         ),
                         child: state.players.length == 1
                             ? _buildSinglePlayerLayout(state, invitados)
                             : state.players.length == 2
                                 ? _buildTwoPlayerLayout(state, invitados)
-                                : _buildGrid(state, invitados, orientation),
+                                : state.players.length == 3
+                                    ? _buildThreePlayerLayout(state, invitados)
+                                    : state.players.length == 4
+                                        ? _buildFourPlayerLayout(state, invitados)
+                                        : _buildGrid(state, invitados, orientation),
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.only(top: 8.0, bottom: 24.0, left: 16.0, right: 16.0),
+                      padding: const EdgeInsets.only(top: 8.0, bottom: 16.0, left: 16.0, right: 16.0), // Equilibré el padding de los controles
                       child: _buildControls(state),
                     ),
                   ],
@@ -590,7 +642,9 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
                             ? _buildSinglePlayerLayout(state, invitados)
                             : state.players.length == 2
                                 ? _buildTwoPlayerLayout(state, invitados)
-                                : _buildGrid(state, invitados, orientation),
+                                : state.players.length == 3
+                                    ? _buildThreePlayerLayout(state, invitados)
+                                    : _buildGrid(state, invitados, orientation),
                       ),
                     ),
                   ],
