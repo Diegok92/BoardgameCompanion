@@ -4,6 +4,7 @@ import 'dart:math';
 import '../../core/theme/app_colors.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../data/local_catalog/local_games_catalog.dart';
 import '../../domain/models/game_model.dart';
 import '../../domain/models/user_model.dart';
 
@@ -78,10 +79,17 @@ class HpTrackerNotifier extends Notifier<HpTrackerState> {
           color: Color(p['color']),
           hp: p['hp'],
         )).toList();
+        String? gameId = decoded['selectedGameId'];
+        Game? restoredGame;
+        if (gameId != null) {
+          try {
+            restoredGame = LocalGamesCatalog.trackerGames.firstWhere((g) => g.id == gameId);
+          } catch (_) {}
+        }
         
         state = HpTrackerState(
           players: restoredPlayers,
-          selectedGame: null,
+          selectedGame: restoredGame,
           initialHp: decoded['initialHp'] ?? initialHp,
         );
         return; // Carga exitosa desde local
@@ -150,6 +158,11 @@ class HpTrackerNotifier extends Notifier<HpTrackerState> {
     state = state.copyWith(initialHp: newInitial);
   }
 
+  void setInitialHp(int val) {
+    if (val < 1) val = 1;
+    state = state.copyWith(initialHp: val);
+  }
+
   void updatePlayerName(int index, String name) {
     final updatedPlayers = List<TrackerPlayer>.from(state.players);
     updatedPlayers[index] = updatedPlayers[index].copyWith(name: name);
@@ -184,6 +197,7 @@ class HpTrackerNotifier extends Notifier<HpTrackerState> {
         'hp': p.hp,
       }).toList(),
       'initialHp': state.initialHp,
+      'selectedGameId': state.selectedGame?.id,
     };
     
     await prefs.setString('tracker_state_$playerCount', jsonEncode(data));

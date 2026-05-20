@@ -12,6 +12,7 @@ import '../providers/auth_provider.dart';
 import '../providers/hp_tracker_provider.dart';
 import '../widgets/app_drawer.dart';
 import 'widgets/hp_tracker/layouts/single_player_layout.dart';
+import 'widgets/hp_tracker/layouts/two_player_layout.dart';
 import 'widgets/hp_tracker/hp_player_card.dart';
 
 class HpTrackerScreen extends ConsumerStatefulWidget {
@@ -55,6 +56,67 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
       },
       onHpChange: (delta) {
         ref.read(hpTrackerProvider.notifier).addHp(0, delta);
+      },
+    );
+  }
+
+  Widget _buildTwoPlayerLayout(HpTrackerState state, List<String> invitados) {
+    if (state.players.length != 2) return const SizedBox.shrink();
+    final usedColors = state.players.map((p) => p.color.toARGB32()).toSet();
+    return TwoPlayerLayout(
+      players: state.players,
+      invitados: invitados,
+      usedColorsArgb: usedColors,
+      onNameChanged: (index, val) {
+        if (val == 'NUEVO_INVITADO') {
+          context.push('/register-invitado');
+        } else if (val != null) {
+          ref.read(hpTrackerProvider.notifier).updatePlayerName(index, val);
+        }
+      },
+      onColorChanged: (index, color) {
+        ref.read(hpTrackerProvider.notifier).updatePlayerColor(index, color);
+      },
+      onHpChange: (index, delta) {
+        ref.read(hpTrackerProvider.notifier).addHp(index, delta);
+      },
+    );
+  }
+
+  void _showInitialHpDialog(BuildContext context, int currentHp) {
+    final TextEditingController controller = TextEditingController(text: currentHp.toString());
+    controller.selection = TextSelection(baseOffset: 0, extentOffset: controller.text.length);
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Setear Vida Inicial'),
+          content: TextField(
+            controller: controller,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Vida Inicial',
+              border: OutlineInputBorder(),
+            ),
+            autofocus: true,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () {
+                final int? val = int.tryParse(controller.text);
+                if (val != null && val > 0) {
+                  ref.read(hpTrackerProvider.notifier).setInitialHp(val);
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text('Aceptar'),
+            ),
+          ],
+        );
       },
     );
   }
@@ -245,69 +307,78 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
   // _buildSaveButton removed
   Widget _buildControls(HpTrackerState state) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
+        Expanded(
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: IconButton.filledTonal(
+              iconSize: 28,
+              padding: const EdgeInsets.all(12),
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () async {
+                final nav = Navigator.of(context);
+                await ref.read(hpTrackerProvider.notifier).saveLocalState();
+                nav.pop();
+              },
+            ),
+          ),
+        ),
         Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Text(
               'Vida Inicial',
-              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey, fontSize: 14),
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey, fontSize: 12),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             Row(
               mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.restart_alt, color: Colors.white),
-                    onPressed: _confirmReset,
+                InkWell(
+                  onTap: () => _showInitialHpDialog(context, state.initialHp),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Text(
+                      '${state.initialHp}',
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
-                const SizedBox(width: 16),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: Colors.grey[300]!),
-                    borderRadius: BorderRadius.circular(12),
+                const SizedBox(width: 8),
+                IconButton.filled(
+                  style: IconButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.error,
+                    foregroundColor: Theme.of(context).colorScheme.onError,
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.remove, color: Colors.blue),
-                        onPressed: () => ref.read(hpTrackerProvider.notifier).changeInitialHp(-1),
-                      ),
-                      Text(
-                        '${state.initialHp}',
-                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.add, color: Colors.blue),
-                        onPressed: () => ref.read(hpTrackerProvider.notifier).changeInitialHp(1),
-                      ),
-                    ],
-                  ),
+                  iconSize: 20,
+                  padding: const EdgeInsets.all(12),
+                  icon: const Icon(Icons.restart_alt),
+                  onPressed: _confirmReset,
                 ),
               ],
             ),
           ],
         ),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.redAccent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.save, color: Colors.white),
-            onPressed: _confirmFinishMatch,
+        Expanded(
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: IconButton.filled(
+              iconSize: 28,
+              padding: const EdgeInsets.all(12),
+              style: IconButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+              ),
+              icon: const Icon(Icons.save),
+              onPressed: _confirmFinishMatch,
+            ),
           ),
         ),
       ],
@@ -410,9 +481,22 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
                           Builder(
                             builder: (context) => GestureDetector(
                               onTap: () => Scaffold.of(context).openDrawer(),
-                              child: SvgPicture.asset(
-                                'assets/images/logo.svg',
-                                height: 40,
+                              child: Row(
+                                children: [
+                                  SvgPicture.asset(
+                                    'assets/images/logo.svg',
+                                    height: 40,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    'BG Companion',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -435,27 +519,14 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
                         ),
                         child: state.players.length == 1
                             ? _buildSinglePlayerLayout(state, invitados)
-                            : _buildGrid(state, invitados, orientation),
+                            : state.players.length == 2
+                                ? _buildTwoPlayerLayout(state, invitados)
+                                : _buildGrid(state, invitados, orientation),
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.only(top: 8.0, bottom: 32.0, left: 16.0, right: 16.0),
+                      padding: const EdgeInsets.only(top: 8.0, bottom: 24.0, left: 16.0, right: 16.0),
                       child: _buildControls(state),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 24.0),
-                      child: SizedBox(
-                        width: double.infinity,
-                        height: 48,
-                        child: OutlinedButton.icon(
-                          onPressed: () async {
-                            await ref.read(hpTrackerProvider.notifier).saveLocalState();
-                            if (context.mounted) context.pop();
-                          },
-                          icon: const Icon(Icons.arrow_back),
-                          label: const Text('Volver al Inicio', style: TextStyle(fontSize: 16)),
-                        ),
-                      ),
                     ),
                   ],
                 );
@@ -480,9 +551,22 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
                                 builder: (context) => GestureDetector(
                                   onTap: () =>
                                       Scaffold.of(context).openDrawer(),
-                                  child: SvgPicture.asset(
-                                    'assets/images/logo.svg',
-                                    height: 40,
+                                  child: Row(
+                                    children: [
+                                      SvgPicture.asset(
+                                        'assets/images/logo.svg',
+                                        height: 40,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      const Text(
+                                        'BG Companion',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
@@ -496,15 +580,6 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
                             fit: BoxFit.scaleDown,
                             child: _buildControls(state),
                           ),
-                          const SizedBox(height: 16),
-                          OutlinedButton.icon(
-                            onPressed: () async {
-                              await ref.read(hpTrackerProvider.notifier).saveLocalState();
-                              if (context.mounted) context.pop();
-                            },
-                            icon: const Icon(Icons.arrow_back),
-                            label: const Text('Volver al Inicio'),
-                          ),
                         ],
                       ),
                     ),
@@ -513,7 +588,9 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
                         padding: const EdgeInsets.all(12.0),
                         child: state.players.length == 1
                             ? _buildSinglePlayerLayout(state, invitados)
-                            : _buildGrid(state, invitados, orientation),
+                            : state.players.length == 2
+                                ? _buildTwoPlayerLayout(state, invitados)
+                                : _buildGrid(state, invitados, orientation),
                       ),
                     ),
                   ],

@@ -56,20 +56,14 @@ class PlayerColorPicker extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => _showColorPicker(context),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 24,
-            height: 24,
-            decoration: BoxDecoration(
-              color: playerColor,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.black26, width: 1),
-            ),
-          ),
-          Icon(Icons.arrow_drop_down, color: playerColor, size: 22),
-        ],
+      child: Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          color: playerColor,
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.black26, width: 1),
+        ),
       ),
     );
   }
