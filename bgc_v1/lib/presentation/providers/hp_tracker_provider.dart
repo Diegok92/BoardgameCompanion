@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:math';
 import '../../core/theme/app_colors.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/models/game_model.dart';
 import '../../domain/models/user_model.dart';
 
@@ -62,7 +64,32 @@ class HpTrackerNotifier extends Notifier<HpTrackerState> {
     return HpTrackerState(players: [], initialHp: 0);
   }
 
-  void initialize(int playerCount, User user, int initialHp) {
+  Future<void> initialize(int playerCount, User user, int initialHp) async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedData = prefs.getString('tracker_state_$playerCount');
+    
+    if (savedData != null) {
+      try {
+        final decoded = jsonDecode(savedData);
+        final playersJson = decoded['players'] as List;
+        List<TrackerPlayer> restoredPlayers = playersJson.map((p) => TrackerPlayer(
+          index: p['index'],
+          name: p['name'],
+          color: Color(p['color']),
+          hp: p['hp'],
+        )).toList();
+        
+        state = HpTrackerState(
+          players: restoredPlayers,
+          selectedGame: null,
+          initialHp: decoded['initialHp'] ?? initialHp,
+        );
+        return; // Carga exitosa desde local
+      } catch (e) {
+        // Fallback en caso de error
+      }
+    }
+
     List<TrackerPlayer> initialPlayers = [];
     
     // Obtener color del usuario, por defecto rojo si no tiene
@@ -141,6 +168,25 @@ class HpTrackerNotifier extends Notifier<HpTrackerState> {
       selectedGame: game,
       initialHp: state.initialHp,
     );
+  }
+
+  Future<void> saveLocalState() async {
+    if (state.players.isEmpty) return;
+    
+    final prefs = await SharedPreferences.getInstance();
+    final playerCount = state.players.length;
+    
+    final data = {
+      'players': state.players.map((p) => {
+        'index': p.index,
+        'name': p.name,
+        'color': p.color.toARGB32(),
+        'hp': p.hp,
+      }).toList(),
+      'initialHp': state.initialHp,
+    };
+    
+    await prefs.setString('tracker_state_$playerCount', jsonEncode(data));
   }
 }
 

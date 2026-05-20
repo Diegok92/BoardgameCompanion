@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
 import 'widgets/home_menu_button.dart';
+import '../widgets/app_drawer.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -44,54 +45,7 @@ class HomeScreen extends ConsumerWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-      drawer: Drawer(
-        child: Column(
-          children: [
-            UserAccountsDrawerHeader(
-              decoration: BoxDecoration(
-                color: user.favoriteColor ?? Colors.blue,
-              ),
-              currentAccountPicture: CircleAvatar(
-                backgroundColor: Colors.white24,
-                child: Text(
-                  initials,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              accountName: Text(
-                user.username,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              accountEmail: Text(user.email),
-            ),
-            ListTile(
-              leading: const Icon(Icons.person_outline),
-              title: const Text('Perfil'),
-              onTap: () {
-                // Cerrar Drawer
-                Navigator.pop(context);
-                // Navegar a editar perfil
-                context.push('/user-edit');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings_outlined),
-              title: const Text('Configuración'),
-              onTap: () {
-                Navigator.pop(context); // Cierra el Drawer
-                context.push('/config');
-              },
-            ),
-          ],
-        ),
-      ),
+      drawer: const AppDrawer(),
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
