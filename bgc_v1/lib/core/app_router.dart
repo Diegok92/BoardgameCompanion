@@ -8,6 +8,7 @@ import '../presentation/scores/score_selector_screen.dart';
 import '../presentation/scores/hp_tracker_screen.dart';
 import '../presentation/accessories/accessories_screen.dart';
 import '../presentation/accessories/coin_flip_screen.dart';
+import '../presentation/accessories/dice_screen.dart';
 import '../presentation/settings/config_screen.dart';
 
 final appRouter = GoRouter(
@@ -66,6 +67,12 @@ final appRouter = GoRouter(
       path: '/coin-flip',
       builder: (context, state) {
         return const CoinFlipScreen();
+      },
+    ),
+        GoRoute(
+      path: '/dice-roll',
+      builder: (context, state) {
+        return const DiceRollScreen();
       },
     ),
   ],
