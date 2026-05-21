@@ -33,8 +33,16 @@ class AuthNotifier extends Notifier<User?> {
     state = user;
   }
 
-  void logout() {
+  Future<void> logout() async {
+    await _repository.logout();
     state = null;
+  }
+
+  Future<void> deleteAccount() async {
+    if (state != null) {
+      await _repository.softDeleteUser(state!.id);
+      state = null;
+    }
   }
 
   Future<void> updateUser(User updatedUser) async {

@@ -274,6 +274,9 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
 
       final repo = PartidasRepository();
       await repo.registrarPartida(userId, partida);
+      
+      // Limpiamos el estado local para que la próxima vez inicie limpia
+      await ref.read(hpTrackerProvider.notifier).clearLocalState();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

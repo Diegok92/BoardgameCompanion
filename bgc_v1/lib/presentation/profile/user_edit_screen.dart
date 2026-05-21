@@ -64,7 +64,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
     super.dispose();
   }
 
-  void _saveProfile() {
+  Future<void> _saveProfile() async {
     final user = ref.read(authProvider);
     if (user == null) return;
 
@@ -75,17 +75,94 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
       favoriteColor: _selectedColor,
     );
 
-    // Actualizamos el Provider
-    ref.read(authProvider.notifier).updateUser(updatedUser);
+    try {
+      // Actualizamos el Provider
+      await ref.read(authProvider.notifier).updateUser(updatedUser);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Perfil actualizado exitosamente.'),
-        backgroundColor: Colors.green,
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Perfil actualizado exitosamente.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      context.pop();
+    } catch (e) {
+      if (!mounted) return;
+      // Removemos el "Exception: " del mensaje si existe
+      final errorMsg = e.toString().replaceFirst('Exception: ', '');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMsg),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _confirmLogout() {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Cerrar Sesión'),
+        content: const Text('¿Estás seguro de que deseas cerrar sesión?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              await ref.read(authProvider.notifier).logout();
+              if (!mounted) return;
+              context.go('/login');
+            },
+            child: const Text('Cerrar Sesión'),
+          ),
+        ],
       ),
     );
+  }
 
-    context.pop();
+  void _confirmDeleteAccount() {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Eliminar Cuenta', style: TextStyle(color: Colors.red)),
+        content: const Text(
+          '¿Estás seguro de que deseas eliminar tu cuenta?\n\n'
+          'Esta acción no se puede deshacer y perderás el acceso a tu historial.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              try {
+                await ref.read(authProvider.notifier).deleteAccount();
+                if (!mounted) return;
+                context.go('/login');
+              } catch (e) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Error: ${e.toString()}'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -246,6 +323,45 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                
+                // Botón Cerrar Sesión
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: OutlinedButton(
+                    onPressed: _confirmLogout,
+                    style: OutlinedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      side: BorderSide(color: Theme.of(context).colorScheme.error),
+                    ),
+                    child: Text(
+                      'CERRAR SESIÓN',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                
+                // Botón Eliminar Cuenta
+                TextButton(
+                  onPressed: _confirmDeleteAccount,
+                  child: const Text(
+                    'ELIMINAR CUENTA',
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                      decoration: TextDecoration.underline,
+                      decorationColor: Colors.red,
                     ),
                   ),
                 ),

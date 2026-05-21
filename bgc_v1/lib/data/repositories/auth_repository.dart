@@ -23,7 +23,14 @@ class AuthRepository {
 
         if (doc.exists && doc.data() != null) {
           // Unimos el ID de Firebase Auth con los datos de Firestore
-          return User.fromJson(firebaseUser.uid, doc.data()!);
+          final user = User.fromJson(firebaseUser.uid, doc.data()!);
+          
+          if (!user.isActive) {
+            await _firebaseAuth.signOut();
+            throw Exception('Esta cuenta ha sido eliminada.');
+          }
+          
+          return user;
         }
       }
       return null;
@@ -61,10 +68,39 @@ class AuthRepository {
 
   Future<void> updateUser(User user) async {
     try {
-      // Actualizamos los datos en Firestore
+      // 1. Actualizamos los datos en Firestore
       await _firestore.collection('users').doc(user.id).update(user.toJson());
+      
+      // 2. Actualizamos credenciales en Firebase Auth si el usuario cambió algo
+      final currentUser = _firebaseAuth.currentUser;
+      if (currentUser != null) {
+        // Actualizar email si es diferente
+        if (user.email.isNotEmpty && user.email != currentUser.email) {
+          await currentUser.verifyBeforeUpdateEmail(user.email);
+        }
+        // Actualizar contraseña si escribió una nueva
+        if (user.password.isNotEmpty) {
+          await currentUser.updatePassword(user.password);
+        }
+      }
     } catch (e) {
-      print('Error al actualizar usuario en Firestore: $e');
+      print('Error al actualizar usuario: $e');
+      // Lanzamos la excepción para que la UI pueda atraparla y mostrar el error
+      throw Exception('No se pudo actualizar el perfil. Si cambiaste la contraseña o email, es posible que debas cerrar sesión y volver a entrar por seguridad.');
+    }
+  }
+
+  Future<void> logout() async {
+    await _firebaseAuth.signOut();
+  }
+
+  Future<void> softDeleteUser(String userId) async {
+    try {
+      await _firestore.collection('users').doc(userId).update({'isActive': false});
+      await logout();
+    } catch (e) {
+      print('Error al hacer soft delete del usuario: $e');
+      throw Exception('Error al borrar la cuenta.');
     }
   }
 }

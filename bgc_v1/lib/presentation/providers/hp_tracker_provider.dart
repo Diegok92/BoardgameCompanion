@@ -65,9 +65,18 @@ class HpTrackerNotifier extends Notifier<HpTrackerState> {
     return HpTrackerState(players: [], initialHp: 0);
   }
 
+  // Guardamos el userId actual para usarlo en saveLocalState()
+  String _currentUserId = '';
+
   Future<void> initialize(int playerCount, User user, int initialHp) async {
+    _currentUserId = user.id;
+
+    // Resetear estado para evitar datos residuales de otro usuario
+    state = HpTrackerState(players: [], initialHp: 0);
+
     final prefs = await SharedPreferences.getInstance();
-    final savedData = prefs.getString('tracker_state_$playerCount');
+    // Clave incluye el userId para aislar datos por usuario
+    final savedData = prefs.getString('tracker_state_${user.id}_$playerCount');
     
     if (savedData != null) {
       try {
@@ -184,7 +193,7 @@ class HpTrackerNotifier extends Notifier<HpTrackerState> {
   }
 
   Future<void> saveLocalState() async {
-    if (state.players.isEmpty) return;
+    if (state.players.isEmpty || _currentUserId.isEmpty) return;
     
     final prefs = await SharedPreferences.getInstance();
     final playerCount = state.players.length;
@@ -200,7 +209,15 @@ class HpTrackerNotifier extends Notifier<HpTrackerState> {
       'selectedGameId': state.selectedGame?.id,
     };
     
-    await prefs.setString('tracker_state_$playerCount', jsonEncode(data));
+    // Clave incluye el userId para aislar datos por usuario
+    await prefs.setString('tracker_state_${_currentUserId}_$playerCount', jsonEncode(data));
+  }
+
+  Future<void> clearLocalState() async {
+    if (state.players.isEmpty || _currentUserId.isEmpty) return;
+    final prefs = await SharedPreferences.getInstance();
+    final playerCount = state.players.length;
+    await prefs.remove('tracker_state_${_currentUserId}_$playerCount');
   }
 }
 

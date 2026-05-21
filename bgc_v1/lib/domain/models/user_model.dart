@@ -7,6 +7,7 @@ class User {
   final String password;
   final Color? favoriteColor;
   final List<String> invitados;
+  final bool isActive; // Para soft-delete
 
   const User({
     required this.id,
@@ -15,6 +16,7 @@ class User {
     required this.password,
     this.favoriteColor,
     required this.invitados,
+    this.isActive = true, // Por defecto activo
   });
 
   User copyWith({
@@ -24,6 +26,7 @@ class User {
     String? password,
     Color? favoriteColor,
     List<String>? invitados,
+    bool? isActive,
   }) {
     return User(
       id: id ?? this.id,
@@ -32,6 +35,7 @@ class User {
       password: password ?? this.password,
       favoriteColor: favoriteColor ?? this.favoriteColor,
       invitados: invitados ?? this.invitados,
+      isActive: isActive ?? this.isActive,
     );
   }
 
@@ -42,6 +46,7 @@ class User {
       // Guardamos el color como entero
       'favoriteColor': favoriteColor?.toARGB32(),
       'invitados': invitados,
+      'isActive': isActive,
       // IMPORTANTE: NUNCA guardamos la contraseña en Firestore
     };
   }
@@ -56,6 +61,7 @@ class User {
           ? Color(json['favoriteColor'])
           : null,
       invitados: List<String>.from(json['invitados'] ?? []),
+      isActive: json['isActive'] ?? true, // Si no existe (usuarios viejos), asumimos que está activo
     );
   }
 }
