@@ -101,10 +101,10 @@ class _HpShieldState extends State<HpShield> {
                   fontSize: shieldSize * 0.35,
                   height: 1.0,
                   fontWeight: FontWeight.w900,
-                  color: Colors.black87,
+                  color: Theme.of(context).colorScheme.onSurface,
                   shadows: [
                     Shadow(
-                      color: Colors.white.withValues(alpha: 0.9),
+                      color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
                       blurRadius: 8,
                     ),
                   ],
@@ -131,8 +131,8 @@ class _HpShieldState extends State<HpShield> {
                       color: _pendingDelta > 0
                           ? Colors.green[700]
                           : Colors.red[700],
-                      shadows: const [
-                        Shadow(color: Colors.white, blurRadius: 10),
+                      shadows: [
+                        Shadow(color: Theme.of(context).colorScheme.surface, blurRadius: 10),
                       ],
                     ),
                   ),

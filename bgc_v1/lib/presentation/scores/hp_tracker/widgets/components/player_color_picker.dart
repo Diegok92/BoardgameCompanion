@@ -62,7 +62,7 @@ class PlayerColorPicker extends StatelessWidget {
         decoration: BoxDecoration(
           color: playerColor,
           shape: BoxShape.circle,
-          border: Border.all(color: Colors.black26, width: 1),
+          border: Border.all(color: Theme.of(context).colorScheme.outlineVariant, width: 1),
         ),
       ),
     );

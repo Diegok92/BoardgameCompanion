@@ -77,14 +77,14 @@ class HomeScreen extends ConsumerWidget {
                       'Hola, ${user.username}!',
                       style: textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF1E293B),
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'A que vamos a jugar hoy?',
                       style: textTheme.bodyMedium?.copyWith(
-                        color: Colors.blueGrey,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
 
@@ -131,9 +131,7 @@ class HomeScreen extends ConsumerWidget {
                           child: HomeMenuButton(
                             icon: Icons.bar_chart,
                             label: 'ESTADÍSTICAS',
-                            backgroundColor: const Color(
-                              0xFFF1F5F9,
-                            ), // Gris claro
+                            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                             isSecondary: true,
                             onPressed: () {
                               // Navegar a estadísticas
@@ -145,9 +143,7 @@ class HomeScreen extends ConsumerWidget {
                           child: HomeMenuButton(
                             icon: Icons.history,
                             label: 'HISTORIAL',
-                            backgroundColor: const Color(
-                              0xFFF1F5F9,
-                            ), // Gris claro
+                            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                             isSecondary: true,
                             onPressed: () {
                               // Navegar a historial

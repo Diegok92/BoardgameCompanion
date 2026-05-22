@@ -106,8 +106,8 @@ class _FichasCalculatorDialogState extends State<FichasCalculatorDialog> {
         padding: const EdgeInsets.all(4.0),
         child: FilledButton(
           style: FilledButton.styleFrom(
-            backgroundColor: color ?? Colors.grey[200],
-            foregroundColor: textColor ?? Colors.black87,
+            backgroundColor: color ?? Theme.of(context).colorScheme.surfaceContainer,
+            foregroundColor: textColor ?? Theme.of(context).colorScheme.onSurface,
             padding: const EdgeInsets.symmetric(vertical: 16),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
@@ -130,7 +130,7 @@ class _FichasCalculatorDialogState extends State<FichasCalculatorDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Calcular Fichas', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+            const Text('Calcular Fichas', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             
             // Display
@@ -138,15 +138,15 @@ class _FichasCalculatorDialogState extends State<FichasCalculatorDialog> {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.black87,
+                color: Theme.of(context).colorScheme.onSurface,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 _expression.isEmpty ? '0' : _expression,
                 textAlign: TextAlign.right,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 32,
-                  color: Colors.greenAccent,
+                  color: Theme.of(context).colorScheme.surface,
                   fontWeight: FontWeight.bold,
                 ),
               ),

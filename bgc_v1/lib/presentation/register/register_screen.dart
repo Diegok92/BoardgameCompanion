@@ -110,18 +110,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     children: [
                       CircleAvatar(
                         radius: 40,
-                        backgroundColor: Colors.grey[200],
-                        child: const Icon(
+                        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        child: Icon(
                           Icons.person,
                           size: 60,
-                          color: Colors.grey,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                       Container(
                         decoration: BoxDecoration(
                           color: Colors.red,
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
+                          border: Border.all(color: Theme.of(context).colorScheme.surface, width: 2),
                         ),
                         child: const Icon(
                           Icons.add,
@@ -179,7 +179,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             color: color,
                             shape: BoxShape.circle,
                             border: isSelected
-                                ? Border.all(color: Colors.black, width: 3)
+                                ? Border.all(color: Theme.of(context).colorScheme.onSurface, width: 3)
                                 : null,
                             boxShadow: [
                               if (isSelected)

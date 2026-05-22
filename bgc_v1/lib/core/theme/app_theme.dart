@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  final Color seedColor;
   final bool isDarkMode;
 
   AppTheme({
-    this.seedColor = const Color(0xFF10B981), // Verde principal por defecto
     this.isDarkMode = false,
   });
 
   ThemeData getTheme() {
     final colorScheme = ColorScheme.fromSeed(
-      seedColor: seedColor,
+      seedColor: const Color(0xFF10B981), // Verde principal fijo
       brightness: isDarkMode ? Brightness.dark : Brightness.light,
     );
 
@@ -29,11 +27,11 @@ class AppTheme {
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.black12),
+          borderSide: BorderSide(color: colorScheme.outlineVariant),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.black12),
+          borderSide: BorderSide(color: colorScheme.outlineVariant),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -59,11 +57,11 @@ class AppTheme {
       // Configuración global de los botones con borde (OutlinedButton)
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.black87,
+          foregroundColor: colorScheme.onSurface,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(24),
           ),
-          side: const BorderSide(color: Colors.black45),
+          side: BorderSide(color: colorScheme.outline),
           textStyle: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
@@ -71,7 +69,7 @@ class AppTheme {
       // Configuración global para botones de texto (links)
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: Colors.blue,
+          foregroundColor: colorScheme.primary,
           textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
         ),
       ),

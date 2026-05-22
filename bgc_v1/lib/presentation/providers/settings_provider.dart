@@ -12,14 +12,9 @@ class SettingsNotifier extends Notifier<Settings> {
   Settings build() {
     // Estado inicial por defecto
     return const Settings(
-      themeColor: Color(0xFF10B981), // Verde principal (default)
       isDarkMode: false,
       keepSessionOpen: false,
     );
-  }
-
-  void updateThemeColor(Color newColor) {
-    state = state.copyWith(themeColor: newColor);
   }
 
   void toggleDarkMode(bool isDark) {

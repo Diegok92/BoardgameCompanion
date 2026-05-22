@@ -79,7 +79,7 @@ class AccessoriesScreen extends ConsumerWidget {
                     'Accesorios para partidas Epicas!',
                     style: textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Colors.blueGrey[800],
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -165,7 +165,7 @@ class AccessoriesScreen extends ConsumerWidget {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: isExpanded ? 20 : 16,
-                color: Colors.blueGrey[900],
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ],

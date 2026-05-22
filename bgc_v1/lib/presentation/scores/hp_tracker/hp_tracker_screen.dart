@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/theme/app_colors.dart';
+// removed app colors
 import '../../../data/local_catalog/local_games_catalog.dart';
 import '../../../domain/models/game_model.dart';
 import '../../widgets/app_drawer.dart';
@@ -13,14 +13,8 @@ import '../../providers/match_service.dart';
 import 'providers/hp_tracker_provider.dart';
 import '../widgets/tracker_app_bar.dart';
 import '../widgets/tracker_bottom_bar.dart';
-import 'widgets/components/hp_shield.dart';
+import '../widgets/tracker_dialogs.dart';
 import 'widgets/hp_player_card.dart';
-import 'widgets/components/player_name_dropdown.dart';
-import 'widgets/components/player_color_picker.dart';
-import 'widgets/layouts/single_player_layout.dart';
-import 'widgets/layouts/two_player_layout.dart';
-import 'widgets/layouts/three_player_layout.dart';
-import 'widgets/layouts/four_player_layout.dart';
 
 class HpTrackerScreen extends ConsumerStatefulWidget {
   final int playerCount;
@@ -44,252 +38,6 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
     });
   }
 
-  Widget _buildSinglePlayerLayout(HpTrackerState state, List<String> invitados) {
-    if (state.players.isEmpty) return const SizedBox.shrink();
-    final usedColors = state.players.map((p) => p.color.toARGB32()).toSet();
-    return SinglePlayerLayout(
-      player: state.players.first,
-      invitados: invitados,
-      usedColorsArgb: usedColors,
-      onNameChanged: (val) {
-        if (val == 'NUEVO_INVITADO') {
-          context.push('/register-invitado');
-        } else if (val != null) {
-          ref.read(hpTrackerProvider.notifier).updatePlayerName(0, val);
-        }
-      },
-      onColorChanged: (color) {
-        ref.read(hpTrackerProvider.notifier).updatePlayerColor(0, color);
-      },
-      onHpChange: (delta) {
-        ref.read(hpTrackerProvider.notifier).addHp(0, delta);
-      },
-    );
-  }
-
-  Widget _buildTwoPlayerLayout(HpTrackerState state, List<String> invitados) {
-    if (state.players.length != 2) return const SizedBox.shrink();
-    final usedColors = state.players.map((p) => p.color.toARGB32()).toSet();
-    return TwoPlayerLayout(
-      players: state.players,
-      invitados: invitados,
-      usedColorsArgb: usedColors,
-      onNameChanged: (index, val) {
-        if (val == 'NUEVO_INVITADO') {
-          context.push('/register-invitado');
-        } else if (val != null) {
-          ref.read(hpTrackerProvider.notifier).updatePlayerName(index, val);
-        }
-      },
-      onColorChanged: (index, color) {
-        ref.read(hpTrackerProvider.notifier).updatePlayerColor(index, color);
-      },
-      onHpChange: (index, delta) {
-        ref.read(hpTrackerProvider.notifier).addHp(index, delta);
-      },
-    );
-  }
-
-  Widget _buildFourPlayerLayout(HpTrackerState state, List<String> invitados) {
-    if (state.players.length != 4) return const SizedBox.shrink();
-    final usedColors = state.players.map((p) => p.color.toARGB32()).toSet();
-    return FourPlayerLayout(
-      players: state.players,
-      invitados: invitados,
-      usedColorsArgb: usedColors,
-      onNameChanged: (index, val) {
-        if (val == 'NUEVO_INVITADO') {
-          context.push('/register-invitado');
-        } else if (val != null) {
-          ref.read(hpTrackerProvider.notifier).updatePlayerName(index, val);
-        }
-      },
-      onColorChanged: (index, color) {
-        ref.read(hpTrackerProvider.notifier).updatePlayerColor(index, color);
-      },
-      onHpChange: (index, delta) {
-        ref.read(hpTrackerProvider.notifier).addHp(index, delta);
-      },
-    );
-  }
-
-  Widget _buildThreePlayerLayout(HpTrackerState state, List<String> invitados) {
-    if (state.players.length != 3) return const SizedBox.shrink();
-    final usedColors = state.players.map((p) => p.color.toARGB32()).toSet();
-    return ThreePlayerLayout(
-      players: state.players,
-      invitados: invitados,
-      usedColorsArgb: usedColors,
-      onNameChanged: (index, val) {
-        if (val == 'NUEVO_INVITADO') {
-          context.push('/register-invitado');
-        } else if (val != null) {
-          ref.read(hpTrackerProvider.notifier).updatePlayerName(index, val);
-        }
-      },
-      onColorChanged: (index, color) {
-        ref.read(hpTrackerProvider.notifier).updatePlayerColor(index, color);
-      },
-      onHpChange: (index, delta) {
-        ref.read(hpTrackerProvider.notifier).addHp(index, delta);
-      },
-    );
-  }
-
-  void _showInitialHpDialog(BuildContext context, int currentHp) {
-    final TextEditingController controller = TextEditingController(text: currentHp.toString());
-    controller.selection = TextSelection(baseOffset: 0, extentOffset: controller.text.length);
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Setear Vida Inicial'),
-          content: TextField(
-            controller: controller,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Vida Inicial',
-              border: OutlineInputBorder(),
-            ),
-            autofocus: true,
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
-            ),
-            FilledButton(
-              onPressed: () {
-                final int? val = int.tryParse(controller.text);
-                if (val != null && val > 0) {
-                  ref.read(hpTrackerProvider.notifier).setInitialHp(val);
-                  Navigator.pop(context);
-                }
-              },
-              child: const Text('Aceptar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _confirmReset() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('¿Resetear contadores?'),
-        content: const Text(
-          'Todos los jugadores volverán al valor inicial de la partida.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () {
-              ref.read(hpTrackerProvider.notifier).resetHp();
-              Navigator.pop(context);
-            },
-            child: const Text('Resetear'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _confirmFinishMatch() {
-    final state = ref.read(hpTrackerProvider);
-    final user = ref.read(authProvider);
-
-    if (user == null) return;
-
-    if (state.players.any((p) => p.name == null)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Debes asignar un invitado a todos los jugadores.'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    if (state.selectedGame == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Debes seleccionar un juego para registrar la partida.',
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('¿Terminar Partida?'),
-        content: const Text(
-          '¿Estás seguro de que deseas terminar y registrar esta partida en tu historial?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await _saveMatch(state, user.id);
-            },
-            child: const Text('Registrar Partida'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _saveMatch(HpTrackerState state, String userId) async {
-    try {
-      Map<String, int> puntajes = {};
-      for (var p in state.players) {
-        puntajes[p.name!] = p.hp;
-      }
-
-      // (Removed unused Partida instantiation)
-
-      await ref.read(matchServiceProvider).saveMatch(
-        gameId: state.selectedGame!.id,
-        gameName: state.selectedGame!.name,
-        playerScores: puntajes,
-      );
-      
-      // Limpiamos el estado local para que la próxima vez inicie limpia
-      await ref.read(hpTrackerProvider.notifier).clearLocalState();
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Partida registrada con éxito!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        context.go('/home');
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al guardar: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
 
   int _getCrossAxisCount(int players, Orientation orientation) {
     if (orientation == Orientation.portrait) {
@@ -310,22 +58,22 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
       height: 44,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<Game?>(
           value: state.selectedGame,
           hint: const Text('Juego', style: TextStyle(fontSize: 14)),
           isExpanded: true,
-          icon: const Icon(Icons.arrow_drop_down, color: Colors.black54),
+          icon: Icon(Icons.arrow_drop_down, color: Theme.of(context).colorScheme.onSurfaceVariant),
           items: [
-            const DropdownMenuItem<Game?>(
+            DropdownMenuItem<Game?>(
               value: null,
               child: Text(
                 'Sin Asignar',
-                style: TextStyle(fontSize: 14, color: Colors.black54),
+                style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
             ),
             ...allDropdownGames.map((g) {
@@ -355,21 +103,49 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
         await ref.read(hpTrackerProvider.notifier).saveLocalState();
         nav.pop();
       },
-      onSave: _confirmFinishMatch,
+      onSave: () {
+        final user = ref.read(authProvider);
+        if (user == null) return;
+        TrackerDialogs.showFinishMatchDialog(
+          context: context,
+          gameId: state.selectedGame?.id,
+          gameName: state.selectedGame?.name,
+          players: state.players.map((p) => DialogPlayerInfo(p.name, p.hp)).toList(),
+          onSaveMatch: (finalScores) async {
+            await ref.read(matchServiceProvider).saveMatch(
+              gameId: state.selectedGame!.id,
+              gameName: state.selectedGame!.name,
+              playerScores: finalScores,
+            );
+          },
+          onClearState: () => ref.read(hpTrackerProvider.notifier).clearLocalState(),
+          onNavigateHome: () {
+            if (mounted) context.go('/home');
+          },
+        );
+      },
       centerWidget: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const Text(
+          Text(
             'Vida Inicial',
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey, fontSize: 12),
+            style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12),
           ),
           const SizedBox(height: 4),
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               InkWell(
-                onTap: () => _showInitialHpDialog(context, state.initialHp),
+                onTap: () {
+                  TrackerDialogs.showNumberInputDialog(
+                    context: context,
+                    title: 'Setear Vida Inicial',
+                    label: 'Vida Inicial',
+                    initialValue: state.initialHp,
+                    onConfirm: (val) => ref.read(hpTrackerProvider.notifier).setInitialHp(val),
+                  );
+                },
                 borderRadius: BorderRadius.circular(16),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
@@ -392,7 +168,12 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
                 iconSize: 20,
                 padding: const EdgeInsets.all(12),
                 icon: const Icon(Icons.restart_alt),
-                onPressed: _confirmReset,
+                onPressed: () {
+                  TrackerDialogs.showResetDialog(
+                    context: context,
+                    onConfirm: () => ref.read(hpTrackerProvider.notifier).resetHp(),
+                  );
+                },
               ),
             ],
           ),
@@ -479,11 +260,7 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
       drawer: const AppDrawer(),
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.grey[100]!, Colors.grey[50]!],
-          ),
+          color: Theme.of(context).colorScheme.surface,
         ),
         child: SafeArea(
           child: OrientationBuilder(
@@ -497,15 +274,7 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
                           horizontal: 8.0,
                           vertical: 16.0,
                         ),
-                        child: state.players.length == 1
-                            ? _buildSinglePlayerLayout(state, invitados)
-                            : state.players.length == 2
-                                ? _buildTwoPlayerLayout(state, invitados)
-                                : state.players.length == 3
-                                    ? _buildThreePlayerLayout(state, invitados)
-                                    : state.players.length == 4
-                                        ? _buildFourPlayerLayout(state, invitados)
-                                        : _buildGrid(state, invitados, orientation),
+                        child: _buildGrid(state, invitados, orientation),
                       ),
                     ),
                     Padding(
@@ -521,9 +290,9 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
                       width: 250,
                       padding: const EdgeInsets.all(12.0),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.5),
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                         border: Border(
-                          right: BorderSide(color: Colors.grey[300]!),
+                          right: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
                         ),
                       ),
                       child: Column(
@@ -542,12 +311,12 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
                                         height: 40,
                                       ),
                                       const SizedBox(width: 8),
-                                      const Text(
+                                      Text(
                                         'BG Companion',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 16,
-                                          color: Colors.black87,
+                                          color: Theme.of(context).colorScheme.onSurface,
                                         ),
                                       ),
                                     ],
@@ -570,13 +339,7 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
                     Expanded(
                       child: Padding(
                         padding: const EdgeInsets.all(12.0),
-                        child: state.players.length == 1
-                            ? _buildSinglePlayerLayout(state, invitados)
-                            : state.players.length == 2
-                                ? _buildTwoPlayerLayout(state, invitados)
-                                : state.players.length == 3
-                                    ? _buildThreePlayerLayout(state, invitados)
-                                    : _buildGrid(state, invitados, orientation),
+                        child: _buildGrid(state, invitados, orientation),
                       ),
                     ),
                   ],

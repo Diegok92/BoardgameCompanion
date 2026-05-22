@@ -14,9 +14,6 @@ class DiceRollScreen extends StatefulWidget {
 class _DiceRollScreenState extends State<DiceRollScreen>
     with SingleTickerProviderStateMixin {
   static const Color redColor = Color(0xFFE63946);
-  static const Color backgroundColor = Color(0xFFF8FAFC);
-  static const Color grayColor = Color(0xFF6B7280);
-  static const Color borderColor = Color(0xFFE2E8F0);
 
   late final AnimationController _controller;
   late final Animation<double> _animation;
@@ -137,7 +134,7 @@ int get _total => _diceResults.fold(0, (sum, value) => sum + value);
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: _buildAppBar(),
       body: SafeArea(
         child: Padding(
@@ -149,10 +146,10 @@ int get _total => _diceResults.fold(0, (sum, value) => sum + value);
 
               const SizedBox(height: 18),
 
-              const Text(
+              Text(
                 'TIPO DE DADO (CARAS)',
                 style: TextStyle(
-                  color: grayColor,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 0.4,
@@ -294,17 +291,17 @@ int get _total => _diceResults.fold(0, (sum, value) => sum + value);
                 width: 45,
                 height: 35,
                 decoration: BoxDecoration(
-                  color: isSelected ? redColor : Colors.white,
+                  color: isSelected ? redColor : Theme.of(context).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: isSelected ? redColor : borderColor,
+                    color: isSelected ? redColor : Theme.of(context).colorScheme.outlineVariant,
                   ),
                 ),
                 child: Center(
                   child: Text(
                     'D$dice',
                     style: TextStyle(
-                      color: isSelected ? Colors.white : grayColor,
+                      color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurfaceVariant,
                       fontSize: 13,
                       fontWeight: FontWeight.w900,
                     ),
@@ -332,7 +329,6 @@ class DiceWidget extends StatelessWidget {
   });
 
   static const Color redColor = Color(0xFFE63946);
-  static const Color grayColor = Color(0xFF6B7280);
 
   @override
   Widget build(BuildContext context) {
@@ -358,7 +354,7 @@ class DiceWidget extends StatelessWidget {
               Text(
                 diceType,
                 style: TextStyle(
-                  color: grayColor,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontSize: size * 0.10,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 1,

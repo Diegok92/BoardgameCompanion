@@ -39,12 +39,12 @@ class HomeMenuButton extends StatelessWidget {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(icon, size: 32, color: Colors.blue),
+                  Icon(icon, size: 32, color: Theme.of(context).colorScheme.primary),
                   const SizedBox(height: 8),
                   Text(
                     label,
-                    style: const TextStyle(
-                      color: Colors.black87,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
                     ),

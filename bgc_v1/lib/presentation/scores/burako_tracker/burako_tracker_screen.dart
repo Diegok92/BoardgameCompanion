@@ -8,6 +8,7 @@ import '../widgets/tracker_bottom_bar.dart';
 import 'widgets/fichas_calculator_dialog.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/match_service.dart';
+import '../widgets/tracker_dialogs.dart';
 import 'providers/burako_tracker_provider.dart';
 import 'widgets/burako_reference_card.dart';
 
@@ -46,89 +47,7 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
     }
   }
 
-  void _confirmFinishMatch() {
-    final state = ref.read(burakoTrackerProvider);
-    
-    // Check if game selected
-    if (state.selectedGame == null) return;
 
-    bool hasUnassigned = false;
-    for (var e in state.entities) {
-      for (var p in e.playerNames) {
-        if (p == null || p.isEmpty || p == 'Sin Asignar' || p == 'NUEVO_INVITADO') {
-          hasUnassigned = true;
-          break;
-        }
-      }
-    }
-
-    if (hasUnassigned) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, asigna todos los jugadores a un invitado antes de guardar.'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    int maxScore = 0;
-    if (state.entities.isNotEmpty) {
-      maxScore = state.entities.map((e) => e.totalScore).reduce((a, b) => a > b ? a : b);
-    }
-    final winners = state.entities.where((e) => e.totalScore == maxScore).map((e) => e.name).join(' y ');
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('¿Terminar Partida?'),
-        content: Text('Ganador actual: $winners con $maxScore puntos.\n\n¿Deseas registrar esta partida y sus puntajes finales en el historial?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              Navigator.pop(dialogContext);
-              
-              Map<String, int> finalScores = {};
-              for (var e in state.entities) {
-                for (var p in e.playerNames) {
-                  if (p != null && p.isNotEmpty && p != 'Sin Asignar' && p != 'NUEVO_INVITADO') {
-                    finalScores[p] = e.totalScore;
-                  }
-                }
-              }
-
-              try {
-                await ref.read(matchServiceProvider).saveMatch(
-                  gameId: state.selectedGame!.id,
-                  gameName: state.selectedGame!.name,
-                  playerScores: finalScores,
-                );
-                await ref.read(burakoTrackerProvider.notifier).clearLocalState();
-                
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Partida registrada con éxito!'), backgroundColor: Colors.green),
-                  );
-                  context.go('/home');
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error al guardar: $e'), backgroundColor: Colors.red),
-                  );
-                }
-              }
-            },
-            child: const Text('Registrar'),
-          ),
-        ],
-      ),
-    );
-  }
 
   void _checkWinCondition() {
     final state = ref.read(burakoTrackerProvider);
@@ -154,15 +73,15 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
   void _showEntityEditor(int entityIndex) {
     final user = ref.read(authProvider);
     final invitados = user?.invitados ?? [];
-    final state = ref.read(burakoTrackerProvider);
-    final entity = state.entities[entityIndex];
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
+            final currentState = ref.read(burakoTrackerProvider);
+            final currentEntity = currentState.entities[entityIndex];
+
             return Padding(
               padding: EdgeInsets.only(
                 bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -172,13 +91,13 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Editar ${entity.name}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  Text('Editar ${currentEntity.name}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 16),
-                  ...List.generate(entity.playerNames.length, (pIndex) {
-                    final currName = entity.playerNames[pIndex];
+                  ...List.generate(currentEntity.playerNames.length, (pIndex) {
+                    final currName = currentEntity.playerNames[pIndex];
                     int globalIndex = 1;
                     for (int i = 0; i < entityIndex; i++) {
-                      globalIndex += state.entities[i].playerNames.length;
+                      globalIndex += currentState.entities[i].playerNames.length;
                     }
                     globalIndex += pIndex;
 
@@ -199,10 +118,10 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
                         initialValue: currName != user?.username && currName != 'NUEVO_INVITADO' && !invitados.contains(currName) ? null : currName,
                         items: [
                           ...invitados.where((inv) {
-                            for (int i = 0; i < state.entities.length; i++) {
-                              for (int j = 0; j < state.entities[i].playerNames.length; j++) {
+                            for (int i = 0; i < currentState.entities.length; i++) {
+                              for (int j = 0; j < currentState.entities[i].playerNames.length; j++) {
                                 if (i == entityIndex && j == pIndex) continue;
-                                if (state.entities[i].playerNames[j] == inv) return false;
+                                if (currentState.entities[i].playerNames[j] == inv) return false;
                               }
                             }
                             return true;
@@ -228,7 +147,7 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
                   Wrap(
                     spacing: 8, runSpacing: 8,
                     children: AppColors.availableColors.where((color) {
-                      return !state.entities.any((e) => e.id != entity.id && e.color.toARGB32() == color.toARGB32());
+                      return !currentState.entities.any((e) => e.id != currentEntity.id && e.color.toARGB32() == color.toARGB32());
                     }).map((color) {
                       return InkWell(
                         onTap: () {
@@ -238,7 +157,7 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
                         child: CircleAvatar(
                           backgroundColor: color,
                           radius: 16,
-                          child: entity.color.toARGB32() == color.toARGB32() ? const Icon(Icons.check, color: Colors.white, size: 16) : null,
+                          child: currentEntity.color.toARGB32() == color.toARGB32() ? const Icon(Icons.check, color: Colors.white, size: 16) : null,
                         ),
                       );
                     }).toList(),
@@ -285,7 +204,7 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
               style: TextStyle(
                 fontSize: 36,
                 fontWeight: FontWeight.bold,
-                color: Colors.blueGrey[900],
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ],
@@ -301,7 +220,7 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
@@ -340,8 +259,8 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Canastas Puras', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blueGrey[900])),
-                  const Text('(+200)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.blueGrey)),
+                  Text('Canastas Puras', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).colorScheme.onSurface)),
+                  Text('(+200)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                 ],
               ),
               Row(
@@ -351,7 +270,7 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
                     icon: const Icon(Icons.remove, size: 28),
                     onPressed: () => ref.read(burakoTrackerProvider.notifier).updatePureCanastas(-1),
                   ),
-                  SizedBox(width: 48, child: Text('${buffer.pureCanastas}', textAlign: TextAlign.center, style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.blueGrey[900]))),
+                  SizedBox(width: 48, child: Text('${buffer.pureCanastas}', textAlign: TextAlign.center, style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface))),
                   IconButton.filled(
                     style: IconButton.styleFrom(backgroundColor: Colors.green, padding: const EdgeInsets.all(12)),
                     icon: const Icon(Icons.add, size: 28),
@@ -370,8 +289,8 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Canastas Impuras', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blueGrey[900])),
-                  const Text('(+100)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.blueGrey)),
+                  Text('Canastas Impuras', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).colorScheme.onSurface)),
+                  Text('(+100)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                 ],
               ),
               Row(
@@ -381,7 +300,7 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
                     icon: const Icon(Icons.remove, size: 28),
                     onPressed: () => ref.read(burakoTrackerProvider.notifier).updateImpureCanastas(-1),
                   ),
-                  SizedBox(width: 48, child: Text('${buffer.impureCanastas}', textAlign: TextAlign.center, style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.blueGrey[900]))),
+                  SizedBox(width: 48, child: Text('${buffer.impureCanastas}', textAlign: TextAlign.center, style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface))),
                   IconButton.filled(
                     style: IconButton.styleFrom(backgroundColor: Colors.green, padding: const EdgeInsets.all(12)),
                     icon: const Icon(Icons.add, size: 28),
@@ -447,7 +366,7 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
           // Puntaje Fichas
           Row(
             children: [
-              Text('Puntaje por Fichas', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blueGrey[900])),
+              Text('Puntaje por Fichas', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).colorScheme.onSurface)),
               IconButton(
                 icon: const Icon(Icons.info_outline, color: Colors.blue),
                 onPressed: () {
@@ -484,9 +403,9 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
             width: double.infinity,
             decoration: BoxDecoration(
-              color: Colors.blue[50],
+              color: Theme.of(context).colorScheme.primaryContainer,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.blue[200]!)
+              border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3))
             ),
             child: Text(
               'A sumar: ${buffer.totalPoints > 0 ? '+' : ''}${buffer.totalPoints}',
@@ -494,7 +413,7 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: buffer.totalPoints < 0 ? Colors.red : Colors.blue[800],
+                color: buffer.totalPoints < 0 ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.primary,
               ),
             ),
           ),
@@ -527,7 +446,7 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Theme.of(context).colorScheme.surface,
       drawer: const AppDrawer(),
       appBar: const TrackerAppBar(
         rightWidget: Text(
@@ -561,7 +480,39 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
                   await ref.read(burakoTrackerProvider.notifier).saveLocalState();
                   if (context.mounted) Navigator.pop(context);
                 },
-                onSave: _confirmFinishMatch,
+                onSave: () {
+                  final state = ref.read(burakoTrackerProvider);
+                  
+                  List<DialogPlayerInfo> flattenedPlayers = [];
+                  for (var e in state.entities) {
+                    for (var p in e.playerNames) {
+                      flattenedPlayers.add(DialogPlayerInfo(p, e.totalScore));
+                    }
+                  }
+
+                  int maxScore = state.entities.isNotEmpty ? state.entities.map((e) => e.totalScore).reduce((a, b) => a > b ? a : b) : 0;
+                  String winners = state.entities.where((e) => e.totalScore == maxScore).map((e) => e.name).join(' y ');
+
+                  TrackerDialogs.showFinishMatchDialog(
+                    context: context,
+                    gameId: state.selectedGame?.id,
+                    gameName: state.selectedGame?.name,
+                    players: flattenedPlayers,
+                    customWinnerName: winners,
+                    customMaxScore: maxScore,
+                    onSaveMatch: (finalScores) async {
+                      await ref.read(matchServiceProvider).saveMatch(
+                        gameId: state.selectedGame!.id,
+                        gameName: state.selectedGame!.name,
+                        playerScores: finalScores,
+                      );
+                    },
+                    onClearState: () => ref.read(burakoTrackerProvider.notifier).clearLocalState(),
+                    onNavigateHome: () {
+                      if (mounted) context.go('/home');
+                    },
+                  );
+                },
                 centerWidget: IconButton.filled(
                   style: IconButton.styleFrom(
                     backgroundColor: Theme.of(context).colorScheme.error,
@@ -571,23 +522,9 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
                   padding: const EdgeInsets.all(12),
                   icon: const Icon(Icons.restart_alt),
                   onPressed: () {
-                    showDialog(
+                    TrackerDialogs.showResetDialog(
                       context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('¿Resetear puntajes?'),
-                        content: const Text('Todos volverán a 0.'),
-                        actions: [
-                          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
-                          FilledButton(
-                            style: FilledButton.styleFrom(backgroundColor: Colors.red),
-                            onPressed: () {
-                              ref.read(burakoTrackerProvider.notifier).resetGame();
-                              Navigator.pop(context);
-                            },
-                            child: const Text('Resetear'),
-                          ),
-                        ],
-                      ),
+                      onConfirm: () => ref.read(burakoTrackerProvider.notifier).resetGame(),
                     );
                   },
                 ),

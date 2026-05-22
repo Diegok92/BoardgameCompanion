@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/settings_provider.dart';
+import '../../data/repositories/local_storage_repository.dart';
+
+// Proveedor para inyectar el LocalStorageRepository en la vista
+final localStorageProvider = Provider<LocalStorageRepository>((ref) {
+  return LocalStorageRepository();
+});
 
 class ConfigScreen extends ConsumerWidget {
   const ConfigScreen({super.key});
@@ -60,40 +66,6 @@ class ConfigScreen extends ConsumerWidget {
                     },
                   ),
 
-                  const Divider(height: 1),
-
-                  // Color del Tema (ExpansionTile)
-                  ExpansionTile(
-                    leading: const Icon(Icons.color_lens, color: Colors.blue),
-                    title: const Text(
-                      'Color del Tema',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    subtitle: const Text('Elige tu color principal favorito'),
-                    children: [
-                      _buildColorRadio(
-                        context: context,
-                        ref: ref,
-                        color: const Color(0xFFE53935), // Rojo
-                        name: 'Rojo Carmesí',
-                        currentColor: settings.themeColor,
-                      ),
-                      _buildColorRadio(
-                        context: context,
-                        ref: ref,
-                        color: const Color(0xFF10B981), // Verde
-                        name: 'Verde Esmeralda',
-                        currentColor: settings.themeColor,
-                      ),
-                      _buildColorRadio(
-                        context: context,
-                        ref: ref,
-                        color: const Color(0xFF3B82F6), // Azul
-                        name: 'Azul Océano',
-                        currentColor: settings.themeColor,
-                      ),
-                    ],
-                  ),
                 ],
               ),
             ),
@@ -125,57 +97,70 @@ class ConfigScreen extends ConsumerWidget {
                 },
               ),
             ),
+
+            const SizedBox(height: 32),
+
+            // --- SECCIÓN: DATOS ---
+            _buildSectionHeader('Datos', colorScheme),
+            Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(color: colorScheme.outlineVariant),
+              ),
+              child: ListTile(
+                title: Text(
+                  'Borrar partidas en curso',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.error,
+                  ),
+                ),
+                subtitle: const Text('Eliminar la caché local de partidas'),
+                trailing: Icon(Icons.delete_forever, color: colorScheme.error),
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Borrar Caché'),
+                      content: const Text(
+                        '¿Estás seguro de que quieres borrar todas las partidas locales en curso? Esta acción no se puede deshacer.',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Cancelar'),
+                        ),
+                        TextButton(
+                          onPressed: () async {
+                            Navigator.pop(context);
+                            await ref.read(localStorageProvider).clearAllData();
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Caché borrada exitosamente.'),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                            }
+                          },
+                          style: TextButton.styleFrom(
+                            foregroundColor: colorScheme.error,
+                          ),
+                          child: const Text('Borrar Todo'),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  // Widget de ayuda para construir el RadioListTile de colores
-  Widget _buildColorRadio({
-    required BuildContext context,
-    required WidgetRef ref,
-    required Color color,
-    required String name,
-    required Color currentColor,
-  }) {
-    final isSelected = currentColor == color;
-    return ListTile(
-      onTap: () => ref.read(settingsProvider.notifier).updateThemeColor(color),
-      leading: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: 24,
-        height: 24,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: isSelected ? color : Colors.transparent,
-          border: Border.all(
-            color: isSelected ? color : Colors.grey,
-            width: 2,
-          ),
-        ),
-        child: isSelected
-            ? const Icon(Icons.check, size: 16, color: Colors.white)
-            : null,
-      ),
-      title: Row(
-        children: [
-          Container(
-            width: 24,
-            height: 24,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            name,
-            style: TextStyle(
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   // Widget de ayuda para construir el título de cada sección
   Widget _buildSectionHeader(String title, ColorScheme colorScheme) {

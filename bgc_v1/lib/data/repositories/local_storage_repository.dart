@@ -18,4 +18,10 @@ class LocalStorageRepository {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(key);
   }
+
+  /// Borra todos los valores de local storage (Caché de partidas)
+  Future<void> clearAllData() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+  }
 }

@@ -26,21 +26,21 @@ class TrackerAppBar extends StatelessWidget implements PreferredSizeWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey[300]!),
+                border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
                 borderRadius: BorderRadius.circular(12),
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   SvgPicture.asset('assets/images/logo.svg', height: 24),
                   const SizedBox(width: 8),
-                  const Text(
+                  Text(
                     'BG Companion',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ],

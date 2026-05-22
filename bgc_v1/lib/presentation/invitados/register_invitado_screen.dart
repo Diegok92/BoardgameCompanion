@@ -127,7 +127,7 @@ class _RegisterInvitadoScreenState
                 'Tus Invitados',
                 style: textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF1E293B),
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 24),
@@ -170,7 +170,7 @@ class _RegisterInvitadoScreenState
                         child: Text(
                           'Aún no tienes invitados registrados.',
                           style: textTheme.bodyMedium?.copyWith(
-                            color: Colors.blueGrey,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                       )
@@ -182,10 +182,11 @@ class _RegisterInvitadoScreenState
                           final invitado = invitados[index];
                           return Card(
                             elevation: 0,
-                            color: Colors.grey[100],
+                            color: Theme.of(context).colorScheme.surfaceContainer,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
-                              side: BorderSide(color: Colors.grey[300]!),
+                              side: BorderSide(
+                                  color: Theme.of(context).colorScheme.outlineVariant),
                             ),
                             child: ListTile(
                               leading: CircleAvatar(

@@ -34,7 +34,6 @@ class MainApp extends ConsumerWidget {
       title: 'BG Companion',
       debugShowCheckedModeBanner: false,
       theme: AppTheme(
-        seedColor: settings.themeColor,
         isDarkMode: settings.isDarkMode,
       ).getTheme(),
       routerConfig: appRouter,

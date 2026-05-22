@@ -34,7 +34,7 @@ class PlayerNameDropdown extends StatelessWidget {
       return PopupMenuButton<String>(
         initialValue: playerName,
         onSelected: onNameChanged,
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         itemBuilder: (BuildContext context) {
           return [

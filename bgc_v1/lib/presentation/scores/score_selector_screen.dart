@@ -134,7 +134,7 @@ class _ScoreSelectorScreenState extends ConsumerState<ScoreSelectorScreen> {
                         hintText: 'Buscar juego...',
                         prefixIcon: const Icon(Icons.search),
                         filled: true,
-                        fillColor: Colors.grey[100],
+                        fillColor: Theme.of(context).colorScheme.surfaceContainer,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
@@ -152,8 +152,8 @@ class _ScoreSelectorScreenState extends ConsumerState<ScoreSelectorScreen> {
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: _selectedPlayerCount != null
-                            ? Colors.blue.withValues(alpha: 0.1)
-                            : Colors.grey[100],
+                            ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
+                            : Theme.of(context).colorScheme.surfaceContainer,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: _selectedPlayerCount != null
@@ -224,7 +224,7 @@ class _ScoreSelectorScreenState extends ConsumerState<ScoreSelectorScreen> {
                               'Anotadores Estándar',
                               style: textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.blueGrey,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
                               ),
                             ),
                             const SizedBox(height: 12),
@@ -252,14 +252,12 @@ class _ScoreSelectorScreenState extends ConsumerState<ScoreSelectorScreen> {
                                         ),
                                         decoration: BoxDecoration(
                                           color: isSelected
-                                              ? Colors.blue.withValues(
-                                                  alpha: 0.1,
-                                                )
-                                              : Colors.white,
+                                              ? Theme.of(context).colorScheme.primaryContainer
+                                              : Theme.of(context).colorScheme.surface,
                                           border: Border.all(
                                             color: isSelected
-                                                ? Colors.blue
-                                                : Colors.grey[300]!,
+                                                ? Theme.of(context).colorScheme.primary
+                                                : Theme.of(context).colorScheme.outlineVariant,
                                             width: isSelected ? 2 : 1,
                                           ),
                                           borderRadius: BorderRadius.circular(
@@ -311,7 +309,7 @@ class _ScoreSelectorScreenState extends ConsumerState<ScoreSelectorScreen> {
                               'Anotadores Personalizados',
                               style: textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.blueGrey,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
                               ),
                             ),
                             const SizedBox(height: 12),
@@ -330,21 +328,21 @@ class _ScoreSelectorScreenState extends ConsumerState<ScoreSelectorScreen> {
                                       borderRadius: BorderRadius.circular(12),
                                       side: BorderSide(
                                         color: isSelected
-                                            ? Colors.blue
-                                            : Colors.grey[300]!,
+                                            ? Theme.of(context).colorScheme.primary
+                                            : Theme.of(context).colorScheme.outlineVariant,
                                         width: isSelected ? 2 : 1,
                                       ),
                                     ),
                                     color: isSelected
-                                        ? Colors.blue.withValues(alpha: 0.05)
-                                        : Colors.white,
+                                        ? Theme.of(context).colorScheme.primaryContainer
+                                        : Theme.of(context).colorScheme.surface,
                                     child: ListTile(
                                       onTap: () => _onGameSelected(game),
                                       leading: CircleAvatar(
-                                        backgroundColor: Colors.grey[200],
-                                        child: const Icon(
+                                        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                        child: Icon(
                                           Icons.casino,
-                                          color: Colors.blueGrey,
+                                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                                         ),
                                       ),
                                       title: Text(

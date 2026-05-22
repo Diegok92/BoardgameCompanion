@@ -209,11 +209,11 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                   children: [
                     CircleAvatar(
                       radius: 50,
-                      backgroundColor: _selectedColor ?? Colors.grey[200],
-                      child: const Icon(
+                      backgroundColor: _selectedColor ?? Theme.of(context).colorScheme.surfaceContainerHighest,
+                      child: Icon(
                         Icons.person,
                         size: 70,
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                     Container(
@@ -221,7 +221,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                       decoration: BoxDecoration(
                         color: Colors.blue,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
+                        border: Border.all(color: Theme.of(context).colorScheme.surface, width: 2),
                       ),
                       child: const Icon(
                         Icons.camera_alt,
@@ -279,7 +279,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                           color: color,
                           shape: BoxShape.circle,
                           border: isSelected
-                              ? Border.all(color: Colors.black, width: 3)
+                              ? Border.all(color: Theme.of(context).colorScheme.onSurface, width: 3)
                               : null,
                           boxShadow: [
                             if (isSelected)
