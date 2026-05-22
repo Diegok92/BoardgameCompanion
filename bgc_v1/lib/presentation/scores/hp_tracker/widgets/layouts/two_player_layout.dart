@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../../../providers/hp_tracker_provider.dart';
+import '../../providers/hp_tracker_provider.dart';
 import '../components/hp_shield.dart';
 import '../components/player_color_picker.dart';
 import '../components/player_name_dropdown.dart';
 
-class ThreePlayerLayout extends StatelessWidget {
+class TwoPlayerLayout extends StatelessWidget {
   final List<TrackerPlayer> players;
   final List<String> invitados;
   final Set<int> usedColorsArgb;
@@ -12,7 +12,7 @@ class ThreePlayerLayout extends StatelessWidget {
   final void Function(int index, Color color) onColorChanged;
   final void Function(int index, int delta) onHpChange;
 
-  const ThreePlayerLayout({
+  const TwoPlayerLayout({
     super.key,
     required this.players,
     required this.invitados,
@@ -39,9 +39,9 @@ class ThreePlayerLayout extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Escudo centrado y agrandado (desplazado un poco hacia abajo)
+          // Escudo centrado y agrandado
           Padding(
-            padding: const EdgeInsets.only(top: 32.0, bottom: 0.0, left: 50.0, right: 50.0),
+            padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 60.0),
             child: HpShield(
               hp: player.hp,
               color: player.color,
@@ -89,15 +89,13 @@ class ThreePlayerLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (players.length != 3) return const SizedBox.shrink();
+    if (players.length != 2) return const SizedBox.shrink();
 
     return Column(
       children: [
         _buildPlayerRow(context, players[0]),
-        const SizedBox(height: 8),
+        const SizedBox(height: 16),
         _buildPlayerRow(context, players[1]),
-        const SizedBox(height: 8),
-        _buildPlayerRow(context, players[2]),
       ],
     );
   }

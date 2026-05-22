@@ -5,7 +5,7 @@ import '../presentation/home/home_screen.dart';
 import '../presentation/invitados/register_invitado_screen.dart';
 import '../presentation/profile/user_edit_screen.dart';
 import '../presentation/scores/score_selector_screen.dart';
-import '../presentation/scores/hp_tracker_screen.dart';
+import '../presentation/scores/hp_tracker/hp_tracker_screen.dart';
 import '../presentation/scores/burako_tracker/burako_tracker_screen.dart';
 import '../presentation/accessories/accessories_screen.dart';
 import '../presentation/accessories/coin_flip_screen.dart';

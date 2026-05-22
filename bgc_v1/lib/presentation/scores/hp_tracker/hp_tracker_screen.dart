@@ -4,19 +4,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../domain/models/game_model.dart';
-import '../../data/local_catalog/local_games_catalog.dart';
-import '../providers/auth_provider.dart';
-import '../providers/hp_tracker_provider.dart';
-import '../providers/match_service.dart';
-import '../widgets/app_drawer.dart';
-import 'widgets/components/tracker_app_bar.dart';
-import 'widgets/components/tracker_bottom_bar.dart';
-import 'widgets/hp_tracker/layouts/single_player_layout.dart';
-import 'widgets/hp_tracker/layouts/two_player_layout.dart';
-import 'widgets/hp_tracker/layouts/three_player_layout.dart';
-import 'widgets/hp_tracker/layouts/four_player_layout.dart';
-import 'widgets/hp_tracker/hp_player_card.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../data/local_catalog/local_games_catalog.dart';
+import '../../../domain/models/game_model.dart';
+import '../../widgets/app_drawer.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/match_service.dart';
+import 'providers/hp_tracker_provider.dart';
+import '../widgets/tracker_app_bar.dart';
+import '../widgets/tracker_bottom_bar.dart';
+import 'widgets/components/hp_shield.dart';
+import 'widgets/hp_player_card.dart';
+import 'widgets/components/player_name_dropdown.dart';
+import 'widgets/components/player_color_picker.dart';
+import 'widgets/layouts/single_player_layout.dart';
+import 'widgets/layouts/two_player_layout.dart';
+import 'widgets/layouts/three_player_layout.dart';
+import 'widgets/layouts/four_player_layout.dart';
 
 class HpTrackerScreen extends ConsumerStatefulWidget {
   final int playerCount;

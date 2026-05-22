@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../providers/hp_tracker_provider.dart';
+import '../../providers/hp_tracker_provider.dart';
 import '../components/hp_shield.dart';
 import '../components/player_color_picker.dart';
 import '../components/player_name_dropdown.dart';

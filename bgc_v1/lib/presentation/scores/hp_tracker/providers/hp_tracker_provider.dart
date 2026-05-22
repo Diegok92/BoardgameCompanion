@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:math';
-import '../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_colors.dart';
 import 'dart:convert';
-import '../../data/repositories/local_storage_repository.dart';
-import '../../data/local_catalog/local_games_catalog.dart';
-import '../../domain/models/game_model.dart';
-import '../../domain/models/user_model.dart';
+import '../../../../data/repositories/local_storage_repository.dart';
+import '../../../../data/local_catalog/local_games_catalog.dart';
+import '../../../../domain/models/game_model.dart';
+import '../../../../domain/models/user_model.dart';
 
 class TrackerPlayer {
   final int index; // 0 es el usuario
