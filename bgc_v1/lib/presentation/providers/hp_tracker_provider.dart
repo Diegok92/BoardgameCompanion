@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:math';
 import '../../core/theme/app_colors.dart';
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../data/repositories/local_storage_repository.dart';
 import '../../data/local_catalog/local_games_catalog.dart';
 import '../../domain/models/game_model.dart';
 import '../../domain/models/user_model.dart';
@@ -67,6 +67,7 @@ class HpTrackerNotifier extends Notifier<HpTrackerState> {
 
   // Guardamos el userId actual para usarlo en saveLocalState()
   String _currentUserId = '';
+  final LocalStorageRepository _localStorage = LocalStorageRepository();
 
   Future<void> initialize(int playerCount, User user, int initialHp) async {
     _currentUserId = user.id;
@@ -74,9 +75,8 @@ class HpTrackerNotifier extends Notifier<HpTrackerState> {
     // Resetear estado para evitar datos residuales de otro usuario
     state = HpTrackerState(players: [], initialHp: 0);
 
-    final prefs = await SharedPreferences.getInstance();
     // Clave incluye el userId para aislar datos por usuario
-    final savedData = prefs.getString('tracker_state_${user.id}_$playerCount');
+    final savedData = await _localStorage.getData('tracker_state_${user.id}_$playerCount');
     
     if (savedData != null) {
       try {
@@ -195,7 +195,6 @@ class HpTrackerNotifier extends Notifier<HpTrackerState> {
   Future<void> saveLocalState() async {
     if (state.players.isEmpty || _currentUserId.isEmpty) return;
     
-    final prefs = await SharedPreferences.getInstance();
     final playerCount = state.players.length;
     
     final data = {
@@ -210,14 +209,13 @@ class HpTrackerNotifier extends Notifier<HpTrackerState> {
     };
     
     // Clave incluye el userId para aislar datos por usuario
-    await prefs.setString('tracker_state_${_currentUserId}_$playerCount', jsonEncode(data));
+    await _localStorage.saveData('tracker_state_${_currentUserId}_$playerCount', jsonEncode(data));
   }
 
   Future<void> clearLocalState() async {
     if (state.players.isEmpty || _currentUserId.isEmpty) return;
-    final prefs = await SharedPreferences.getInstance();
     final playerCount = state.players.length;
-    await prefs.remove('tracker_state_${_currentUserId}_$playerCount');
+    await _localStorage.removeData('tracker_state_${_currentUserId}_$playerCount');
   }
 }
 

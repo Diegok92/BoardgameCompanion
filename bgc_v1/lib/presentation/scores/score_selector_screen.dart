@@ -64,7 +64,12 @@ class _ScoreSelectorScreenState extends ConsumerState<ScoreSelectorScreen> {
       return;
     }
 
-    if (_selectedGame!.id == 'hp_tracker') {
+    if (_selectedGame!.id == 'burako') {
+      context.push(
+        '/burako-tracker',
+        extra: {'playerCount': _selectedPlayerCount},
+      );
+    } else if (_selectedGame!.id == 'hp_tracker') {
       context.push(
         '/hp-tracker',
         extra: {'playerCount': _selectedPlayerCount},

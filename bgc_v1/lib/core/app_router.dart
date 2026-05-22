@@ -6,6 +6,7 @@ import '../presentation/invitados/register_invitado_screen.dart';
 import '../presentation/profile/user_edit_screen.dart';
 import '../presentation/scores/score_selector_screen.dart';
 import '../presentation/scores/hp_tracker_screen.dart';
+import '../presentation/scores/burako_tracker/burako_tracker_screen.dart';
 import '../presentation/accessories/accessories_screen.dart';
 import '../presentation/accessories/coin_flip_screen.dart';
 import '../presentation/accessories/dice_screen.dart';
@@ -49,6 +50,14 @@ final appRouter = GoRouter(
         final extras = state.extra as Map<String, dynamic>?;
         final playerCount = extras?['playerCount'] as int? ?? 2;
         return HpTrackerScreen(playerCount: playerCount);
+      },
+    ),
+    GoRoute(
+      path: '/burako-tracker',
+      builder: (context, state) {
+        final extras = state.extra as Map<String, dynamic>?;
+        final playerCount = extras?['playerCount'] as int? ?? 2;
+        return BurakoTrackerScreen(playerCount: playerCount);
       },
     ),
     GoRoute(

@@ -5,12 +5,13 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../domain/models/game_model.dart';
-import '../../domain/models/partida_model.dart';
 import '../../data/local_catalog/local_games_catalog.dart';
-import '../../data/repositories/partidas_repository.dart';
 import '../providers/auth_provider.dart';
 import '../providers/hp_tracker_provider.dart';
+import '../providers/match_service.dart';
 import '../widgets/app_drawer.dart';
+import 'widgets/components/tracker_app_bar.dart';
+import 'widgets/components/tracker_bottom_bar.dart';
 import 'widgets/hp_tracker/layouts/single_player_layout.dart';
 import 'widgets/hp_tracker/layouts/two_player_layout.dart';
 import 'widgets/hp_tracker/layouts/three_player_layout.dart';
@@ -249,31 +250,18 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
 
   Future<void> _saveMatch(HpTrackerState state, String userId) async {
     try {
-      int maxHp = state.players
-          .map((p) => p.hp)
-          .reduce((a, b) => a > b ? a : b);
-      List<String> ganadores = state.players
-          .where((p) => p.hp == maxHp)
-          .map((p) => p.name!)
-          .toList();
-
       Map<String, int> puntajes = {};
       for (var p in state.players) {
         puntajes[p.name!] = p.hp;
       }
 
-      final partida = Partida(
-        id: '',
-        juegoId: state.selectedGame!.id,
-        juegoNombre: state.selectedGame!.name,
-        participantes: state.players.map((p) => p.name!).toList(),
-        ganadores: ganadores,
-        puntajesFinales: puntajes,
-        estado: 'finalizada',
-      );
+      // (Removed unused Partida instantiation)
 
-      final repo = PartidasRepository();
-      await repo.registrarPartida(userId, partida);
+      await ref.read(matchServiceProvider).saveMatch(
+        gameId: state.selectedGame!.id,
+        gameName: state.selectedGame!.name,
+        playerScores: puntajes,
+      );
       
       // Limpiamos el estado local para que la próxima vez inicie limpia
       await ref.read(hpTrackerProvider.notifier).clearLocalState();
@@ -357,82 +345,55 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
 
   // _buildSaveButton removed
   Widget _buildControls(HpTrackerState state) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Expanded(
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: IconButton.filledTonal(
-              iconSize: 28,
-              padding: const EdgeInsets.all(12),
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () async {
-                final nav = Navigator.of(context);
-                await ref.read(hpTrackerProvider.notifier).saveLocalState();
-                nav.pop();
-              },
-            ),
+    return TrackerBottomBar(
+      onBack: () async {
+        final nav = Navigator.of(context);
+        await ref.read(hpTrackerProvider.notifier).saveLocalState();
+        nav.pop();
+      },
+      onSave: _confirmFinishMatch,
+      centerWidget: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Text(
+            'Vida Inicial',
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey, fontSize: 12),
           ),
-        ),
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Text(
-              'Vida Inicial',
-              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey, fontSize: 12),
-            ),
-            const SizedBox(height: 4),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                InkWell(
-                  onTap: () => _showInitialHpDialog(context, state.initialHp),
-                  borderRadius: BorderRadius.circular(16),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Text(
-                      '${state.initialHp}',
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              InkWell(
+                onTap: () => _showInitialHpDialog(context, state.initialHp),
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    '${state.initialHp}',
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                 ),
-                const SizedBox(width: 8),
-                IconButton.filled(
-                  style: IconButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.error,
-                    foregroundColor: Theme.of(context).colorScheme.onError,
-                  ),
-                  iconSize: 20,
-                  padding: const EdgeInsets.all(12),
-                  icon: const Icon(Icons.restart_alt),
-                  onPressed: _confirmReset,
-                ),
-              ],
-            ),
-          ],
-        ),
-        Expanded(
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: IconButton.filled(
-              iconSize: 28,
-              padding: const EdgeInsets.all(12),
-              style: IconButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Theme.of(context).colorScheme.onPrimary,
               ),
-              icon: const Icon(Icons.save),
-              onPressed: _confirmFinishMatch,
-            ),
+              const SizedBox(width: 8),
+              IconButton.filled(
+                style: IconButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.error,
+                  foregroundColor: Theme.of(context).colorScheme.onError,
+                ),
+                iconSize: 20,
+                padding: const EdgeInsets.all(12),
+                icon: const Icon(Icons.restart_alt),
+                onPressed: _confirmReset,
+              ),
+            ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -505,6 +466,12 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
     final allDropdownGames = LocalGamesCatalog.trackerGames;
 
     return Scaffold(
+      appBar: TrackerAppBar(
+        rightWidget: SizedBox(
+          width: 200,
+          child: _buildDropdownWidget(state, allDropdownGames),
+        ),
+      ),
       drawer: const AppDrawer(),
       body: Container(
         decoration: BoxDecoration(
@@ -520,53 +487,11 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
               if (orientation == Orientation.portrait) {
                 return Column(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        left: 12.0,
-                        right: 12.0,
-                        top: 12.0,
-                        bottom: 8.0,
-                      ),
-                      child: Row(
-                        children: [
-                          Builder(
-                            builder: (context) => GestureDetector(
-                              onTap: () => Scaffold.of(context).openDrawer(),
-                              child: Row(
-                                children: [
-                                  SvgPicture.asset(
-                                    'assets/images/logo.svg',
-                                    height: 40,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Text(
-                                    'BG Companion',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const Spacer(),
-                          SizedBox(
-                            width: 200,
-                            child: _buildDropdownWidget(
-                              state,
-                              allDropdownGames,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                     Expanded(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8.0,
-                          vertical: 16.0, // Aumenté el padding vertical para despegarlo del header
+                          vertical: 16.0,
                         ),
                         child: state.players.length == 1
                             ? _buildSinglePlayerLayout(state, invitados)
