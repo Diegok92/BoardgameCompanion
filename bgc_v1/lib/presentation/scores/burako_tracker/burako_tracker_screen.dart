@@ -9,8 +9,10 @@ import 'widgets/fichas_calculator_dialog.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/match_service.dart';
 import '../widgets/tracker_dialogs.dart';
+import '../../widgets/custom_alert.dart';
 import 'providers/burako_tracker_provider.dart';
 import 'widgets/burako_reference_card.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class BurakoTrackerScreen extends ConsumerStatefulWidget {
   final int playerCount;
@@ -53,12 +55,10 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
     final state = ref.read(burakoTrackerProvider);
     for (var e in state.entities) {
       if (e.totalScore >= 3000) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('¡${e.name} ha superado los 3000 puntos! Termina de sumar a los demás y guarda la partida.'),
-            backgroundColor: Colors.amber[800],
-            duration: const Duration(seconds: 4),
-          ),
+        CustomAlert.show(
+          context, 
+          'Termina de sumar a los demás y guarda la partida.', 
+          title: '¡${e.name} ha superado los 3000 puntos!'
         );
         break; // Only show once per check
       }
@@ -82,88 +82,90 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
             final currentState = ref.read(burakoTrackerProvider);
             final currentEntity = currentState.entities[entityIndex];
 
-            return Padding(
+            return Container(
               padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-                left: 16, right: 16, top: 24,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+                left: 24, right: 24, top: 24,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Editar ${currentEntity.name}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 16),
-                  ...List.generate(currentEntity.playerNames.length, (pIndex) {
-                    final currName = currentEntity.playerNames[pIndex];
-                    int globalIndex = 1;
-                    for (int i = 0; i < entityIndex; i++) {
-                      globalIndex += currentState.entities[i].playerNames.length;
-                    }
-                    globalIndex += pIndex;
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Editar ${currentEntity.name}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 16),
+                    ...List.generate(currentEntity.playerNames.length, (pIndex) {
+                      final currName = currentEntity.playerNames[pIndex];
+                      int globalIndex = 1;
+                      for (int i = 0; i < entityIndex; i++) {
+                        globalIndex += currentState.entities[i].playerNames.length;
+                      }
+                      globalIndex += pIndex;
 
-                    if (entityIndex == 0 && pIndex == 0 && user != null) {
+                      if (entityIndex == 0 && pIndex == 0 && user != null) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12.0),
+                          child: Text('Jugador 1: ${user.username}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.blueGrey)),
+                        );
+                      }
+
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12.0),
-                        child: Text('Jugador 1: ${user.username}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.blueGrey)),
-                      );
-                    }
-
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12.0),
-                      child: DropdownButtonFormField<String?>(
-                        decoration: InputDecoration(
-                          labelText: 'Jugador $globalIndex',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                        initialValue: currName != user?.username && currName != 'NUEVO_INVITADO' && !invitados.contains(currName) ? null : currName,
-                        items: [
-                          ...invitados.where((inv) {
-                            for (int i = 0; i < currentState.entities.length; i++) {
-                              for (int j = 0; j < currentState.entities[i].playerNames.length; j++) {
-                                if (i == entityIndex && j == pIndex) continue;
-                                if (currentState.entities[i].playerNames[j] == inv) return false;
+                        child: DropdownButtonFormField<String?>(
+                          decoration: InputDecoration(
+                            labelText: 'Jugador $globalIndex',
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          initialValue: currName != user?.username && currName != 'NUEVO_INVITADO' && !invitados.contains(currName) ? null : currName,
+                          items: [
+                            ...invitados.where((inv) {
+                              for (int i = 0; i < currentState.entities.length; i++) {
+                                for (int j = 0; j < currentState.entities[i].playerNames.length; j++) {
+                                  if (i == entityIndex && j == pIndex) continue;
+                                  if (currentState.entities[i].playerNames[j] == inv) return false;
+                                }
                               }
+                              return true;
+                            }).map((inv) => DropdownMenuItem(value: inv, child: Text(inv))),
+                            const DropdownMenuItem(value: 'NUEVO_INVITADO', child: Text('+ Agregar Invitado', style: TextStyle(color: Colors.blue))),
+                            if (currName == null) const DropdownMenuItem(value: null, child: Text('Sin Asignar', style: TextStyle(color: Colors.grey))),
+                          ],
+                          onChanged: (val) {
+                            if (val == 'NUEVO_INVITADO') {
+                              Navigator.pop(context);
+                              context.push('/register-invitado');
+                            } else {
+                              ref.read(burakoTrackerProvider.notifier).updatePlayerNameInEntity(entityIndex, pIndex, val);
+                              setModalState(() {});
                             }
-                            return true;
-                          }).map((inv) => DropdownMenuItem(value: inv, child: Text(inv))),
-                          const DropdownMenuItem(value: 'NUEVO_INVITADO', child: Text('+ Agregar Invitado', style: TextStyle(color: Colors.blue))),
-                          if (currName == null) const DropdownMenuItem(value: null, child: Text('Sin Asignar', style: TextStyle(color: Colors.grey))),
-                        ],
-                        onChanged: (val) {
-                          if (val == 'NUEVO_INVITADO') {
-                            Navigator.pop(context);
-                            context.push('/register-invitado');
-                          } else {
-                            ref.read(burakoTrackerProvider.notifier).updatePlayerNameInEntity(entityIndex, pIndex, val);
-                            setModalState(() {});
-                          }
-                        },
-                      ),
-                    );
-                  }),
-                  const SizedBox(height: 16),
-                  const Text('Elige color:', style: TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8, runSpacing: 8,
-                    children: AppColors.availableColors.where((color) {
-                      return !currentState.entities.any((e) => e.id != currentEntity.id && e.color.toARGB32() == color.toARGB32());
-                    }).map((color) {
-                      return InkWell(
-                        onTap: () {
-                          ref.read(burakoTrackerProvider.notifier).updateEntityColor(entityIndex, color);
-                          Navigator.pop(context);
-                        },
-                        child: CircleAvatar(
-                          backgroundColor: color,
-                          radius: 16,
-                          child: currentEntity.color.toARGB32() == color.toARGB32() ? const Icon(Icons.check, color: Colors.white, size: 16) : null,
+                          },
                         ),
                       );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 24),
-                ],
+                    }),
+                    const SizedBox(height: 16),
+                    const Text('Elige color:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8, runSpacing: 8,
+                      children: AppColors.availableColors.where((color) {
+                        return !currentState.entities.any((e) => e.id != currentEntity.id && e.color.toARGB32() == color.toARGB32());
+                      }).map((color) {
+                        return InkWell(
+                          onTap: () {
+                            ref.read(burakoTrackerProvider.notifier).updateEntityColor(entityIndex, color);
+                            Navigator.pop(context);
+                          },
+                          child: CircleAvatar(
+                            backgroundColor: color,
+                            radius: 16,
+                            child: currentEntity.color.toARGB32() == color.toARGB32() ? const Icon(Icons.check, color: Colors.white, size: 16) : null,
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+                ),
               ),
             );
           }
@@ -220,10 +222,10 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 10, offset: const Offset(0, 4)),
         ],
       ),
       child: Column(
@@ -249,19 +251,44 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
               ),
             ],
           ),
+          const SizedBox(height: 8),
+          
+          // Subtotal Actual a sumar
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3))
+            ),
+            child: Text(
+              'A sumar: ${buffer.totalPoints > 0 ? '+' : ''}${buffer.totalPoints}',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: buffer.totalPoints < 0 ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.primary,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 8),
           const Divider(),
-          const Spacer(),
+          const Spacer(flex: 1),
 
           // Puras (+200)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Canastas Puras', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).colorScheme.onSurface)),
-                  Text('(+200)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text('Canastas Puras', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Theme.of(context).colorScheme.onSurface)),
+                    Text('(+200)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                  ],
+                ),
               ),
               Row(
                 children: [
@@ -280,18 +307,20 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
               )
             ],
           ),
-          const Spacer(),
+          const SizedBox(height: 24),
 
           // Impuras (+100)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Canastas Impuras', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).colorScheme.onSurface)),
-                  Text('(+100)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text('Canastas Impuras', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Theme.of(context).colorScheme.onSurface)),
+                    Text('(+100)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                  ],
+                ),
               ),
               Row(
                 children: [
@@ -310,7 +339,7 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
               )
             ],
           ),
-          const Spacer(),
+          const SizedBox(height: 24),
 
           // Muerto y Cierre
           Row(
@@ -361,7 +390,7 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
               ),
             ],
           ),
-          const Spacer(),
+          const SizedBox(height: 24),
 
           // Puntaje Fichas
           Row(
@@ -398,26 +427,7 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
           ),
           const Spacer(flex: 2),
           
-          // Subtotal Actual a sumar
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3))
-            ),
-            child: Text(
-              'A sumar: ${buffer.totalPoints > 0 ? '+' : ''}${buffer.totalPoints}',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: buffer.totalPoints < 0 ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.primary,
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
+          const Spacer(flex: 2),
 
           // Sumar al total
           SizedBox(
@@ -448,10 +458,17 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       drawer: const AppDrawer(),
-      appBar: const TrackerAppBar(
-        rightWidget: Text(
-          'BURAKO',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, letterSpacing: 2),
+      appBar: TrackerAppBar(
+        rightWidget: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'BURAKO',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+            ),
+            const SizedBox(width: 8),
+            SvgPicture.asset('assets/images/burako_icon.svg', height: 24, width: 24),
+          ],
         ),
       ),
       body: SafeArea(

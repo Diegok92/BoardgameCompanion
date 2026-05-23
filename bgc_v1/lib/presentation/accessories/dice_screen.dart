@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/theme/app_colors.dart';
 
 class DiceRollScreen extends StatefulWidget {
   const DiceRollScreen({super.key});
@@ -13,7 +14,7 @@ class DiceRollScreen extends StatefulWidget {
 
 class _DiceRollScreenState extends State<DiceRollScreen>
     with SingleTickerProviderStateMixin {
-  static const Color redColor = Color(0xFFE63946);
+  static const Color redColor = AppColors.red;
 
   late final AnimationController _controller;
   late final Animation<double> _animation;

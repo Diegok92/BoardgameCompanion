@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/custom_alert.dart';
+import '../../core/theme/app_colors.dart';
 
 class UserEditScreen extends ConsumerStatefulWidget {
   const UserEditScreen({super.key});
@@ -12,19 +14,8 @@ class UserEditScreen extends ConsumerStatefulWidget {
 }
 
 class _UserEditScreenState extends ConsumerState<UserEditScreen> {
-  // Lista de colores disponibles
-  final List<Color> _availableColors = [
-    const Color(0xFFE53935), // Rojo
-    const Color(0xFFFB8C00), // Naranja
-    const Color(0xFFFDD835), // Amarillo
-    const Color(0xFF43A047), // Verde
-    const Color(0xFF00BCD4), // Celeste
-    const Color(0xFF1E88E5), // Azul
-    const Color(0xFF8E24AA), // Violeta
-    const Color(0xFFD81B60), // Rosa
-    const Color(0xFF6D4C41), // Marrón
-    const Color(0xFF607D8B), // Gris
-  ];
+  // Lista de colores disponibles referenciada desde AppColors
+  final List<Color> _availableColors = AppColors.availableColors;
 
   late Color? _selectedColor;
   late TextEditingController _emailController;
@@ -80,24 +71,14 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
       await ref.read(authProvider.notifier).updateUser(updatedUser);
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Perfil actualizado exitosamente.'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      CustomAlert.show(context, 'Perfil actualizado exitosamente.');
 
       context.pop();
     } catch (e) {
       if (!mounted) return;
       // Removemos el "Exception: " del mensaje si existe
       final errorMsg = e.toString().replaceFirst('Exception: ', '');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMsg),
-          backgroundColor: Colors.red,
-        ),
-      );
+      CustomAlert.show(context, errorMsg, isError: true);
     }
   }
 
@@ -130,7 +111,10 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Eliminar Cuenta', style: TextStyle(color: Colors.red)),
+        title: const Text(
+          'Eliminar Cuenta',
+          style: TextStyle(color: Colors.red),
+        ),
         content: const Text(
           '¿Estás seguro de que deseas eliminar tu cuenta?\n\n'
           'Esta acción no se puede deshacer y perderás el acceso a tu historial.',
@@ -150,11 +134,10 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                 context.go('/login');
               } catch (e) {
                 if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Error: ${e.toString()}'),
-                    backgroundColor: Colors.red,
-                  ),
+                CustomAlert.show(
+                  context,
+                  'Error: ${e.toString()}',
+                  isError: true,
                 );
               }
             },
@@ -209,7 +192,9 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                   children: [
                     CircleAvatar(
                       radius: 50,
-                      backgroundColor: _selectedColor ?? Theme.of(context).colorScheme.surfaceContainerHighest,
+                      backgroundColor:
+                          _selectedColor ??
+                          Theme.of(context).colorScheme.surfaceContainerHighest,
                       child: Icon(
                         Icons.person,
                         size: 70,
@@ -221,7 +206,10 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                       decoration: BoxDecoration(
                         color: Colors.blue,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Theme.of(context).colorScheme.surface, width: 2),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.surface,
+                          width: 2,
+                        ),
                       ),
                       child: const Icon(
                         Icons.camera_alt,
@@ -279,7 +267,12 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                           color: color,
                           shape: BoxShape.circle,
                           border: isSelected
-                              ? Border.all(color: Theme.of(context).colorScheme.onSurface, width: 3)
+                              ? Border.all(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface,
+                                  width: 3,
+                                )
                               : null,
                           boxShadow: [
                             if (isSelected)
@@ -327,7 +320,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Botón Cerrar Sesión
                 SizedBox(
                   width: double.infinity,
@@ -338,7 +331,9 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      side: BorderSide(color: Theme.of(context).colorScheme.error),
+                      side: BorderSide(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
                     ),
                     child: Text(
                       'CERRAR SESIÓN',
@@ -351,7 +346,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Botón Eliminar Cuenta
                 TextButton(
                   onPressed: _confirmDeleteAccount,

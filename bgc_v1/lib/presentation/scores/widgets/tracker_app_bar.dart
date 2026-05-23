@@ -22,29 +22,24 @@ class TrackerAppBar extends StatelessWidget implements PreferredSizeWidget {
           Builder(
             builder: (context) => InkWell(
               onTap: () => Scaffold.of(context).openDrawer(),
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-                borderRadius: BorderRadius.circular(12),
-                color: Theme.of(context).colorScheme.surface,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SvgPicture.asset('assets/images/logo.svg', height: 24),
-                  const SizedBox(width: 8),
-                  Text(
-                    'BG Companion',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onSurface,
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SvgPicture.asset('assets/images/logo.svg', height: 32),
+                    const SizedBox(width: 8),
+                    Text(
+                      'BG Companion',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
               ),
             ),
           ),

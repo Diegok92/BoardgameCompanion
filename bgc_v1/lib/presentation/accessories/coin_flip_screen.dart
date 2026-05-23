@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/theme/app_colors.dart';
 
 class CoinFlipScreen extends StatefulWidget {
   const CoinFlipScreen({super.key});
@@ -13,7 +14,7 @@ class CoinFlipScreen extends StatefulWidget {
 
 class _CoinFlipScreenState extends State<CoinFlipScreen>
     with SingleTickerProviderStateMixin {
-  static const Color orangeColor = Color(0xFFFFA726);
+  static const Color orangeColor = AppColors.orange;
 
   late final AnimationController _controller;
   late final Animation<double> _animation;
@@ -154,7 +155,7 @@ class CoinWidget extends StatelessWidget {
 
   const CoinWidget({super.key, required this.text});
 
-  static const Color orangeColor = Color(0xFFFFA726);
+  static const Color orangeColor = AppColors.orange;
 
   @override
   Widget build(BuildContext context) {
@@ -180,8 +181,8 @@ class CoinWidget extends StatelessWidget {
 }
 
 class CoinPainter extends CustomPainter {
-  static const Color orangeColor = Color(0xFFFFA726);
-  static const Color lightOrange = Color(0xFFFFF3D6);
+  static const Color orangeColor = AppColors.orange;
+  static const Color lightOrange = AppColors.lightOrange;
 
   @override
   void paint(Canvas canvas, Size size) {

@@ -6,6 +6,7 @@ import 'dart:math';
 import '../../domain/models/user_model.dart';
 import '../providers/auth_provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../widgets/custom_alert.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -38,16 +39,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final repeatPassword = _repeatPasswordController.text.trim();
 
     if (email.isEmpty || username.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, completa todos los campos')),
-      );
+      CustomAlert.show(context, 'Por favor, completa todos los campos', isError: true);
       return;
     }
 
     if (password != repeatPassword) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Las contraseñas no coinciden')),
-      );
+      CustomAlert.show(context, 'Las contraseñas no coinciden', isError: true);
       return;
     }
 
@@ -67,9 +64,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.toString())));
+        CustomAlert.show(context, e.toString(), isError: true);
       }
     }
   }

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
 import 'widgets/home_menu_button.dart';
 import '../widgets/app_drawer.dart';
+import '../../core/theme/app_colors.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -89,13 +90,13 @@ class HomeScreen extends ConsumerWidget {
                     ),
 
                     // Espaciador flexible
-                    const Spacer(flex: 2),
+                    const Spacer(flex: 1),
 
                     // --- SECCIÓN 2: BOTONES PRINCIPALES ---
                     HomeMenuButton(
                       icon: Icons.person_add,
                       label: '+ AGREGAR INVITADOS',
-                      backgroundColor: const Color(0xFFEF4444), // Rojo
+                      backgroundColor: AppColors.red,
                       onPressed: () {
                         context.push('/register-invitado');
                       },
@@ -103,9 +104,9 @@ class HomeScreen extends ConsumerWidget {
                     const SizedBox(height: 16),
 
                     HomeMenuButton(
-                      icon: Icons.book,
+                      svgAsset: 'assets/images/logo.svg',
                       label: 'ANOTADORES',
-                      backgroundColor: const Color(0xFF10B981), // Verde
+                      backgroundColor: AppColors.green,
                       onPressed: () {
                         context.push('/score-selector');
                       },
@@ -115,14 +116,14 @@ class HomeScreen extends ConsumerWidget {
                     HomeMenuButton(
                       icon: Icons.extension,
                       label: 'ACCESORIOS',
-                      backgroundColor: const Color(0xFF3B82F6), // Azul
+                      backgroundColor: AppColors.blue,
                       onPressed: () {
                         context.push('/accessories');
                       },
                     ),
 
-                    // Espaciador flexible
-                    const Spacer(flex: 3),
+                    // Espaciador para acercar los botones inferiores
+                    const SizedBox(height: 32),
 
                     // --- SECCIÓN 3: BOTONES SECUNDARIOS ---
                     Row(
@@ -131,7 +132,9 @@ class HomeScreen extends ConsumerWidget {
                           child: HomeMenuButton(
                             icon: Icons.bar_chart,
                             label: 'ESTADÍSTICAS',
-                            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
                             isSecondary: true,
                             onPressed: () {
                               // Navegar a estadísticas
@@ -143,7 +146,9 @@ class HomeScreen extends ConsumerWidget {
                           child: HomeMenuButton(
                             icon: Icons.history,
                             label: 'HISTORIAL',
-                            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
                             isSecondary: true,
                             onPressed: () {
                               // Navegar a historial
@@ -152,6 +157,7 @@ class HomeScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
+                    const Spacer(flex: 1),
                   ],
                 ),
               ),

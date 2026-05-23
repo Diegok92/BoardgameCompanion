@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/game_model.dart';
 import '../providers/games_provider.dart';
+import '../widgets/custom_alert.dart';
 
 class ScoreSelectorScreen extends ConsumerStatefulWidget {
   const ScoreSelectorScreen({super.key});
@@ -33,34 +34,17 @@ class _ScoreSelectorScreenState extends ConsumerState<ScoreSelectorScreen> {
 
   void _onConfirm() {
     if (_selectedGame == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, selecciona un juego primero.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      CustomAlert.show(context, 'Por favor, selecciona un juego primero.', isError: true);
       return;
     }
 
     if (_selectedPlayerCount == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, selecciona la cantidad de jugadores.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      CustomAlert.show(context, 'Por favor, selecciona la cantidad de jugadores.', isError: true);
       return;
     }
 
     if (!_selectedGame!.validPlayerCounts.contains(_selectedPlayerCount)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Cantidad de jugadores no válida para el juego seleccionado.',
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
+      CustomAlert.show(context, 'Cantidad de jugadores no válida para el juego seleccionado.', isError: true);
       return;
     }
 
@@ -75,14 +59,7 @@ class _ScoreSelectorScreenState extends ConsumerState<ScoreSelectorScreen> {
         extra: {'playerCount': _selectedPlayerCount},
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'El anotador para ${_selectedGame!.name} aún no está implementado.',
-          ),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      CustomAlert.show(context, 'El anotador para ${_selectedGame!.name} aún no está implementado.', isError: true);
     }
   }
 
@@ -340,10 +317,16 @@ class _ScoreSelectorScreenState extends ConsumerState<ScoreSelectorScreen> {
                                       onTap: () => _onGameSelected(game),
                                       leading: CircleAvatar(
                                         backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                                        child: Icon(
-                                          Icons.casino,
-                                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                        ),
+                                        child: game.iconPath != null
+                                            ? SvgPicture.asset(
+                                                game.iconPath!,
+                                                height: 24,
+                                                width: 24,
+                                              )
+                                            : Icon(
+                                                Icons.casino,
+                                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                              ),
                                       ),
                                       title: Text(
                                         game.name,

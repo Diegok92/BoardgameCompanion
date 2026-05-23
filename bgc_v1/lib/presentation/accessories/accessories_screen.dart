@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../domain/models/accessory_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/accessories_provider.dart';
+import '../widgets/custom_alert.dart';
 
 class AccessoriesScreen extends ConsumerWidget {
   const AccessoriesScreen({super.key});
@@ -23,12 +24,7 @@ class AccessoriesScreen extends ConsumerWidget {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Abriendo accesorio: ${accessory.name}...'),
-        backgroundColor: Colors.green,
-      ),
-    );
+    CustomAlert.show(context, 'Abriendo accesorio: ${accessory.name}...');
   }
 
   @override

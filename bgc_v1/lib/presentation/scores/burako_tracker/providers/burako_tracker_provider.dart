@@ -208,12 +208,12 @@ class BurakoTrackerNotifier extends Notifier<BurakoTrackerState> {
   }
 
   void updatePureCanastas(int delta) {
-    int val = state.buffer.pureCanastas + delta;
+    int val = max(0, state.buffer.pureCanastas + delta);
     state = state.copyWith(buffer: state.buffer.copyWith(pureCanastas: val));
   }
 
   void updateImpureCanastas(int delta) {
-    int val = state.buffer.impureCanastas + delta;
+    int val = max(0, state.buffer.impureCanastas + delta);
     state = state.copyWith(buffer: state.buffer.copyWith(impureCanastas: val));
   }
 

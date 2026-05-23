@@ -15,7 +15,12 @@ class LocalGamesCatalog {
       validPlayerCounts: [1, 2, 3, 4, 5, 6],
     ),
     Game(id: 'truco', name: 'Truco', validPlayerCounts: [2, 4, 6]),
-    Game(id: 'burako', name: 'Burako', validPlayerCounts: [2, 3, 4]),
+    Game(
+      id: 'burako',
+      name: 'Burako',
+      validPlayerCounts: [2, 3, 4],
+      iconPath: 'assets/images/burako_icon.svg',
+    ),
     Game(id: 'generala', name: 'Generala', validPlayerCounts: [2, 3, 4, 5, 6]),
     Game(id: 'akropolis', name: 'Akropolis', validPlayerCounts: [1, 2, 3, 4]),
   ];

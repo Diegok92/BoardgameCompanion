@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'app_colors.dart';
 
 class AppTheme {
   final bool isDarkMode;
@@ -9,7 +11,7 @@ class AppTheme {
 
   ThemeData getTheme() {
     final colorScheme = ColorScheme.fromSeed(
-      seedColor: const Color(0xFF10B981), // Verde principal fijo
+      seedColor: AppColors.blue, // Azul profesional
       brightness: isDarkMode ? Brightness.dark : Brightness.light,
     );
 
@@ -17,6 +19,16 @@ class AppTheme {
       useMaterial3: true,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: colorScheme.surface,
+
+      // Fix para la barra de estado de Android (iconos blancos/negros)
+      appBarTheme: AppBarTheme(
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
+          systemNavigationBarColor: colorScheme.surface,
+          systemNavigationBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
+        ),
+      ),
 
       // Configuración global de los TextFields
       inputDecorationTheme: InputDecorationTheme(

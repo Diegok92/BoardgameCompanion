@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
+import '../../core/theme/app_colors.dart';
 
 class RegisterInvitadoScreen extends ConsumerStatefulWidget {
   const RegisterInvitadoScreen({super.key});
@@ -151,7 +152,7 @@ class _RegisterInvitadoScreenState
                   FilledButton(
                     onPressed: _addInvitado,
                     style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFFEF4444), // Rojo
+                      backgroundColor: AppColors.red,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
                         vertical: 14,

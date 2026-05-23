@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/custom_alert.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -14,18 +15,14 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _obscurePassword = true;
 
   Future<void> _login() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, ingresa email y contraseña.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      CustomAlert.show(context, 'Por favor, ingresa email y contraseña.', isError: true);
       return;
     }
 
@@ -41,13 +38,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } else {
       // Login fallido
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Credenciales incorrectas. (Pista: mago@test.com / password123)',
-            ),
-            backgroundColor: Colors.red,
-          ),
+        CustomAlert.show(
+          context,
+          'Credenciales incorrectas. (Pista: mago@test.com / password123)',
+          isError: true,
         );
       }
     }
@@ -113,9 +107,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       const SizedBox(height: 8),
                       TextFormField(
                         controller: _passwordController,
-                        obscureText: true,
-                        decoration: const InputDecoration(
+                        obscureText: _obscurePassword,
+                        decoration: InputDecoration(
                           hintText: '............',
+                          suffixIcon: IconButton(
+                            icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
+                            onPressed: () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
+                          ),
                         ),
                       ),
                     ],

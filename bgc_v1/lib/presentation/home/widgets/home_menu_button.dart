@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class HomeMenuButton extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
+  final String? svgAsset;
   final String label;
   final Color backgroundColor;
   final VoidCallback onPressed;
@@ -9,7 +11,8 @@ class HomeMenuButton extends StatelessWidget {
 
   const HomeMenuButton({
     super.key,
-    required this.icon,
+    this.icon,
+    this.svgAsset,
     required this.label,
     required this.backgroundColor,
     required this.onPressed,
@@ -39,7 +42,10 @@ class HomeMenuButton extends StatelessWidget {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(icon, size: 32, color: Theme.of(context).colorScheme.primary),
+                  if (svgAsset != null)
+                    SvgPicture.asset(svgAsset!, height: 32)
+                  else if (icon != null)
+                    Icon(icon, size: 32, color: Theme.of(context).colorScheme.primary),
                   const SizedBox(height: 8),
                   Text(
                     label,
@@ -58,7 +64,9 @@ class HomeMenuButton extends StatelessWidget {
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(icon, color: Colors.white, size: 24),
+                child: svgAsset != null 
+                    ? SvgPicture.asset(svgAsset!, height: 24)
+                    : (icon != null ? Icon(icon, color: Colors.white, size: 24) : const SizedBox(width: 24)),
               ),
               const SizedBox(width: 16),
               Text(

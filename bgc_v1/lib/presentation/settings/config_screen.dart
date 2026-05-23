@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/settings_provider.dart';
 import '../../data/repositories/local_storage_repository.dart';
+import '../widgets/custom_alert.dart';
 
 // Proveedor para inyectar el LocalStorageRepository en la vista
 final localStorageProvider = Provider<LocalStorageRepository>((ref) {
@@ -49,13 +50,12 @@ class ConfigScreen extends ConsumerWidget {
               ),
               child: Column(
                 children: [
-                  // Modo Oscuro (Switch)
                   SwitchListTile(
                     title: const Text(
-                      'Modo Oscuro',
+                      'Modo Obscuro',
                       style: TextStyle(fontWeight: FontWeight.w600),
                     ),
-                    subtitle: const Text('Cambiar entre tema claro y oscuro'),
+                    subtitle: const Text('Cambiar entre tema claro y obscuro'),
                     secondary: Icon(
                       settings.isDarkMode ? Icons.dark_mode : Icons.light_mode,
                       color: settings.isDarkMode ? Colors.amber : Colors.orange,
@@ -65,7 +65,6 @@ class ConfigScreen extends ConsumerWidget {
                       ref.read(settingsProvider.notifier).toggleDarkMode(value);
                     },
                   ),
-
                 ],
               ),
             ),
@@ -136,12 +135,7 @@ class ConfigScreen extends ConsumerWidget {
                             Navigator.pop(context);
                             await ref.read(localStorageProvider).clearAllData();
                             if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Caché borrada exitosamente.'),
-                                  duration: Duration(seconds: 2),
-                                ),
-                              );
+                              CustomAlert.show(context, 'Caché borrada exitosamente.');
                             }
                           },
                           style: TextButton.styleFrom(
@@ -160,7 +154,6 @@ class ConfigScreen extends ConsumerWidget {
       ),
     );
   }
-
 
   // Widget de ayuda para construir el título de cada sección
   Widget _buildSectionHeader(String title, ColorScheme colorScheme) {

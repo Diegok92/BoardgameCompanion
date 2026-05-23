@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/custom_alert.dart';
 
 class DialogPlayerInfo {
   final String? name;
@@ -20,22 +21,12 @@ class TrackerDialogs {
     required VoidCallback onNavigateHome,
   }) {
     if (players.any((p) => p.name == null || p.name!.isEmpty || p.name == 'Sin Asignar' || p.name == 'NUEVO_INVITADO')) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, asigna todos los jugadores a un invitado antes de guardar.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      CustomAlert.show(context, 'Por favor, asigna todos los jugadores a un invitado antes de guardar.', isError: true);
       return;
     }
 
     if (gameId == null || gameName == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Debes seleccionar un juego para registrar la partida.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      CustomAlert.show(context, 'Debes seleccionar un juego para registrar la partida.', isError: true);
       return;
     }
 
@@ -71,22 +62,12 @@ class TrackerDialogs {
                 onClearState();
                 
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Partida registrada con éxito!'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
+                  CustomAlert.show(context, 'Partida registrada con éxito!');
                   onNavigateHome();
                 }
               } catch (e) {
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error al guardar: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
+                  CustomAlert.show(context, 'Error al guardar: $e', isError: true);
                 }
               }
             },
