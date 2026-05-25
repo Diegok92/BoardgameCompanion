@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'app_colors.dart';
+import 'app_sizes.dart';
 
 class AppTheme {
   final bool isDarkMode;
@@ -34,19 +35,19 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
+          horizontal: AppSizes.p16,
+          vertical: AppSizes.p16,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppSizes.r12),
           borderSide: BorderSide(color: colorScheme.outlineVariant),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppSizes.r12),
           borderSide: BorderSide(color: colorScheme.outlineVariant),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppSizes.r12),
           borderSide: BorderSide(color: colorScheme.primary, width: 2),
         ),
       ),

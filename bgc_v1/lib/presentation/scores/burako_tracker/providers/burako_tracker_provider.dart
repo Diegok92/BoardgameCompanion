@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:math';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../data/repositories/local_storage_repository.dart';
+import '../../../../domain/repositories/i_local_storage_repository.dart';
 import '../../../../domain/models/game_model.dart';
 import '../../../../domain/models/user_model.dart';
 import '../../../../data/local_catalog/local_games_catalog.dart';
@@ -102,7 +103,7 @@ class BurakoTrackerState {
 }
 
 class BurakoTrackerNotifier extends Notifier<BurakoTrackerState> {
-  final LocalStorageRepository _localStorage = LocalStorageRepository();
+  final ILocalStorageRepository _localStorage = LocalStorageRepository();
   String _currentUserId = '';
 
   @override

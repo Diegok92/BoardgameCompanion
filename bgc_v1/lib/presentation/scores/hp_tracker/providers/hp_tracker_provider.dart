@@ -4,6 +4,7 @@ import 'dart:math';
 import '../../../../core/theme/app_colors.dart';
 import 'dart:convert';
 import '../../../../data/repositories/local_storage_repository.dart';
+import '../../../../domain/repositories/i_local_storage_repository.dart';
 import '../../../../data/local_catalog/local_games_catalog.dart';
 import '../../../../domain/models/game_model.dart';
 import '../../../../domain/models/user_model.dart';
@@ -67,7 +68,7 @@ class HpTrackerNotifier extends Notifier<HpTrackerState> {
 
   // Guardamos el userId actual para usarlo en saveLocalState()
   String _currentUserId = '';
-  final LocalStorageRepository _localStorage = LocalStorageRepository();
+  final ILocalStorageRepository _localStorage = LocalStorageRepository();
 
   Future<void> initialize(int playerCount, User user, int initialHp) async {
     _currentUserId = user.id;

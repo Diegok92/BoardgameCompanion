@@ -3,10 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/settings_provider.dart';
 import '../../data/repositories/local_storage_repository.dart';
+import '../../domain/repositories/i_local_storage_repository.dart';
 import '../widgets/custom_alert.dart';
 
 // Proveedor para inyectar el LocalStorageRepository en la vista
-final localStorageProvider = Provider<LocalStorageRepository>((ref) {
+final localStorageProvider = Provider<ILocalStorageRepository>((ref) {
   return LocalStorageRepository();
 });
 

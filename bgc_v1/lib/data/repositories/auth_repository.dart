@@ -1,12 +1,15 @@
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/models/user_model.dart';
+import '../../domain/repositories/i_auth_repository.dart';
+import '../../core/error/app_exceptions.dart';
 
-class AuthRepository {
+class AuthRepository implements IAuthRepository {
   final firebase_auth.FirebaseAuth _firebaseAuth =
       firebase_auth.FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  @override
   Future<User?> login(String email, String password) async {
     try {
       // 1. Logueamos al usuario con Firebase Auth
@@ -23,11 +26,13 @@ class AuthRepository {
 
         if (doc.exists && doc.data() != null) {
           // Unimos el ID de Firebase Auth con los datos de Firestore
-          final user = User.fromJson(firebaseUser.uid, doc.data()!);
+          final data = doc.data()!;
+          data['id'] = firebaseUser.uid;
+          final user = User.fromJson(data);
           
           if (!user.isActive) {
             await _firebaseAuth.signOut();
-            throw Exception('Esta cuenta ha sido eliminada.');
+            throw const AuthException('Esta cuenta ha sido eliminada.', code: 'account-deleted');
           }
           
           return user;
@@ -40,6 +45,7 @@ class AuthRepository {
     }
   }
 
+  @override
   Future<User> register(User newUser) async {
     try {
       // 1. Crear el usuario en Firebase Auth (esto encripta y guarda la contraseña)
@@ -50,7 +56,7 @@ class AuthRepository {
 
       final firebaseUser = userCredential.user;
       if (firebaseUser == null) {
-        throw Exception('No se pudo crear el usuario en Firebase Auth.');
+        throw const AuthException('No se pudo crear el usuario en Firebase Auth.', code: 'user-not-created');
       }
 
       // 2. Guardar el resto de la información en Firestore, usando el ID generado
@@ -62,10 +68,11 @@ class AuthRepository {
 
       return userToSave;
     } catch (e) {
-      throw Exception('Error al registrar usuario: $e');
+      throw AuthException('Error al registrar usuario: $e', code: 'registration-error');
     }
   }
 
+  @override
   Future<void> updateUser(User user) async {
     try {
       // 1. Actualizamos los datos en Firestore
@@ -86,21 +93,26 @@ class AuthRepository {
     } catch (e) {
       print('Error al actualizar usuario: $e');
       // Lanzamos la excepción para que la UI pueda atraparla y mostrar el error
-      throw Exception('No se pudo actualizar el perfil. Si cambiaste la contraseña o email, es posible que debas cerrar sesión y volver a entrar por seguridad.');
+      throw const AuthException(
+        'No se pudo actualizar el perfil. Si cambiaste la contraseña o email, es posible que debas cerrar sesión y volver a entrar por seguridad.',
+        code: 'update-profile-error',
+      );
     }
   }
 
+  @override
   Future<void> logout() async {
     await _firebaseAuth.signOut();
   }
 
+  @override
   Future<void> softDeleteUser(String userId) async {
     try {
       await _firestore.collection('users').doc(userId).update({'isActive': false});
       await logout();
     } catch (e) {
       print('Error al hacer soft delete del usuario: $e');
-      throw Exception('Error al borrar la cuenta.');
+      throw AuthException('Error al borrar la cuenta: $e', code: 'soft-delete-error');
     }
   }
 }

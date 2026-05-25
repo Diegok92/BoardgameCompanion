@@ -73,27 +73,21 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
   void _showEntityEditor(int entityIndex) {
     final user = ref.read(authProvider);
     final invitados = user?.invitados ?? [];
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
       builder: (context) {
         return StatefulBuilder(
-          builder: (context, setModalState) {
+          builder: (context, setDialogState) {
             final currentState = ref.read(burakoTrackerProvider);
             final currentEntity = currentState.entities[entityIndex];
 
-            return Container(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-                left: 24, right: 24, top: 24,
-              ),
-              child: SingleChildScrollView(
+            return AlertDialog(
+              title: Text('Editar ${currentEntity.name}', style: const TextStyle(fontWeight: FontWeight.bold)),
+              content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Editar ${currentEntity.name}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 16),
                     ...List.generate(currentEntity.playerNames.length, (pIndex) {
                       final currName = currentEntity.playerNames[pIndex];
                       int globalIndex = 1;
@@ -136,7 +130,7 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
                               context.push('/register-invitado');
                             } else {
                               ref.read(burakoTrackerProvider.notifier).updatePlayerNameInEntity(entityIndex, pIndex, val);
-                              setModalState(() {});
+                              setDialogState(() {});
                             }
                           },
                         ),
@@ -163,10 +157,15 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
                         );
                       }).toList(),
                     ),
-                    const SizedBox(height: 24),
                   ],
                 ),
               ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cerrar'),
+                ),
+              ],
             );
           }
         );
@@ -192,11 +191,11 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
                   Flexible(
                     child: Text(
                       entity.name,
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+                      style: TextStyle(color: entity.color.computeLuminance() > 0.5 ? Colors.black : Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const Icon(Icons.arrow_drop_down, color: Colors.white, size: 16),
+                  Icon(Icons.arrow_drop_down, color: entity.color.computeLuminance() > 0.5 ? Colors.black : Colors.white, size: 16),
                 ],
               ),
             ),

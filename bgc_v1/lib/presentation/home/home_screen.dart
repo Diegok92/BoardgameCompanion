@@ -6,6 +6,8 @@ import '../providers/auth_provider.dart';
 import 'widgets/home_menu_button.dart';
 import '../widgets/app_drawer.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_sizes.dart';
+import '../../core/constants/app_strings.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -54,8 +56,8 @@ class HomeScreen extends ConsumerWidget {
               hasScrollBody: false,
               child: Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 24.0,
-                  vertical: 16.0,
+                  horizontal: AppSizes.p24,
+                  vertical: AppSizes.p16,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -95,7 +97,7 @@ class HomeScreen extends ConsumerWidget {
                     // --- SECCIÓN 2: BOTONES PRINCIPALES ---
                     HomeMenuButton(
                       icon: Icons.person_add,
-                      label: '+ AGREGAR INVITADOS',
+                      label: AppStrings.addGuests,
                       backgroundColor: AppColors.red,
                       onPressed: () {
                         context.push('/register-invitado');
@@ -105,7 +107,7 @@ class HomeScreen extends ConsumerWidget {
 
                     HomeMenuButton(
                       svgAsset: 'assets/images/logo.svg',
-                      label: 'ANOTADORES',
+                      label: AppStrings.trackers,
                       backgroundColor: AppColors.green,
                       onPressed: () {
                         context.push('/score-selector');
@@ -115,7 +117,7 @@ class HomeScreen extends ConsumerWidget {
 
                     HomeMenuButton(
                       icon: Icons.extension,
-                      label: 'ACCESORIOS',
+                      label: AppStrings.accessories,
                       backgroundColor: AppColors.blue,
                       onPressed: () {
                         context.push('/accessories');
@@ -131,7 +133,7 @@ class HomeScreen extends ConsumerWidget {
                         Expanded(
                           child: HomeMenuButton(
                             icon: Icons.bar_chart,
-                            label: 'ESTADÍSTICAS',
+                            label: AppStrings.stats,
                             backgroundColor: Theme.of(
                               context,
                             ).colorScheme.surfaceContainerHighest,
@@ -145,7 +147,7 @@ class HomeScreen extends ConsumerWidget {
                         Expanded(
                           child: HomeMenuButton(
                             icon: Icons.history,
-                            label: 'HISTORIAL',
+                            label: AppStrings.history,
                             backgroundColor: Theme.of(
                               context,
                             ).colorScheme.surfaceContainerHighest,

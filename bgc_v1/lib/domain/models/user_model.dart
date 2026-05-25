@@ -1,67 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-class User {
-  final String id;
-  final String username;
-  final String email;
-  final String password;
-  final Color? favoriteColor;
-  final List<String> invitados;
-  final bool isActive; // Para soft-delete
+part 'user_model.freezed.dart';
+part 'user_model.g.dart';
 
-  const User({
-    required this.id,
-    required this.username,
-    required this.email,
-    required this.password,
-    this.favoriteColor,
-    required this.invitados,
-    this.isActive = true, // Por defecto activo
-  });
+class ColorConverter implements JsonConverter<Color?, int?> {
+  const ColorConverter();
 
-  User copyWith({
-    String? id,
-    String? username,
-    String? email,
-    String? password,
-    Color? favoriteColor,
-    List<String>? invitados,
-    bool? isActive,
-  }) {
-    return User(
-      id: id ?? this.id,
-      username: username ?? this.username,
-      email: email ?? this.email,
-      password: password ?? this.password,
-      favoriteColor: favoriteColor ?? this.favoriteColor,
-      invitados: invitados ?? this.invitados,
-      isActive: isActive ?? this.isActive,
-    );
-  }
+  @override
+  Color? fromJson(int? json) => json != null ? Color(json) : null;
 
-  Map<String, dynamic> toJson() {
-    return {
-      'username': username,
-      'email': email,
-      // Guardamos el color como entero
-      'favoriteColor': favoriteColor?.toARGB32(),
-      'invitados': invitados,
-      'isActive': isActive,
-      // IMPORTANTE: NUNCA guardamos la contraseña en Firestore
-    };
-  }
+  @override
+  int? toJson(Color? object) => object?.toARGB32();
+}
 
-  factory User.fromJson(String id, Map<String, dynamic> json) {
-    return User(
-      id: id,
-      username: json['username'] ?? '',
-      email: json['email'] ?? '',
-      password: '', // Firebase Auth maneja la contraseña, no viene de Firestore
-      favoriteColor: json['favoriteColor'] != null
-          ? Color(json['favoriteColor'])
-          : null,
-      invitados: List<String>.from(json['invitados'] ?? []),
-      isActive: json['isActive'] ?? true, // Si no existe (usuarios viejos), asumimos que está activo
-    );
-  }
+@freezed
+abstract class User with _$User {
+  const User._();
+
+  const factory User({
+    required String id,
+    @Default('') String username,
+    @Default('') String email,
+    @Default('') String password,
+    @ColorConverter() Color? favoriteColor,
+    @Default([]) List<String> invitados,
+    @Default(true) bool isActive,
+  }) = _User;
+
+  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 }

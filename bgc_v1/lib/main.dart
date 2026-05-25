@@ -33,9 +33,7 @@ class MainApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'BG Companion',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme(
-        isDarkMode: settings.isDarkMode,
-      ).getTheme(),
+      theme: AppTheme(isDarkMode: settings.isDarkMode).getTheme(),
       routerConfig: appRouter,
     );
   }

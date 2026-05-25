@@ -47,6 +47,7 @@ class _RegisterInvitadoScreenState
           title: const Text('Editar Invitado'),
           content: TextField(
             controller: editController,
+            maxLength: 9,
             decoration: const InputDecoration(hintText: 'Nuevo nombre'),
           ),
           actions: [
@@ -139,6 +140,7 @@ class _RegisterInvitadoScreenState
                   Expanded(
                     child: TextFormField(
                       controller: _nameController,
+                      maxLength: 9,
                       decoration: const InputDecoration(
                         hintText: 'Nombre del invitado',
                         contentPadding: EdgeInsets.symmetric(

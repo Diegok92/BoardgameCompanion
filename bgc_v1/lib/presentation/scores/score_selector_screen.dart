@@ -58,6 +58,11 @@ class _ScoreSelectorScreenState extends ConsumerState<ScoreSelectorScreen> {
         '/hp-tracker',
         extra: {'playerCount': _selectedPlayerCount},
       );
+    } else if (_selectedGame!.id == 'akropolis') {
+      context.push(
+        '/akropolis-tracker',
+        extra: {'playerCount': _selectedPlayerCount},
+      );
     } else {
       CustomAlert.show(context, 'El anotador para ${_selectedGame!.name} aún no está implementado.', isError: true);
     }
