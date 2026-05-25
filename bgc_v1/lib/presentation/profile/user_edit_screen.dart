@@ -20,7 +20,6 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
   late Color? _selectedColor;
   late TextEditingController _emailController;
   late TextEditingController _usernameController;
-  late TextEditingController _passwordController;
 
   @override
   void initState() {
@@ -29,7 +28,6 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
     // Esto asegura que inicializamos los campos con los datos actuales.
     _emailController = TextEditingController();
     _usernameController = TextEditingController();
-    _passwordController = TextEditingController();
   }
 
   @override
@@ -41,7 +39,6 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
       if (user != null) {
         _usernameController.text = user.username;
         _emailController.text = user.email;
-        _passwordController.text = user.password;
         _selectedColor = user.favoriteColor ?? Colors.blue;
       }
     }
@@ -51,7 +48,6 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
   void dispose() {
     _emailController.dispose();
     _usernameController.dispose();
-    _passwordController.dispose();
     super.dispose();
   }
 
@@ -62,7 +58,6 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
     final updatedUser = user.copyWith(
       username: _usernameController.text.trim(),
       email: _emailController.text.trim(),
-      password: _passwordController.text,
       favoriteColor: _selectedColor,
     );
 
@@ -73,7 +68,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
       if (!mounted) return;
       CustomAlert.show(context, 'Perfil actualizado exitosamente.');
 
-      context.pop();
+      context.go('/home');
     } catch (e) {
       if (!mounted) return;
       // Removemos el "Exception: " del mensaje si existe
@@ -289,15 +284,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Contraseña
-                _buildTextField(
-                  'CONTRASEÑA',
-                  '............',
-                  textTheme,
-                  _passwordController,
-                  isPassword: true,
-                ),
-                const SizedBox(height: 32),
+
 
                 // Botón Guardar
                 SizedBox(

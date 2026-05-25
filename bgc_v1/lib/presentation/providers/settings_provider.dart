@@ -13,15 +13,10 @@ class SettingsNotifier extends Notifier<Settings> {
     // Estado inicial por defecto
     return const Settings(
       isDarkMode: false,
-      keepSessionOpen: false,
     );
   }
 
   void toggleDarkMode(bool isDark) {
     state = state.copyWith(isDarkMode: isDark);
-  }
-
-  void toggleKeepSessionOpen(bool keepOpen) {
-    state = state.copyWith(keepSessionOpen: keepOpen);
   }
 }

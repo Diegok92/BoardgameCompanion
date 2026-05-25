@@ -87,16 +87,12 @@ class AuthRepository implements IAuthRepository {
         if (user.email.isNotEmpty && user.email != currentUser.email) {
           await currentUser.verifyBeforeUpdateEmail(user.email);
         }
-        // Actualizar contraseña si escribió una nueva
-        if (user.password.isNotEmpty) {
-          await currentUser.updatePassword(user.password);
-        }
       }
     } catch (e) {
       // print('Error al actualizar usuario: $e');
       // Lanzamos la excepción para que la UI pueda atraparla y mostrar el error
       throw const AuthException(
-        'No se pudo actualizar el perfil. Si cambiaste la contraseña o email, es posible que debas cerrar sesión y volver a entrar por seguridad.',
+        'No se pudo actualizar el perfil. Si cambiaste el email, es posible que debas cerrar sesión y volver a entrar por seguridad.',
         code: 'update-profile-error',
       );
     }

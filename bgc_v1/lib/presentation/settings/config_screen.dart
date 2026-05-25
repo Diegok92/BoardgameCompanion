@@ -70,35 +70,7 @@ class ConfigScreen extends ConsumerWidget {
               ),
             ),
 
-            const SizedBox(height: 32),
 
-            // --- SECCIÓN: SESIÓN ---
-            _buildSectionHeader('Sesión', colorScheme),
-            Card(
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: colorScheme.outlineVariant),
-              ),
-              child: CheckboxListTile(
-                title: const Text(
-                  'Mantener sesión iniciada',
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                ),
-                subtitle: const Text('No cerrar sesión al salir de la app'),
-                secondary: const Icon(Icons.login, color: Colors.purple),
-                value: settings.keepSessionOpen,
-                onChanged: (value) {
-                  if (value != null) {
-                    ref
-                        .read(settingsProvider.notifier)
-                        .toggleKeepSessionOpen(value);
-                  }
-                },
-              ),
-            ),
-
-            const SizedBox(height: 32),
 
             // --- SECCIÓN: DATOS ---
             _buildSectionHeader('Datos', colorScheme),
