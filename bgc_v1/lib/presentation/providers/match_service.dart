@@ -29,6 +29,7 @@ class MatchService {
     required String gameName,
     required Map<String, int> playerScores,
     String status = 'finalizada',
+    bool isTeamGame = false,
   }) async {
     if (_userId == null || _userId.isEmpty) {
       throw Exception('Usuario no autenticado');
@@ -53,6 +54,7 @@ class MatchService {
       ganadores: ganadores,
       puntajesFinales: playerScores,
       estado: status,
+      isTeamGame: isTeamGame,
     );
 
     await _repository.registrarPartida(_userId, partida);

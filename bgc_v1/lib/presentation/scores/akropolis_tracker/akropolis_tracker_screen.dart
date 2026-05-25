@@ -155,6 +155,7 @@ class _AkropolisTrackerScreenState
                               gameId: state.selectedGame!.id,
                               gameName: state.selectedGame!.name,
                               playerScores: finalScores,
+                              isTeamGame: false,
                             );
                       }
                     },

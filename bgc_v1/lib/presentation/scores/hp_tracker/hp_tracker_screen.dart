@@ -116,6 +116,7 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
               gameId: state.selectedGame!.id,
               gameName: state.selectedGame!.name,
               playerScores: finalScores,
+              isTeamGame: false,
             );
           },
           onClearState: () => ref.read(hpTrackerProvider.notifier).clearLocalState(),

@@ -136,6 +136,7 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
                         gameId: state.selectedGame!.id,
                         gameName: state.selectedGame!.name,
                         playerScores: finalScores,
+                        isTeamGame: widget.playerCount == 4,
                       );
                     },
                     onClearState: () => ref.read(burakoTrackerProvider.notifier).clearLocalState(),

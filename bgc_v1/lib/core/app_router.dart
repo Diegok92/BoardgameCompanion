@@ -12,6 +12,7 @@ import '../presentation/accessories/coin_flip_screen.dart';
 import '../presentation/accessories/dice_screen.dart';
 import '../presentation/settings/config_screen.dart';
 import '../presentation/scores/akropolis_tracker/akropolis_tracker_screen.dart';
+import '../presentation/stats/stats_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/login',
@@ -91,6 +92,12 @@ final appRouter = GoRouter(
       path: '/dice-roll',
       builder: (context, state) {
         return const DiceRollScreen();
+      },
+    ),
+    GoRoute(
+      path: '/stats',
+      builder: (context, state) {
+        return const StatsScreen();
       },
     ),
   ],

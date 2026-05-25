@@ -24,7 +24,7 @@ class _RegisterInvitadoScreenState
   }
 
   void _addInvitado() {
-    final name = _nameController.text.trim();
+    final name = _nameController.text.trim().toUpperCase();
     if (name.isNotEmpty) {
       ref.read(authProvider.notifier).addInvitado(name);
       _nameController.clear();
@@ -57,7 +57,7 @@ class _RegisterInvitadoScreenState
             ),
             FilledButton(
               onPressed: () {
-                final newName = editController.text.trim();
+                final newName = editController.text.trim().toUpperCase();
                 if (newName.isNotEmpty) {
                   ref.read(authProvider.notifier).editInvitado(index, newName);
                   Navigator.pop(context);

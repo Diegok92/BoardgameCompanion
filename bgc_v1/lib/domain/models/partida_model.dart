@@ -9,6 +9,7 @@ class Partida {
   final List<String> ganadores;
   final Map<String, int> puntajesFinales; // o cualquier dato del anotador
   final String estado; // "en_curso" o "finalizada"
+  final bool isTeamGame;
 
   Partida({
     required this.id,
@@ -19,6 +20,7 @@ class Partida {
     required this.ganadores,
     required this.puntajesFinales,
     required this.estado,
+    this.isTeamGame = false,
   });
 
   Partida copyWith({
@@ -30,6 +32,7 @@ class Partida {
     List<String>? ganadores,
     Map<String, int>? puntajesFinales,
     String? estado,
+    bool? isTeamGame,
   }) {
     return Partida(
       id: id ?? this.id,
@@ -40,6 +43,7 @@ class Partida {
       ganadores: ganadores ?? this.ganadores,
       puntajesFinales: puntajesFinales ?? this.puntajesFinales,
       estado: estado ?? this.estado,
+      isTeamGame: isTeamGame ?? this.isTeamGame,
     );
   }
 
@@ -54,6 +58,7 @@ class Partida {
       'ganadores': ganadores,
       'puntajesFinales': puntajesFinales,
       'estado': estado,
+      'isTeamGame': isTeamGame,
     };
   }
 
@@ -69,6 +74,7 @@ class Partida {
       ganadores: List<String>.from(json['ganadores'] ?? []),
       puntajesFinales: Map<String, int>.from(json['puntajesFinales'] ?? {}),
       estado: json['estado'] ?? 'en_curso',
+      isTeamGame: json['isTeamGame'] ?? false,
     );
   }
 }

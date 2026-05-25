@@ -62,10 +62,12 @@ class AuthRepository implements IAuthRepository {
 
       // 2. Guardar el resto de la información en Firestore, usando el ID generado, sin la contraseña
       final userToSave = newUser.copyWith(id: firebaseUser.uid, password: '');
+      final userData = userToSave.toJson();
+      userData.remove('password');
       await _firestore
           .collection('users')
           .doc(firebaseUser.uid)
-          .set(userToSave.toJson());
+          .set(userData);
 
       return userToSave;
     } catch (e) {
@@ -76,9 +78,11 @@ class AuthRepository implements IAuthRepository {
   @override
   Future<void> updateUser(User user) async {
     try {
-      // 1. Actualizamos los datos en Firestore (sin guardar la contraseña)
+      // 1. Actualizamos los datos en Firestore (eliminando la contraseña si existiera)
       final safeUser = user.copyWith(password: '');
-      await _firestore.collection('users').doc(user.id).update(safeUser.toJson());
+      final userData = safeUser.toJson();
+      userData['password'] = FieldValue.delete();
+      await _firestore.collection('users').doc(user.id).update(userData);
       
       // 2. Actualizamos credenciales en Firebase Auth si el usuario cambió algo
       final currentUser = _firebaseAuth.currentUser;

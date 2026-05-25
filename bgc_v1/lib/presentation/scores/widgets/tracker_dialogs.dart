@@ -21,13 +21,28 @@ class TrackerDialogs {
     required VoidCallback onClearState,
     required VoidCallback onNavigateHome,
   }) {
-    if (players.any((p) => p.name == null || p.name!.isEmpty || p.name == 'Sin Asignar' || p.name == 'NUEVO_INVITADO' || p.name!.startsWith('Jugador'))) {
-      CustomAlert.show(context, 'Por favor, asigna todos los jugadores a un invitado antes de guardar.', isError: true);
+    if (players.any(
+      (p) =>
+          p.name == null ||
+          p.name!.isEmpty ||
+          p.name == 'Sin Asignar' ||
+          p.name == 'NUEVO_INVITADO' ||
+          p.name!.startsWith('Jugador'),
+    )) {
+      CustomAlert.show(
+        context,
+        'Por favor, asigna todos los jugadores a un invitado antes de guardar.',
+        isError: true,
+      );
       return;
     }
 
     if (gameId == null || gameName == null) {
-      CustomAlert.show(context, 'Debes seleccionar un juego para registrar la partida.', isError: true);
+      CustomAlert.show(
+        context,
+        'Debes seleccionar un juego para registrar la partida.',
+        isError: true,
+      );
       return;
     }
 
@@ -35,7 +50,12 @@ class TrackerDialogs {
     if (customMaxScore == null && players.isNotEmpty) {
       maxScore = players.map((p) => p.score).reduce((a, b) => a > b ? a : b);
     }
-    final winners = customWinnerName ?? players.where((p) => p.score == maxScore).map((p) => p.name!).join(' y ');
+    final winners =
+        customWinnerName ??
+        players
+            .where((p) => p.score == maxScore)
+            .map((p) => p.name!)
+            .join(' y ');
 
     showDialog(
       context: context,
@@ -52,7 +72,7 @@ class TrackerDialogs {
           FilledButton(
             onPressed: () async {
               Navigator.pop(dialogContext);
-              
+
               Map<String, int> finalScores = {};
               for (var p in players) {
                 finalScores[p.name!] = p.score;
@@ -61,14 +81,18 @@ class TrackerDialogs {
               try {
                 await onSaveMatch(finalScores);
                 onClearState();
-                
+
                 if (context.mounted) {
                   CustomAlert.show(context, 'Partida registrada con éxito!');
                   onNavigateHome();
                 }
               } catch (e) {
                 if (context.mounted) {
-                  CustomAlert.show(context, 'Error al guardar: $e', isError: true);
+                  CustomAlert.show(
+                    context,
+                    'Error al guardar: $e',
+                    isError: true,
+                  );
                 }
               }
             },
@@ -84,7 +108,8 @@ class TrackerDialogs {
     required BuildContext context,
     required VoidCallback onConfirm,
     String title = '¿Resetear contadores?',
-    String content = 'Todos los jugadores volverán al valor inicial de la partida.',
+    String content =
+        'Todos los jugadores volverán al valor inicial de la partida.',
   }) {
     showDialog(
       context: context,
@@ -117,8 +142,13 @@ class TrackerDialogs {
     required int initialValue,
     required ValueChanged<int> onConfirm,
   }) {
-    final TextEditingController controller = TextEditingController(text: initialValue.toString());
-    controller.selection = TextSelection(baseOffset: 0, extentOffset: controller.text.length);
+    final TextEditingController controller = TextEditingController(
+      text: initialValue.toString(),
+    );
+    controller.selection = TextSelection(
+      baseOffset: 0,
+      extentOffset: controller.text.length,
+    );
 
     showDialog(
       context: context,
@@ -219,10 +249,16 @@ class TrackerDialogs {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          initialValue: entityName.startsWith('Jugador') ? null : entityName,
+                          initialValue: entityName.startsWith('Jugador')
+                              ? null
+                              : entityName,
                           items: [
                             ...invitados
-                                .where((inv) => !assignedNames.contains(inv) || inv == entityName)
+                                .where(
+                                  (inv) =>
+                                      !assignedNames.contains(inv) ||
+                                      inv == entityName,
+                                )
                                 .map(
                                   (inv) => DropdownMenuItem(
                                     value: inv,
@@ -233,13 +269,18 @@ class TrackerDialogs {
                               value: 'NUEVO_INVITADO',
                               child: Text(
                                 '+ Agregar Invitado',
-                                style: TextStyle(color: Theme.of(context).colorScheme.primary),
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
                               ),
                             ),
                             if (entityName.startsWith('Jugador'))
                               const DropdownMenuItem(
                                 value: null,
-                                child: Text('Sin Asignar', style: TextStyle(color: Colors.grey)),
+                                child: Text(
+                                  'Sin Asignar',
+                                  style: TextStyle(color: Colors.grey),
+                                ),
                               ),
                           ],
                           onChanged: (val) {
@@ -247,36 +288,51 @@ class TrackerDialogs {
                               Navigator.pop(dialogContext);
                               onAddInvitado();
                             } else {
-                              onNameChanged(val ?? 'Jugador ${entityIndex + 1}');
+                              onNameChanged(
+                                val ?? 'Jugador ${entityIndex + 1}',
+                              );
                               setDialogState(() {});
                             }
                           },
                         ),
                       ),
                     const SizedBox(height: 16),
-                    const Text('Elige color:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Elige color:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: AppColors.availableColors.where((color) {
-                        return !assignedColors.any((c) => c.toARGB32() == color.toARGB32()) ||
-                               entityColor.toARGB32() == color.toARGB32();
-                      }).map((color) {
-                        return InkWell(
-                          onTap: () {
-                            onColorChanged(color);
-                            Navigator.pop(dialogContext);
-                          },
-                          child: CircleAvatar(
-                            backgroundColor: color,
-                            radius: 16,
-                            child: entityColor.toARGB32() == color.toARGB32()
-                                ? const Icon(Icons.check, color: Colors.white, size: 16)
-                                : null,
-                          ),
-                        );
-                      }).toList(),
+                      children: AppColors.availableColors
+                          .where((color) {
+                            return !assignedColors.any(
+                                  (c) => c.toARGB32() == color.toARGB32(),
+                                ) ||
+                                entityColor.toARGB32() == color.toARGB32();
+                          })
+                          .map((color) {
+                            return InkWell(
+                              onTap: () {
+                                onColorChanged(color);
+                                Navigator.pop(dialogContext);
+                              },
+                              child: CircleAvatar(
+                                backgroundColor: color,
+                                radius: 16,
+                                child:
+                                    entityColor.toARGB32() == color.toARGB32()
+                                    ? const Icon(
+                                        Icons.check,
+                                        color: Colors.white,
+                                        size: 16,
+                                      )
+                                    : null,
+                              ),
+                            );
+                          })
+                          .toList(),
                     ),
                   ],
                 ),
@@ -320,7 +376,10 @@ class TrackerDialogs {
               setDialogState(() {
                 if (currentValue > 9) {
                   currentValue = int.parse(
-                    currentValue.toString().substring(0, currentValue.toString().length - 1),
+                    currentValue.toString().substring(
+                      0,
+                      currentValue.toString().length - 1,
+                    ),
                   );
                 } else {
                   currentValue = 0;
@@ -339,7 +398,10 @@ class TrackerDialogs {
                 children: [
                   Text(
                     explanation,
-                    style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
@@ -347,12 +409,17 @@ class TrackerDialogs {
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      border: Border.all(color: Theme.of(context).colorScheme.outline),
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       currentValue.toString(),
-                      style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -365,14 +432,23 @@ class TrackerDialogs {
                           return Expanded(
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                                foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHighest,
+                                foregroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
                               ),
                               onPressed: () => appendDigit(i),
                               child: Text(
                                 i.toString(),
-                                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           );
@@ -383,24 +459,30 @@ class TrackerDialogs {
                           children: [
                             Row(
                               children: [
-                                buildNumBtn(1), const SizedBox(width: 8),
-                                buildNumBtn(2), const SizedBox(width: 8),
+                                buildNumBtn(1),
+                                const SizedBox(width: 8),
+                                buildNumBtn(2),
+                                const SizedBox(width: 8),
                                 buildNumBtn(3),
                               ],
                             ),
                             const SizedBox(height: 8),
                             Row(
                               children: [
-                                buildNumBtn(4), const SizedBox(width: 8),
-                                buildNumBtn(5), const SizedBox(width: 8),
+                                buildNumBtn(4),
+                                const SizedBox(width: 8),
+                                buildNumBtn(5),
+                                const SizedBox(width: 8),
                                 buildNumBtn(6),
                               ],
                             ),
                             const SizedBox(height: 8),
                             Row(
                               children: [
-                                buildNumBtn(7), const SizedBox(width: 8),
-                                buildNumBtn(8), const SizedBox(width: 8),
+                                buildNumBtn(7),
+                                const SizedBox(width: 8),
+                                buildNumBtn(8),
+                                const SizedBox(width: 8),
                                 buildNumBtn(9),
                               ],
                             ),
@@ -410,9 +492,15 @@ class TrackerDialogs {
                                 Expanded(
                                   child: ElevatedButton(
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: Theme.of(context).colorScheme.errorContainer,
-                                      foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
-                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      backgroundColor: Theme.of(
+                                        context,
+                                      ).colorScheme.errorContainer,
+                                      foregroundColor: Theme.of(
+                                        context,
+                                      ).colorScheme.onErrorContainer,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 12,
+                                      ),
                                     ),
                                     onPressed: () {
                                       setDialogState(() => currentValue = 0);
@@ -426,9 +514,15 @@ class TrackerDialogs {
                                 Expanded(
                                   child: ElevatedButton(
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-                                      foregroundColor: Theme.of(context).colorScheme.onSurface,
-                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      backgroundColor: Theme.of(
+                                        context,
+                                      ).colorScheme.surfaceContainerHigh,
+                                      foregroundColor: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurface,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 12,
+                                      ),
                                     ),
                                     onPressed: backspace,
                                     child: const Icon(Icons.backspace_outlined),
