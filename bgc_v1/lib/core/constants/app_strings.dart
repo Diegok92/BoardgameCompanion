@@ -8,7 +8,7 @@ class AppStrings {
 
   // Home Screen
   static const String newGame = '+ NUEVA PARTIDA';
-  static const String addGuests = '+ AGREGAR INVITADOS';
+  static const String addGuests = 'AGREGAR INVITADOS';
   static const String trackers = 'ANOTADORES';
   static const String accessories = 'ACCESORIOS';
   static const String stats = 'ESTADÍSTICAS';

@@ -49,7 +49,7 @@ class AuthNotifier extends Notifier<User?> {
   Future<void> updateUser(User updatedUser) async {
     if (state != null) {
       await _repository.updateUser(updatedUser);
-      state = updatedUser;
+      state = updatedUser.copyWith(password: '');
     }
   }
 

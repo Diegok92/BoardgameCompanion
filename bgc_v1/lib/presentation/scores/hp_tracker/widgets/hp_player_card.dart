@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../providers/hp_tracker_provider.dart';
 import 'components/hp_shield.dart';
-import 'components/player_color_picker.dart';
-import 'components/player_name_dropdown.dart';
+import '../../widgets/tracker_dialogs.dart';
+import '../../widgets/player_badge.dart';
 
 class HpPlayerCard extends StatefulWidget {
   final TrackerPlayer player;
@@ -27,75 +27,30 @@ class HpPlayerCard extends StatefulWidget {
 }
 
 class _HpPlayerCardState extends State<HpPlayerCard> {
-  Widget _buildSinglePlayerCapsule(bool isWide, bool isCompact, Set<int> usedColors, List<String> availableInvitados) {
-    final colorSelector = PlayerColorPicker(
-      playerColor: widget.player.color,
-      usedColorsArgb: usedColors,
-      onColorChanged: widget.onColorChanged,
-    );
-
-    final nameSelector = PlayerNameDropdown(
-      isUser: widget.player.index == 0,
-      playerName: widget.player.name,
-      playerIndex: widget.player.index,
-      playerColor: widget.player.color,
-      invitados: availableInvitados,
-      onNameChanged: widget.onNameChanged,
-    );
-
-    Widget capsuleContent;
-    if (isWide && !isCompact) {
-      capsuleContent = Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          colorSelector,
-          const SizedBox(height: 6),
-          Container(
-            height: 1.5,
-            width: 32,
-            color: widget.player.color.withValues(alpha: 0.3),
-          ),
-          const SizedBox(height: 6),
-          Flexible(child: nameSelector),
-        ],
-      );
-    } else {
-      capsuleContent = Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          colorSelector,
-          SizedBox(width: isCompact ? 8 : 16),
-          Container(
-            width: 2,
-            height: isCompact ? 24 : 32,
-            color: widget.player.color.withValues(alpha: 0.3),
-          ),
-          SizedBox(width: isCompact ? 8 : 16),
-          Flexible(child: nameSelector),
-        ],
-      );
-    }
-
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: isCompact ? 2.0 : (isWide ? 4.0 : 16.0),
-        vertical: isCompact ? 2.0 : (isWide ? 16.0 : 4.0),
-      ),
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: isCompact ? 12 : (isWide ? 8 : 24),
-          vertical: isCompact ? 6 : (isWide ? 16 : 12),
-        ),
-        decoration: BoxDecoration(
-          color: widget.player.color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(32),
-          border: Border.all(
-            color: widget.player.color.withValues(alpha: 0.3),
-            width: 2.0,
-          ),
-        ),
-        child: capsuleContent,
-      ),
+  Widget _buildSinglePlayerCapsule(bool isWide, bool isCompact, Set<int> usedColors, List<String> availableInvitados, BuildContext context) {
+    return PlayerBadge(
+      name: widget.player.name ?? 'Jugador ${widget.player.index + 1}',
+      color: widget.player.color,
+      height: isCompact ? 36 : 48,
+      onTap: () {
+        final usedNames = widget.allPlayers.map((p) => p.name).where((n) => n != null).cast<String>().toList();
+        final usedColorsList = widget.allPlayers.map((p) => p.color).toList();
+        
+        TrackerDialogs.showEntityEditor(
+          context: context,
+          entityName: widget.player.name ?? 'Jugador ${widget.player.index + 1}',
+          entityId: widget.player.index.toString(),
+          entityColor: widget.player.color,
+          entityIndex: widget.player.index,
+          loggedInUsername: widget.player.index == 0 ? (widget.player.name ?? '') : null,
+          invitados: widget.invitados,
+          assignedNames: usedNames,
+          assignedColors: usedColorsList,
+          onNameChanged: widget.onNameChanged,
+          onColorChanged: widget.onColorChanged,
+          onAddInvitado: () => widget.onNameChanged('NUEVO_INVITADO'),
+        );
+      },
     );
   }
 
@@ -118,7 +73,7 @@ class _HpPlayerCardState extends State<HpPlayerCard> {
         bool isWide = constraints.maxWidth > constraints.maxHeight * 1.3;
         bool isCompact = !isSinglePlayer;
 
-        final capsule = _buildSinglePlayerCapsule(isWide, isCompact, usedColors, availableInvitados);
+        final capsule = _buildSinglePlayerCapsule(isWide, isCompact, usedColors, availableInvitados, context);
         final shield = Expanded(
           child: Padding(
             padding: const EdgeInsets.all(4.0),

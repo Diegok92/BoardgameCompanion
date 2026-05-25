@@ -38,7 +38,7 @@ class PartidasRepository {
           .map((doc) => Partida.fromJson(doc.id, doc.data()))
           .toList();
     } catch (e) {
-      print('Error obteniendo historial: $e');
+      // print('Error obteniendo historial: $e');
       return [];
     }
   }
@@ -53,7 +53,7 @@ class PartidasRepository {
           .doc(partidaId)
           .delete();
     } catch (e) {
-      print('Error al borrar la partida: $e');
+      // print('Error al borrar la partida: $e');
     }
   }
 }

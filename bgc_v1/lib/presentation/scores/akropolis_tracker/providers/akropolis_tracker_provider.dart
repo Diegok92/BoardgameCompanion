@@ -11,17 +11,49 @@ import '../../../../data/local_catalog/local_games_catalog.dart';
 
 enum AkropolisHexagon { blue, yellow, red, purple, green, stones }
 
+extension AkropolisHexagonExtension on AkropolisHexagon {
+  Color get color {
+    switch (this) {
+      case AkropolisHexagon.blue: return const Color(0xFF2D7DCA);
+      case AkropolisHexagon.yellow: return const Color(0xFFF4C300);
+      case AkropolisHexagon.red: return const Color(0xFFD9382E);
+      case AkropolisHexagon.purple: return const Color(0xFF7D3C98);
+      case AkropolisHexagon.green: return const Color(0xFF3E9C35);
+      case AkropolisHexagon.stones: return const Color(0xFF9E9E9E);
+    }
+  }
+
+  String get explanation {
+    switch (this) {
+      case AkropolisHexagon.blue:
+        return "Residencias (Azul): Solo puntúa el grupo contiguo más grande.";
+      case AkropolisHexagon.yellow:
+        return "Mercados (Amarillo): Solo puntúan los que NO están adyacentes a otro mercado.";
+      case AkropolisHexagon.red:
+        return "Cuarteles (Rojo): Solo puntúan los que están en los bordes de la ciudad.";
+      case AkropolisHexagon.purple:
+        return "Templos (Violeta): Solo puntúan los que están completamente rodeados.";
+      case AkropolisHexagon.green:
+        return "Jardines (Verde): Puntúan siempre, sin restricciones.";
+      case AkropolisHexagon.stones:
+        return "Piedras: Valen 1 punto cada una.";
+    }
+  }
+}
+
 class AkropolisScore {
   final int value;
   final int stars;
-  const AkropolisScore({this.value = 0, this.stars = 0});
+  final bool isScored;
+  const AkropolisScore({this.value = 0, this.stars = 0, this.isScored = false});
 
   int get total => stars == -1 ? value : value * stars; // -1 represents stones where no stars apply
 
-  Map<String, dynamic> toJson() => {'value': value, 'stars': stars};
+  Map<String, dynamic> toJson() => {'value': value, 'stars': stars, 'isScored': isScored};
   factory AkropolisScore.fromJson(Map<String, dynamic> json) => AkropolisScore(
         value: json['value'] ?? 0,
         stars: json['stars'] ?? 0,
+        isScored: json['isScored'] ?? true, // if saved without this field, assume it was scored
       );
 }
 
@@ -252,6 +284,7 @@ class AkropolisTrackerNotifier extends Notifier<AkropolisTrackerState> {
     final newScore = AkropolisScore(
       value: state.buffer.districtValue,
       stars: state.buffer.starsValue,
+      isScored: true,
     );
 
     final newScores = Map<AkropolisHexagon, AkropolisScore>.from(entity.scores);
@@ -262,9 +295,22 @@ class AkropolisTrackerNotifier extends Notifier<AkropolisTrackerState> {
     final newEntities = List<AkropolisEntity>.from(state.entities);
     newEntities[activeIndex] = newEntity;
 
+    final nextIndex = (activeIndex + 1) % state.entities.length;
+    var nextHex = hex;
+    if (nextIndex == 0) {
+      final hexValues = AkropolisHexagon.values;
+      final currentHexIndex = hexValues.indexOf(hex);
+      nextHex = hexValues[(currentHexIndex + 1) % hexValues.length];
+    }
+
     state = state.copyWith(
       entities: newEntities,
-      buffer: const AkropolisBuffer(), // Reset buffer (default is blue)
+      activeEntityIndex: nextIndex,
+      buffer: AkropolisBuffer(
+        selectedHexagon: nextHex,
+        districtValue: 0,
+        starsValue: nextHex == AkropolisHexagon.stones ? -1 : 0,
+      ),
     );
     saveLocalState();
   }

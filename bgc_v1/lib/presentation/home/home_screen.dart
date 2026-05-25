@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
 import 'widgets/home_menu_button.dart';
 import '../widgets/app_drawer.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_sizes.dart';
 import '../../core/constants/app_strings.dart';
 
@@ -98,7 +97,8 @@ class HomeScreen extends ConsumerWidget {
                     HomeMenuButton(
                       icon: Icons.person_add,
                       label: AppStrings.addGuests,
-                      backgroundColor: AppColors.red,
+                      backgroundColor: Colors.deepOrange,
+                      foregroundColor: Colors.white,
                       onPressed: () {
                         context.push('/register-invitado');
                       },
@@ -106,9 +106,10 @@ class HomeScreen extends ConsumerWidget {
                     const SizedBox(height: 16),
 
                     HomeMenuButton(
-                      svgAsset: 'assets/images/logo.svg',
+                      icon: Icons.edit_document,
                       label: AppStrings.trackers,
-                      backgroundColor: AppColors.green,
+                      backgroundColor: Colors.teal,
+                      foregroundColor: Colors.white,
                       onPressed: () {
                         context.push('/score-selector');
                       },
@@ -116,9 +117,10 @@ class HomeScreen extends ConsumerWidget {
                     const SizedBox(height: 16),
 
                     HomeMenuButton(
-                      icon: Icons.extension,
+                      icon: Icons.hourglass_bottom,
                       label: AppStrings.accessories,
-                      backgroundColor: AppColors.blue,
+                      backgroundColor: Colors.deepPurple,
+                      foregroundColor: Colors.white,
                       onPressed: () {
                         context.push('/accessories');
                       },
@@ -134,9 +136,8 @@ class HomeScreen extends ConsumerWidget {
                           child: HomeMenuButton(
                             icon: Icons.bar_chart,
                             label: AppStrings.stats,
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerHighest,
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
                             isSecondary: true,
                             onPressed: () {
                               // Navegar a estadísticas
@@ -148,9 +149,8 @@ class HomeScreen extends ConsumerWidget {
                           child: HomeMenuButton(
                             icon: Icons.history,
                             label: AppStrings.history,
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.surfaceContainerHighest,
+                            backgroundColor: Colors.pink,
+                            foregroundColor: Colors.white,
                             isSecondary: true,
                             onPressed: () {
                               // Navegar a historial

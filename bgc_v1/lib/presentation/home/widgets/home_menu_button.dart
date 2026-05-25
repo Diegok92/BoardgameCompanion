@@ -6,6 +6,7 @@ class HomeMenuButton extends StatelessWidget {
   final String? svgAsset;
   final String label;
   final Color backgroundColor;
+  final Color? foregroundColor;
   final VoidCallback onPressed;
   final bool isSecondary;
 
@@ -15,6 +16,7 @@ class HomeMenuButton extends StatelessWidget {
     this.svgAsset,
     required this.label,
     required this.backgroundColor,
+    this.foregroundColor,
     required this.onPressed,
     this.isSecondary = false,
   });
@@ -45,12 +47,12 @@ class HomeMenuButton extends StatelessWidget {
                   if (svgAsset != null)
                     SvgPicture.asset(svgAsset!, height: 32)
                   else if (icon != null)
-                    Icon(icon, size: 32, color: Theme.of(context).colorScheme.primary),
+                    Icon(icon, size: 32, color: foregroundColor ?? Theme.of(context).colorScheme.primary),
                   const SizedBox(height: 8),
                   Text(
                     label,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
+                      color: foregroundColor ?? Theme.of(context).colorScheme.onSurface,
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
                     ),
@@ -61,18 +63,22 @@ class HomeMenuButton extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
+                  color: (foregroundColor ?? Colors.white).withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: svgAsset != null 
-                    ? SvgPicture.asset(svgAsset!, height: 24)
-                    : (icon != null ? Icon(icon, color: Colors.white, size: 24) : const SizedBox(width: 24)),
+                    ? SvgPicture.asset(
+                        svgAsset!, 
+                        height: 24,
+                        colorFilter: ColorFilter.mode(foregroundColor ?? Colors.white, BlendMode.srcIn),
+                      )
+                    : (icon != null ? Icon(icon, color: foregroundColor ?? Colors.white, size: 24) : const SizedBox(width: 24)),
               ),
               const SizedBox(width: 16),
               Text(
                 label,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: foregroundColor ?? Colors.white,
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                   letterSpacing: 1.2,

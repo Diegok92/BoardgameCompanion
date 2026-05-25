@@ -28,6 +28,7 @@ class AuthRepository implements IAuthRepository {
           // Unimos el ID de Firebase Auth con los datos de Firestore
           final data = doc.data()!;
           data['id'] = firebaseUser.uid;
+          data['password'] = ''; // Por seguridad, nunca cargamos la contraseña guardada
           final user = User.fromJson(data);
           
           if (!user.isActive) {
@@ -40,7 +41,7 @@ class AuthRepository implements IAuthRepository {
       }
       return null;
     } catch (e) {
-      print('Error en login de Firebase: $e');
+      // print('Error en login de Firebase: $e');
       return null;
     }
   }
@@ -59,8 +60,8 @@ class AuthRepository implements IAuthRepository {
         throw const AuthException('No se pudo crear el usuario en Firebase Auth.', code: 'user-not-created');
       }
 
-      // 2. Guardar el resto de la información en Firestore, usando el ID generado
-      final userToSave = newUser.copyWith(id: firebaseUser.uid);
+      // 2. Guardar el resto de la información en Firestore, usando el ID generado, sin la contraseña
+      final userToSave = newUser.copyWith(id: firebaseUser.uid, password: '');
       await _firestore
           .collection('users')
           .doc(firebaseUser.uid)
@@ -75,8 +76,9 @@ class AuthRepository implements IAuthRepository {
   @override
   Future<void> updateUser(User user) async {
     try {
-      // 1. Actualizamos los datos en Firestore
-      await _firestore.collection('users').doc(user.id).update(user.toJson());
+      // 1. Actualizamos los datos en Firestore (sin guardar la contraseña)
+      final safeUser = user.copyWith(password: '');
+      await _firestore.collection('users').doc(user.id).update(safeUser.toJson());
       
       // 2. Actualizamos credenciales en Firebase Auth si el usuario cambió algo
       final currentUser = _firebaseAuth.currentUser;
@@ -91,7 +93,7 @@ class AuthRepository implements IAuthRepository {
         }
       }
     } catch (e) {
-      print('Error al actualizar usuario: $e');
+      // print('Error al actualizar usuario: $e');
       // Lanzamos la excepción para que la UI pueda atraparla y mostrar el error
       throw const AuthException(
         'No se pudo actualizar el perfil. Si cambiaste la contraseña o email, es posible que debas cerrar sesión y volver a entrar por seguridad.',
@@ -111,7 +113,7 @@ class AuthRepository implements IAuthRepository {
       await _firestore.collection('users').doc(userId).update({'isActive': false});
       await logout();
     } catch (e) {
-      print('Error al hacer soft delete del usuario: $e');
+      // print('Error al hacer soft delete del usuario: $e');
       throw AuthException('Error al borrar la cuenta: $e', code: 'soft-delete-error');
     }
   }
