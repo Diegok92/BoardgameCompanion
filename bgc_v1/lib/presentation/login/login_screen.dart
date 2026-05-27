@@ -22,7 +22,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final password = _passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
-      CustomAlert.show(context, 'Por favor, ingresa email y contraseña.', isError: true);
+      CustomAlert.show(
+        context,
+        'Por favor, ingresa email y contraseña.',
+        isError: true,
+      );
       return;
     }
 
@@ -38,11 +42,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } else {
       // Login fallido
       if (mounted) {
-        CustomAlert.show(
-          context,
-          'Credenciales incorrectas. (Pista: mago@test.com / password123)',
-          isError: true,
-        );
+        CustomAlert.show(context, 'Credenciales incorrectas.', isError: true);
       }
     }
   }
@@ -111,7 +111,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         decoration: InputDecoration(
                           hintText: '............',
                           suffixIcon: IconButton(
-                            icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                            ),
                             onPressed: () {
                               setState(() {
                                 _obscurePassword = !_obscurePassword;
