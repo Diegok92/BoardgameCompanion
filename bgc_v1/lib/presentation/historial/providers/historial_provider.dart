@@ -10,6 +10,7 @@ import '../../../data/local_catalog/local_games_catalog.dart';
 
 class HistorialState {
   final bool isLoading;
+  final bool hasFetched;
   final bool isFetchingMore;
   final List<Partida> localPartidas;
   final List<Partida> firestorePartidas;
@@ -19,6 +20,7 @@ class HistorialState {
 
   HistorialState({
     this.isLoading = true,
+    this.hasFetched = false,
     this.isFetchingMore = false,
     this.localPartidas = const [],
     this.firestorePartidas = const [],
@@ -51,6 +53,7 @@ class HistorialState {
 
   HistorialState copyWith({
     bool? isLoading,
+    bool? hasFetched,
     bool? isFetchingMore,
     List<Partida>? localPartidas,
     List<Partida>? firestorePartidas,
@@ -63,6 +66,7 @@ class HistorialState {
     // Para simplificar, asumiremos que se pasa correctamente.
     return HistorialState(
       isLoading: isLoading ?? this.isLoading,
+      hasFetched: hasFetched ?? this.hasFetched,
       isFetchingMore: isFetchingMore ?? this.isFetchingMore,
       localPartidas: localPartidas ?? this.localPartidas,
       firestorePartidas: firestorePartidas ?? this.firestorePartidas,
@@ -75,6 +79,7 @@ class HistorialState {
   // Custom copy para manejar nullable explícito de lastDocument
   HistorialState copyWithNullDocument({
     bool? isLoading,
+    bool? hasFetched,
     List<Partida>? localPartidas,
     List<Partida>? firestorePartidas,
     bool? hasMore,
@@ -82,6 +87,7 @@ class HistorialState {
   }) {
     return HistorialState(
       isLoading: isLoading ?? this.isLoading,
+      hasFetched: hasFetched ?? this.hasFetched,
       isFetchingMore: false,
       localPartidas: localPartidas ?? this.localPartidas,
       firestorePartidas: firestorePartidas ?? this.firestorePartidas,
@@ -104,6 +110,8 @@ class HistorialNotifier extends Notifier<HistorialState> {
   }
 
   Future<void> initialFetch() async {
+    if (state.hasFetched) return; // <-- CACHING LOGIC
+
     final user = ref.read(authProvider);
     if (user == null) return;
 
@@ -118,6 +126,7 @@ class HistorialNotifier extends Notifier<HistorialState> {
       
       state = state.copyWith(
         isLoading: false,
+        hasFetched: true,
         localPartidas: localMatches,
         firestorePartidas: result['partidas'] as List<Partida>,
         lastDocument: result['lastDocument'] as DocumentSnapshot?,
@@ -126,6 +135,11 @@ class HistorialNotifier extends Notifier<HistorialState> {
     } catch (e) {
       state = state.copyWithNullDocument(isLoading: false, hasMore: false);
     }
+  }
+
+  void invalidateData() {
+    state = state.copyWith(hasFetched: false);
+    initialFetch();
   }
 
   Future<void> fetchMore() async {

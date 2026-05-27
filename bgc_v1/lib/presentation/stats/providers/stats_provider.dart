@@ -5,6 +5,7 @@ import '../../providers/auth_provider.dart';
 
 class StatsState {
   final bool isLoading;
+  final bool hasFetched;
   final List<Partida> allPartidas;
   final String selectedJuego; // 'TODOS' por defecto
   final String selectedOpponent; // 'TODOS' por defecto
@@ -18,6 +19,7 @@ class StatsState {
 
   StatsState({
     this.isLoading = true,
+    this.hasFetched = false,
     this.allPartidas = const [],
     this.selectedJuego = 'TODOS',
     this.selectedOpponent = 'TODOS',
@@ -30,6 +32,7 @@ class StatsState {
 
   StatsState copyWith({
     bool? isLoading,
+    bool? hasFetched,
     List<Partida>? allPartidas,
     String? selectedJuego,
     String? selectedOpponent,
@@ -41,6 +44,7 @@ class StatsState {
   }) {
     return StatsState(
       isLoading: isLoading ?? this.isLoading,
+      hasFetched: hasFetched ?? this.hasFetched,
       allPartidas: allPartidas ?? this.allPartidas,
       selectedJuego: selectedJuego ?? this.selectedJuego,
       selectedOpponent: selectedOpponent ?? this.selectedOpponent,
@@ -62,6 +66,8 @@ class StatsNotifier extends Notifier<StatsState> {
   }
 
   Future<void> fetchPartidas() async {
+    if (state.hasFetched) return; // <-- CACHING LOGIC
+
     final user = ref.read(authProvider);
     if (user == null) return;
 
@@ -84,12 +90,17 @@ class StatsNotifier extends Notifier<StatsState> {
       state = state.copyWith(
         allPartidas: validPartidas,
         isLoading: false,
+        hasFetched: true,
       );
       
       _calculateStats();
     } catch (e) {
       state = state.copyWith(isLoading: false);
     }
+  }
+
+  void invalidateData() {
+    state = state.copyWith(hasFetched: false);
   }
 
   void setJuegoFilter(String juego) {

@@ -234,7 +234,7 @@ class _HistorialScreenState extends ConsumerState<HistorialScreen> {
 
                               String fechaTexto = 'Desconocida';
                               if (partida.fechaFinalizacion != null) {
-                                final d = partida.fechaFinalizacion!;
+                                final d = partida.fechaFinalizacion!.toLocal();
                                 fechaTexto = '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
                               }
 
