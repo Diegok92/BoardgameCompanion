@@ -1,346 +1,314 @@
-import 'dart:async';
 import 'dart:math';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'providers/chess_clock_provider.dart';
+import '../providers/auth_provider.dart';
 
-class ChessClockScreen extends StatefulWidget {
+import '../scores/widgets/tracker_dialogs.dart';
+
+class ChessClockScreen extends ConsumerStatefulWidget {
   const ChessClockScreen({super.key});
 
   @override
-  State<ChessClockScreen> createState() => _ChessClockScreenState();
+  ConsumerState<ChessClockScreen> createState() => _ChessClockScreenState();
 }
 
-class _ChessClockScreenState extends State<ChessClockScreen> {
-  static const int initialSeconds = 300; // 5 minutos
-
-  Timer? _timer;
-
-  int _playerOneSeconds = initialSeconds;
-  int _playerTwoSeconds = initialSeconds;
-
-  int _activePlayer = 1;
-  bool _isRunning = false;
+class _ChessClockScreenState extends ConsumerState<ChessClockScreen> {
+  bool _initialized = false;
 
   @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initClock();
+    });
   }
 
-  void _startClock() {
-    if (_isRunning) return;
+  Future<void> _initClock() async {
+    final user = ref.read(authProvider);
+    if (user == null) return;
 
-    if (_playerOneSeconds == 0 || _playerTwoSeconds == 0) return;
-
-    setState(() {
-      _isRunning = true;
-    });
-
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (!mounted) return;
-
+    final isNew = await ref.read(chessClockProvider.notifier).initialize(user);
+    if (mounted) {
       setState(() {
-        if (_activePlayer == 1) {
-          if (_playerOneSeconds > 0) {
-            _playerOneSeconds--;
-          }
-
-          if (_playerOneSeconds == 0) {
-            _timer?.cancel();
-            _isRunning = false;
-          }
-        } else {
-          if (_playerTwoSeconds > 0) {
-            _playerTwoSeconds--;
-          }
-
-          if (_playerTwoSeconds == 0) {
-            _timer?.cancel();
-            _isRunning = false;
-          }
-        }
+        _initialized = true;
       });
-    });
-  }
-
-  void _stopClockAndChangeTurn() {
-    if (!_isRunning) return;
-
-    _timer?.cancel();
-
-    setState(() {
-      _isRunning = false;
-
-      if (_playerOneSeconds > 0 && _playerTwoSeconds > 0) {
-        _activePlayer = _activePlayer == 1 ? 2 : 1;
+      if (isNew) {
+        _showTimeDialog();
       }
-    });
+    }
   }
 
-  void _resetClock() {
-    _timer?.cancel();
+  void _showTimeDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('¿De cuántos minutos será la partida?', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          content: Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            alignment: WrapAlignment.center,
+            children: [1, 3, 5, 10, 15, 30].map((mins) {
+              return ActionChip(
+                label: Text('$mins min'),
+                onPressed: () {
+                  ref.read(chessClockProvider.notifier).setInitialSeconds(mins * 60);
+                  Navigator.pop(context);
+                },
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
+  }
 
-    setState(() {
-      _playerOneSeconds = initialSeconds;
-      _playerTwoSeconds = initialSeconds;
-      _activePlayer = 1;
-      _isRunning = false;
-    });
+  void _showOutOfTimeDialog(String playerName) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('¡TIEMPO AGOTADO!', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w900, color: Theme.of(context).colorScheme.error)),
+          content: Text('$playerName SE QUEDÓ SIN TIEMPO', textAlign: TextAlign.center, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          actionsAlignment: MainAxisAlignment.center,
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('ACEPTAR'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _editPlayer(int player, String currentName, Color currentColor) {
+    final user = ref.read(authProvider);
+
+    TrackerDialogs.showEntityEditor(
+      context: context,
+      entityName: player == 1 ? 'Jugador 1' : 'Jugador 2',
+      entityId: '',
+      entityColor: currentColor,
+      entityIndex: player == 1 ? 0 : 1,
+      loggedInUsername: user?.username,
+      invitados: user?.invitados ?? [],
+      assignedNames: [],
+      assignedColors: [],
+      onNameChanged: (name) => ref.read(chessClockProvider.notifier).updatePlayer(player, name: name),
+      onColorChanged: (color) => ref.read(chessClockProvider.notifier).updatePlayer(player, color: color),
+      onAddInvitado: () {
+        Navigator.pop(context);
+        context.push('/register-invitado');
+      },
+    );
   }
 
   String _formatTime(int totalSeconds) {
     final minutes = totalSeconds ~/ 60;
     final seconds = totalSeconds % 60;
-
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
-  bool get _playerOneLost => _playerOneSeconds == 0;
-  bool get _playerTwoLost => _playerTwoSeconds == 0;
-
-  void _goBack() {
-    _timer?.cancel();
-
-    if (context.canPop()) {
-      context.pop();
-      return;
+  @override
+  Widget build(BuildContext context) {
+    if (!_initialized) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    Navigator.of(context).pop();
-  }
+    final state = ref.watch(chessClockProvider);
+    final notifier = ref.read(chessClockProvider.notifier);
 
-  @override
-  Widget build(BuildContext context) {
+    ref.listen<ChessClockState>(chessClockProvider, (previous, next) {
+      if (previous != null && previous.playerOneSeconds > 0 && next.playerOneSeconds == 0) {
+        _showOutOfTimeDialog(next.playerOneName);
+      } else if (previous != null && previous.playerTwoSeconds > 0 && next.playerTwoSeconds == 0) {
+        _showOutOfTimeDialog(next.playerTwoName);
+      }
+    });
+
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF2D83DF),
+      backgroundColor: colorScheme.surface,
       body: SafeArea(
-        child: Center(
-          child: Container(
-            width: 390,
-            constraints: const BoxConstraints(maxWidth: 430),
-            color: const Color(0xFF111827),
-            child: Column(
-              children: [
-                Expanded(
-                  child: Transform.rotate(
-                    angle: pi,
-                    child: ChessPlayerPanel(
-                      title: _activePlayer == 1 ? 'TU TURNO' : 'JUGADOR 1',
-                      time: _formatTime(_playerOneSeconds),
-                      subtitle: _playerOneLost
-                          ? 'TIEMPO TERMINADO'
-                          : _activePlayer == 1
-                          ? _isRunning
-                                ? 'EN CURSO'
-                                : 'LISTO PARA COMENZAR'
-                          : 'ESPERANDO...',
-                      isActive: _activePlayer == 1,
-                      isLost: _playerOneLost,
-                    ),
-                  ),
+        child: Column(
+          children: [
+            // Panel Superior (Jugador 2) - Invertido
+            Expanded(
+              child: Transform.rotate(
+                angle: pi,
+                child: _buildPlayerPanel(
+                  player: 2,
+                  name: state.playerTwoName,
+                  color: state.playerTwoColor,
+                  seconds: state.playerTwoSeconds,
+                  isActive: state.activePlayer == 2,
+                  isRunning: state.isRunning,
+                  onTapPanel: () {
+                    if (state.activePlayer == 2 && state.isRunning) {
+                      notifier.switchTurn();
+                    }
+                  },
                 ),
-
-                Container(
-                  height: 62,
-                  padding: const EdgeInsets.symmetric(horizontal: 18),
-                  color: const Color(0xFF0B1220),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: ClockActionButton(
-                          text: 'REINICIAR',
-                          color: const Color(0xFF4B5563),
-                          onTap: _resetClock,
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: ClockActionButton(
-                          text: 'DETENER',
-                          color: const Color(0xFFEF3743),
-                          onTap: _stopClockAndChangeTurn,
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: ClockActionButton(
-                          text: 'COMENZAR',
-                          color: const Color(0xFF18B979),
-                          onTap: _startClock,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                Expanded(
-                  child: ChessPlayerPanel(
-                    title: _activePlayer == 2
-                        ? 'TU TURNO'
-                        : 'TURNO del OPONENTE',
-                    time: _formatTime(_playerTwoSeconds),
-                    subtitle: _playerTwoLost
-                        ? 'TIEMPO TERMINADO'
-                        : _activePlayer == 2
-                        ? _isRunning
-                              ? 'EN CURSO'
-                              : 'LISTO PARA COMENZAR'
-                        : 'ESPERANDO...',
-                    isActive: _activePlayer == 2,
-                    isLost: _playerTwoLost,
-                  ),
-                ),
-
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 0, 18, 14),
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: 42,
-                    child: OutlinedButton(
-                      onPressed: _goBack,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white70,
-                        side: const BorderSide(color: Colors.white24),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: const Text(
-                        'VOLVER A ACCESORIOS',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
+
+            // Barra de control central
+            Container(
+              height: 70,
+              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_new, size: 28),
+                    onPressed: () {
+                      notifier.pause();
+                      if (context.canPop()) {
+                        context.pop();
+                      } else {
+                        context.go('/home');
+                      }
+                    },
+                    tooltip: 'Volver',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.play_arrow, size: 36),
+                    color: Colors.green,
+                    onPressed: () => notifier.start(),
+                    tooltip: 'Comenzar',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.pause, size: 36),
+                    color: Colors.orange,
+                    onPressed: () => notifier.pause(),
+                    tooltip: 'Pausa',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.stop, size: 36),
+                    color: Colors.red,
+                    onPressed: () => notifier.stop(),
+                    tooltip: 'Detener',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.restart_alt, size: 32),
+                    color: colorScheme.primary,
+                    onPressed: _showTimeDialog,
+                    tooltip: 'Reiniciar con nuevo tiempo',
+                  ),
+                ],
+              ),
+            ),
+
+            // Panel Inferior (Jugador 1)
+            Expanded(
+              child: _buildPlayerPanel(
+                player: 1,
+                name: state.playerOneName,
+                color: state.playerOneColor,
+                seconds: state.playerOneSeconds,
+                isActive: state.activePlayer == 1,
+                isRunning: state.isRunning,
+                onTapPanel: () {
+                  if (state.activePlayer == 1 && state.isRunning) {
+                    notifier.switchTurn();
+                  }
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
-}
 
-class ChessPlayerPanel extends StatelessWidget {
-  final String title;
-  final String time;
-  final String subtitle;
-  final bool isActive;
-  final bool isLost;
-
-  const ChessPlayerPanel({
-    super.key,
-    required this.title,
-    required this.time,
-    required this.subtitle,
-    required this.isActive,
-    required this.isLost,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final borderColor = isActive
-        ? const Color(0xFF2F7DF4)
-        : Colors.white.withValues(alpha: 0.08);
-
-    final timeColor = isLost
-        ? const Color(0xFFEF3743)
-        : isActive
-        ? Colors.white
-        : Colors.white.withValues(alpha: 0.45);
-
-    final titleColor = isActive
-        ? const Color(0xFF2F7DF4)
-        : Colors.white.withValues(alpha: 0.65);
-
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: const Color(0xFF334155),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: borderColor, width: isActive ? 3 : 1),
-        boxShadow: [
-          if (isActive)
-            BoxShadow(
-              color: const Color(0xFF2F7DF4).withValues(alpha: 0.25),
-              blurRadius: 18,
-              offset: const Offset(0, 8),
-            ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: titleColor,
-              fontSize: 17,
-              fontWeight: FontWeight.w900,
-            ),
+  Widget _buildPlayerPanel({
+    required int player,
+    required String name,
+    required Color color,
+    required int seconds,
+    required bool isActive,
+    required bool isRunning,
+    required VoidCallback onTapPanel,
+  }) {
+    final bool isLost = seconds == 0;
+    
+    return GestureDetector(
+      onTap: onTapPanel,
+      child: Container(
+        width: double.infinity,
+        margin: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: isActive && isRunning ? color : color.withValues(alpha: 0.3),
+            width: isActive && isRunning ? 4 : 2,
           ),
-          const SizedBox(height: 26),
-          Text(
-            time,
-            style: TextStyle(
-              color: timeColor,
-              fontSize: 68,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 2,
-            ),
-          ),
-          const SizedBox(height: 26),
-          Text(
-            subtitle,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: isLost
-                  ? const Color(0xFFEF3743)
-                  : Colors.white.withValues(alpha: 0.55),
-              fontSize: 15,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class ClockActionButton extends StatelessWidget {
-  final String text;
-  final Color color;
-  final VoidCallback onTap;
-
-  const ClockActionButton({
-    super.key,
-    required this.text,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 36,
-      child: ElevatedButton(
-        onPressed: onTap,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          padding: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+          boxShadow: [
+            if (isActive && isRunning)
+              BoxShadow(
+                color: color.withValues(alpha: 0.2),
+                blurRadius: 20,
+                spreadRadius: 2,
+              )
+          ],
         ),
-        child: Text(
-          text,
-          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900),
+        child: Stack(
+          children: [
+            Positioned(
+              top: 16,
+              right: 16,
+              child: IconButton(
+                icon: Icon(Icons.edit, color: color.withValues(alpha: 0.8)),
+                onPressed: () => _editPlayer(player, name, color),
+              ),
+            ),
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    name.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    _formatTime(seconds),
+                    style: TextStyle(
+                      fontSize: 80,
+                      fontWeight: FontWeight.w900,
+                      color: isLost ? Colors.red : Theme.of(context).colorScheme.onSurface,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    isLost
+                        ? 'TIEMPO AGOTADO'
+                        : (isActive
+                            ? (isRunning ? 'TU TURNO' : 'LISTO')
+                            : 'ESPERANDO'),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: isLost ? Colors.red : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

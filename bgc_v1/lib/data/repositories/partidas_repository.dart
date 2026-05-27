@@ -43,6 +43,39 @@ class PartidasRepository {
     }
   }
 
+  // Obtiene el historial de partidas de forma paginada
+  Future<Map<String, dynamic>> getHistorialPartidasPaginated(String userId, {DocumentSnapshot? lastDocument, int limit = 20}) async {
+    try {
+      Query query = _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('partidas')
+          .orderBy('fechaFinalizacion', descending: true)
+          .limit(limit);
+
+      if (lastDocument != null) {
+        query = query.startAfterDocument(lastDocument);
+      }
+
+      final snapshot = await query.get();
+      final partidas = snapshot.docs
+          .map((doc) => Partida.fromJson(doc.id, doc.data() as Map<String, dynamic>))
+          .toList();
+
+      return {
+        'partidas': partidas,
+        'lastDocument': snapshot.docs.isNotEmpty ? snapshot.docs.last : null,
+        'hasMore': snapshot.docs.length == limit,
+      };
+    } catch (e) {
+      return {
+        'partidas': <Partida>[],
+        'lastDocument': null,
+        'hasMore': false,
+      };
+    }
+  }
+
   // Eliminar una partida del historial
   Future<void> borrarPartida(String userId, String partidaId) async {
     try {

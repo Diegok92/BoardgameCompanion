@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+    <!-- Outer Hexagon -->
+    <polygon points="200,10 370,105 370,295 200,390 30,295 30,105" fill="#ebd3a9" stroke="#32281e" stroke-width="6" stroke-linejoin="round"/>
+    <polygon points="200,24 356,112 356,288 200,376 44,288 44,112" fill="none" stroke="#f8ebd3" stroke-width="4" stroke-linejoin="round"/>
+
+    <!-- Giant Star Inscribed in the Hexagon -->
+    <g transform="translate(200, 200) scale(1.6)">
+        <polygon points="0,-100 22.4,-30.9 95.1,-30.9 36.3,11.8 58.8,80.9 0,38.2 -58.8,80.9 -36.3,11.8 -95.1,-30.9 -22.4,-30.9" fill="#dfb681" stroke="#32281e" stroke-width="2.5" stroke-linejoin="round"/>
+    </g>
+
+    <!-- Doric Column in front (shadow removed) -->
+    <g stroke="#32281e" stroke-width="4" stroke-linejoin="round">
+        <!-- Lowest Ring -->
+        <path d="M 120 260 v 12 a 80 25 0 0 0 160 0 v -12 Z" fill="#c6b5a1"/>
+        <ellipse cx="200" cy="260" rx="80" ry="25" fill="#e0d2c3"/>
+        
+        <!-- Middle Ring -->
+        <path d="M 135 248 v 10 a 65 20 0 0 0 130 0 v -10 Z" fill="#c6b5a1"/>
+        <ellipse cx="200" cy="248" rx="65" ry="20" fill="#e0d2c3"/>
+        
+        <!-- Top Ring -->
+        <path d="M 145 238 v 8 a 55 16 0 0 0 110 0 v -8 Z" fill="#c6b5a1"/>
+        <ellipse cx="200" cy="238" rx="55" ry="16" fill="#e0d2c3"/>
+
+        <!-- Shaft -->
+        <path d="M 155 238 L 160 110 A 40 12 0 0 0 240 110 L 245 238 A 45 14 0 0 1 155 238 Z" fill="#e0d2c3"/>
+
+        <!-- Flutes -->
+        <g stroke-width="2" fill="#c6b5a1">
+            <path d="M 165 236 Q 168 175 170 112 A 3 1.5 0 0 1 176 112 Q 174 175 171 237 A 3 1.5 0 0 1 165 236 Z"/>
+            <path d="M 178 238 Q 180 175 181 113 A 4 1.5 0 0 1 189 113 Q 188 175 186 239 A 4 1.5 0 0 1 178 238 Z"/>
+            <path d="M 194 239 Q 194 175 194 114 A 5 1.5 0 0 1 204 114 Q 204 175 204 239 A 5 1.5 0 0 1 194 239 Z"/>
+            <path d="M 212 239 Q 210 175 209 113 A 4 1.5 0 0 1 217 113 Q 218 175 220 238 A 4 1.5 0 0 1 212 239 Z"/>
+            <path d="M 227 237 Q 224 175 222 112 A 3 1.5 0 0 1 228 112 Q 230 175 233 236 A 3 1.5 0 0 1 227 237 Z"/>
+        </g>
+
+        <!-- Capital Base Ring -->
+        <path d="M 155 110 v 5 a 45 14 0 0 0 90 0 v -5 Z" fill="#c6b5a1"/>
+        <ellipse cx="200" cy="110" rx="45" ry="14" fill="#e0d2c3"/>
+
+        <!-- Echinus (Flare) -->
+        <path d="M 155 110 C 140 105, 135 95, 135 90 v -5 a 65 18 0 0 0 130 0 v 5 C 265 95, 260 105, 245 110 A 45 14 0 0 0 155 110 Z" fill="#c6b5a1"/>
+        <ellipse cx="200" cy="85" rx="65" ry="18" fill="#e0d2c3"/>
+        
+        <!-- Abacus (Top Disk) -->
+        <path d="M 125 75 v 15 a 75 20 0 0 0 150 0 v -15 Z" fill="#c6b5a1"/>
+        <ellipse cx="200" cy="75" rx="75" ry="20" fill="#e0d2c3"/>
+    </g>
+</svg>

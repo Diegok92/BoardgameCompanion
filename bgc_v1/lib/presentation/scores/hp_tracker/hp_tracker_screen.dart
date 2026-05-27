@@ -18,7 +18,9 @@ import 'widgets/hp_player_card.dart';
 
 class HpTrackerScreen extends ConsumerStatefulWidget {
   final int playerCount;
-  const HpTrackerScreen({super.key, required this.playerCount});
+  final String? fullKey;
+
+  const HpTrackerScreen({super.key, required this.playerCount, this.fullKey});
 
   @override
   ConsumerState<HpTrackerScreen> createState() => _HpTrackerScreenState();
@@ -33,7 +35,7 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
       if (user != null) {
         ref
             .read(hpTrackerProvider.notifier)
-            .initialize(widget.playerCount, user, 50);
+            .initialize(widget.playerCount, user, 50, fullKey: widget.fullKey);
       }
     });
   }
@@ -98,10 +100,8 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
   // _buildSaveButton removed
   Widget _buildControls(HpTrackerState state) {
     return TrackerBottomBar(
-      onBack: () async {
-        final nav = Navigator.of(context);
-        await ref.read(hpTrackerProvider.notifier).saveLocalState();
-        nav.pop();
+      onBack: () {
+        Navigator.of(context).pop();
       },
       onSave: () {
         final user = ref.read(authProvider);

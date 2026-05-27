@@ -20,6 +20,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
   late Color? _selectedColor;
   late TextEditingController _emailController;
   late TextEditingController _usernameController;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -52,8 +53,12 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
   }
 
   Future<void> _saveProfile() async {
+    if (_isLoading) return;
+
     final user = ref.read(authProvider);
     if (user == null) return;
+
+    setState(() => _isLoading = true);
 
     final updatedUser = user.copyWith(
       username: _usernameController.text.trim(),
@@ -71,6 +76,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
       context.go('/home');
     } catch (e) {
       if (!mounted) return;
+      setState(() => _isLoading = false);
       // Removemos el "Exception: " del mensaje si existe
       final errorMsg = e.toString().replaceFirst('Exception: ', '');
       CustomAlert.show(context, errorMsg, isError: true);
@@ -291,19 +297,25 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                   width: double.infinity,
                   height: 56,
                   child: FilledButton(
-                    onPressed: _saveProfile,
+                    onPressed: _isLoading ? null : _saveProfile,
                     style: FilledButton.styleFrom(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
-                    child: const Text(
-                      'GUARDAR CAMBIOS',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    child: _isLoading 
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+                        )
+                      : const Text(
+                          'GUARDAR CAMBIOS',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                   ),
                 ),
                 const SizedBox(height: 24),

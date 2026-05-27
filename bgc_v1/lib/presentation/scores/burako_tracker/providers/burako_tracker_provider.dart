@@ -105,6 +105,7 @@ class BurakoTrackerState {
 class BurakoTrackerNotifier extends Notifier<BurakoTrackerState> {
   final ILocalStorageRepository _localStorage = LocalStorageRepository();
   String _currentUserId = '';
+  String _currentKey = '';
 
   @override
   BurakoTrackerState build() {
@@ -115,7 +116,7 @@ class BurakoTrackerNotifier extends Notifier<BurakoTrackerState> {
     );
   }
 
-  Future<void> initialize(int playerCount, User user) async {
+  Future<void> initialize(int playerCount, User user, {String? fullKey}) async {
     _currentUserId = user.id;
 
     // Resetear
@@ -125,16 +126,22 @@ class BurakoTrackerNotifier extends Notifier<BurakoTrackerState> {
       buffer: BurakoBuffer(),
     );
 
-    final savedData = await _localStorage.getData('burako_state_${user.id}_$playerCount');
+    String? localDataStr;
+    if (fullKey != null) {
+      _currentKey = fullKey;
+      localDataStr = await _localStorage.getData(fullKey);
+    } else {
+      _currentKey = 'burako_state_${user.id}_${playerCount}_${DateTime.now().millisecondsSinceEpoch}';
+    }
 
     Game? burakoGame;
     try {
       burakoGame = LocalGamesCatalog.games.firstWhere((g) => g.id == 'burako');
     } catch (_) {}
 
-    if (savedData != null) {
+    if (localDataStr != null) {
       try {
-        final decoded = jsonDecode(savedData);
+        final decoded = jsonDecode(localDataStr);
         final entitiesJson = decoded['entities'] as List;
         List<BurakoEntity> restoredEntities = entitiesJson.map((e) {
           final List<dynamic> namesJson = e['playerNames'];
@@ -208,18 +215,23 @@ class BurakoTrackerNotifier extends Notifier<BurakoTrackerState> {
     );
   }
 
+  void _updateState(BurakoTrackerState newState) {
+    state = newState;
+    saveLocalState();
+  }
+
   void updatePureCanastas(int delta) {
     int val = max(0, state.buffer.pureCanastas + delta);
-    state = state.copyWith(buffer: state.buffer.copyWith(pureCanastas: val));
+    _updateState(state.copyWith(buffer: state.buffer.copyWith(pureCanastas: val)));
   }
 
   void updateImpureCanastas(int delta) {
     int val = max(0, state.buffer.impureCanastas + delta);
-    state = state.copyWith(buffer: state.buffer.copyWith(impureCanastas: val));
+    _updateState(state.copyWith(buffer: state.buffer.copyWith(impureCanastas: val)));
   }
 
   void _updateBuffer(BurakoBuffer newBuffer) {
-    state = state.copyWith(buffer: newBuffer);
+    _updateState(state.copyWith(buffer: newBuffer));
   }
 
   void toggleMuerto(bool value) {
@@ -239,11 +251,11 @@ class BurakoTrackerNotifier extends Notifier<BurakoTrackerState> {
   }
 
   void setFichasScore(int val) {
-    state = state.copyWith(buffer: state.buffer.copyWith(fichasScore: val));
+    _updateState(state.copyWith(buffer: state.buffer.copyWith(fichasScore: val)));
   }
 
   void setActiveEntity(int index) {
-    state = state.copyWith(activeEntityIndex: index);
+    _updateState(state.copyWith(activeEntityIndex: index));
   }
 
   void commitBuffer() {
@@ -260,26 +272,26 @@ class BurakoTrackerNotifier extends Notifier<BurakoTrackerState> {
     // Avanzar al siguiente jugador/equipo automáticamente y limpiar el buffer
     int nextIndex = (state.activeEntityIndex + 1) % state.entities.length;
 
-    state = state.copyWith(
+    _updateState(state.copyWith(
       entities: updatedEntities,
       buffer: BurakoBuffer(), // Reset buffer
       activeEntityIndex: nextIndex,
-    );
+    ));
   }
 
   void resetGame() {
     final updatedEntities = state.entities.map((e) => e.copyWith(totalScore: 0)).toList();
-    state = state.copyWith(
+    _updateState(state.copyWith(
       entities: updatedEntities,
       buffer: BurakoBuffer(),
       activeEntityIndex: 0,
-    );
+    ));
   }
 
   void updateEntityColor(int index, Color color) {
     final updated = List<BurakoEntity>.from(state.entities);
     updated[index] = updated[index].copyWith(color: color);
-    state = state.copyWith(entities: updated);
+    _updateState(state.copyWith(entities: updated));
   }
 
   void updatePlayerNameInEntity(int entityIndex, int playerIndex, String? newName) {
@@ -298,15 +310,11 @@ class BurakoTrackerNotifier extends Notifier<BurakoTrackerState> {
       playerNames: updatedNames,
       name: entityName,
     );
-    state = state.copyWith(entities: updated);
+    _updateState(state.copyWith(entities: updated));
   }
 
   Future<void> saveLocalState() async {
-    if (state.entities.isEmpty || _currentUserId.isEmpty) return;
-    
-    // Solo usamos count = 2 o 3 o 4 (que agrupa en 2 pero la inicialización pidió 4)
-    // Para simplificar, la key se basará en la cantidad de jugadores totales.
-    int totalPlayers = state.entities.fold(0, (sum, e) => sum + e.playerNames.length);
+    if (state.entities.isEmpty || _currentUserId.isEmpty || _currentKey.isEmpty) return;
 
     final data = {
       'entities': state.entities.map((e) => {
@@ -317,15 +325,15 @@ class BurakoTrackerNotifier extends Notifier<BurakoTrackerState> {
         'totalScore': e.totalScore,
       }).toList(),
       'activeEntityIndex': state.activeEntityIndex,
+      'lastModified': DateTime.now().toIso8601String(),
     };
     
-    await _localStorage.saveData('burako_state_${_currentUserId}_$totalPlayers', jsonEncode(data));
+    await _localStorage.saveData(_currentKey, jsonEncode(data));
   }
 
   Future<void> clearLocalState() async {
-    if (state.entities.isEmpty || _currentUserId.isEmpty) return;
-    int totalPlayers = state.entities.fold(0, (sum, e) => sum + e.playerNames.length);
-    await _localStorage.removeData('burako_state_${_currentUserId}_$totalPlayers');
+    if (state.entities.isEmpty || _currentUserId.isEmpty || _currentKey.isEmpty) return;
+    await _localStorage.removeData(_currentKey);
     
     // Clear state in memory so next time it initializes fresh
     state = BurakoTrackerState(

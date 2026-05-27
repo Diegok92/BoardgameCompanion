@@ -5,6 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/game_model.dart';
 import '../providers/games_provider.dart';
 import '../widgets/custom_alert.dart';
+import '../historial/providers/historial_provider.dart';
+import '../../data/local_catalog/local_games_catalog.dart';
+import '../providers/auth_provider.dart';
 
 class ScoreSelectorScreen extends ConsumerStatefulWidget {
   const ScoreSelectorScreen({super.key});
@@ -32,7 +35,7 @@ class _ScoreSelectorScreenState extends ConsumerState<ScoreSelectorScreen> {
     });
   }
 
-  void _onConfirm() {
+  void _onConfirm() async {
     if (_selectedGame == null) {
       CustomAlert.show(context, 'Por favor, selecciona un juego primero.', isError: true);
       return;
@@ -48,23 +51,67 @@ class _ScoreSelectorScreenState extends ConsumerState<ScoreSelectorScreen> {
       return;
     }
 
+    String route = '';
     if (_selectedGame!.id == 'burako') {
-      context.push(
-        '/burako-tracker',
-        extra: {'playerCount': _selectedPlayerCount},
-      );
-    } else if (_selectedGame!.id == 'hp_tracker') {
-      context.push(
-        '/hp-tracker',
-        extra: {'playerCount': _selectedPlayerCount},
-      );
+      route = '/burako-tracker';
+    } else if (_selectedGame!.id == 'hp_tracker' || LocalGamesCatalog.trackerGames.any((g) => g.id == _selectedGame!.id)) {
+      route = '/hp-tracker';
     } else if (_selectedGame!.id == 'akropolis') {
-      context.push(
-        '/akropolis-tracker',
-        extra: {'playerCount': _selectedPlayerCount},
-      );
+      route = '/akropolis-tracker';
     } else {
       CustomAlert.show(context, 'El anotador para ${_selectedGame!.name} aún no está implementado.', isError: true);
+      return;
+    }
+
+    final user = ref.read(authProvider);
+    if (user == null) return;
+
+    final localMatches = await ref.read(historialProvider.notifier).fetchLocalMatches(user.id);
+    if (!mounted) return;
+    final matchingMatches = localMatches.where((p) {
+      final parts = p.id.split('_');
+      if (parts.length >= 4) {
+        final pCount = parts[3];
+        return p.juegoId == _selectedGame!.id && pCount == _selectedPlayerCount.toString();
+      }
+      return false;
+    }).toList();
+
+    if (matchingMatches.isNotEmpty) {
+      matchingMatches.sort((a, b) {
+        if (a.fechaFinalizacion == null && b.fechaFinalizacion == null) return 0;
+        if (a.fechaFinalizacion == null) return 1;
+        if (b.fechaFinalizacion == null) return -1;
+        return b.fechaFinalizacion!.compareTo(a.fechaFinalizacion!);
+      });
+
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Partidas en curso'),
+            content: Text('Tienes partidas en curso para ${_selectedGame!.name} a $_selectedPlayerCount jugadores. ¿Quieres retomar la última o iniciar partida nueva?\n\n(Recordá que en "Historial" vas a poder ver todas tus partidas "En Curso")'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  context.push(route, extra: {'playerCount': _selectedPlayerCount});
+                },
+                child: const Text('Iniciar Nueva'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  context.push(route, extra: {'playerCount': _selectedPlayerCount, 'fullKey': matchingMatches.first.id});
+                },
+                child: const Text('Retomar Última'),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      context.push(route, extra: {'playerCount': _selectedPlayerCount});
     }
   }
 

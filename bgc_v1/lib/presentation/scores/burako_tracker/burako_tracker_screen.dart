@@ -15,8 +15,9 @@ import '../widgets/player_badge.dart';
 
 class BurakoTrackerScreen extends ConsumerStatefulWidget {
   final int playerCount;
+  final String? fullKey;
 
-  const BurakoTrackerScreen({super.key, required this.playerCount});
+  const BurakoTrackerScreen({super.key, required this.playerCount, this.fullKey});
 
   @override
   ConsumerState<BurakoTrackerScreen> createState() => _BurakoTrackerScreenState();
@@ -29,7 +30,7 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final user = ref.read(authProvider);
       if (user != null) {
-        ref.read(burakoTrackerProvider.notifier).initialize(widget.playerCount, user);
+        ref.read(burakoTrackerProvider.notifier).initialize(widget.playerCount, user, fullKey: widget.fullKey);
       }
     });
   }
@@ -107,9 +108,8 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
 
               // Bottom Bar
               TrackerBottomBar(
-                onBack: () async {
-                  await ref.read(burakoTrackerProvider.notifier).saveLocalState();
-                  if (context.mounted) Navigator.pop(context);
+                onBack: () {
+                  Navigator.pop(context);
                 },
                 onSave: () {
                   final state = ref.read(burakoTrackerProvider);

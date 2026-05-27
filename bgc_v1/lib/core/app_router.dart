@@ -13,6 +13,7 @@ import '../presentation/accessories/dice_screen.dart';
 import '../presentation/settings/config_screen.dart';
 import '../presentation/scores/akropolis_tracker/akropolis_tracker_screen.dart';
 import '../presentation/stats/stats_screen.dart';
+import '../presentation/historial/historial_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/login',
@@ -51,7 +52,8 @@ final appRouter = GoRouter(
       builder: (context, state) {
         final extras = state.extra as Map<String, dynamic>?;
         final playerCount = extras?['playerCount'] as int? ?? 2;
-        return HpTrackerScreen(playerCount: playerCount);
+        final fullKey = extras?['fullKey'] as String?;
+        return HpTrackerScreen(playerCount: playerCount, fullKey: fullKey);
       },
     ),
     GoRoute(
@@ -59,7 +61,8 @@ final appRouter = GoRouter(
       builder: (context, state) {
         final extras = state.extra as Map<String, dynamic>?;
         final playerCount = extras?['playerCount'] as int? ?? 2;
-        return BurakoTrackerScreen(playerCount: playerCount);
+        final fullKey = extras?['fullKey'] as String?;
+        return BurakoTrackerScreen(playerCount: playerCount, fullKey: fullKey);
       },
     ),
     GoRoute(
@@ -67,7 +70,8 @@ final appRouter = GoRouter(
       builder: (context, state) {
         final extras = state.extra as Map<String, dynamic>?;
         final playerCount = extras?['playerCount'] as int? ?? 2;
-        return AkropolisTrackerScreen(playerCount: playerCount);
+        final fullKey = extras?['fullKey'] as String?;
+        return AkropolisTrackerScreen(playerCount: playerCount, fullKey: fullKey);
       },
     ),
     GoRoute(
@@ -98,6 +102,12 @@ final appRouter = GoRouter(
       path: '/stats',
       builder: (context, state) {
         return const StatsScreen();
+      },
+    ),
+    GoRoute(
+      path: '/historial',
+      builder: (context, state) {
+        return const HistorialScreen();
       },
     ),
   ],

@@ -16,8 +16,9 @@ import '../../widgets/custom_alert.dart';
 
 class AkropolisTrackerScreen extends ConsumerStatefulWidget {
   final int playerCount;
+  final String? fullKey;
 
-  const AkropolisTrackerScreen({super.key, required this.playerCount});
+  const AkropolisTrackerScreen({super.key, required this.playerCount, this.fullKey});
 
   @override
   ConsumerState<AkropolisTrackerScreen> createState() =>
@@ -32,9 +33,7 @@ class _AkropolisTrackerScreenState
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final user = ref.read(authProvider);
       if (user != null) {
-        ref
-            .read(akropolisTrackerProvider.notifier)
-            .initialize(widget.playerCount, user);
+        ref.read(akropolisTrackerProvider.notifier).initialize(widget.playerCount, user, fullKey: widget.fullKey);
       }
     });
   }
@@ -73,7 +72,7 @@ class _AkropolisTrackerScreenState
             ),
             const SizedBox(width: 8),
             SvgPicture.asset(
-              'assets/images/burako_icon.svg',
+              'assets/images/akropolis_icon.svg',
               height: 24,
               width: 24,
             ),
@@ -113,7 +112,9 @@ class _AkropolisTrackerScreenState
               child: TrackerBottomBar(
                 onBack: () => context.pop(),
                 onSave: () {
-                  final hasUnsavedScores = state.buffer.districtValue != 0 || state.buffer.starsValue != 0;
+                  final hasUnsavedScores =
+                      state.buffer.districtValue != 0 ||
+                      state.buffer.starsValue != 0;
                   if (hasUnsavedScores) {
                     CustomAlert.show(
                       context,

@@ -150,7 +150,7 @@ class AkropolisTrackerState {
 class AkropolisTrackerNotifier extends Notifier<AkropolisTrackerState> {
   final ILocalStorageRepository _localStorage = LocalStorageRepository();
   String _currentUserId = '';
-  int _playerCount = 2;
+  String _currentKey = '';
 
   @override
   AkropolisTrackerState build() {
@@ -161,9 +161,8 @@ class AkropolisTrackerNotifier extends Notifier<AkropolisTrackerState> {
     );
   }
 
-  Future<void> initialize(int playerCount, User user) async {
+  Future<void> initialize(int playerCount, User user, {String? fullKey}) async {
     _currentUserId = user.id;
-    _playerCount = playerCount;
 
     state = AkropolisTrackerState(
       entities: [],
@@ -171,16 +170,22 @@ class AkropolisTrackerNotifier extends Notifier<AkropolisTrackerState> {
       buffer: const AkropolisBuffer(),
     );
 
-    final savedData = await _localStorage.getData('akropolis_state_${user.id}_$_playerCount');
+    String? localDataStr;
+    if (fullKey != null) {
+      _currentKey = fullKey;
+      localDataStr = await _localStorage.getData(fullKey);
+    } else {
+      _currentKey = 'akropolis_state_${user.id}_${playerCount}_${DateTime.now().millisecondsSinceEpoch}';
+    }
 
     Game? akropolisGame;
     try {
       akropolisGame = LocalGamesCatalog.games.firstWhere((g) => g.id == 'akropolis');
     } catch (_) {}
 
-    if (savedData != null) {
+    if (localDataStr != null) {
       try {
-        final decoded = jsonDecode(savedData);
+        final decoded = jsonDecode(localDataStr);
         final entitiesJson = decoded['entities'] as List;
         List<AkropolisEntity> restoredEntities = entitiesJson.map((e) {
           final scoresJson = e['scores'] as Map<String, dynamic>;
@@ -241,39 +246,40 @@ class AkropolisTrackerNotifier extends Notifier<AkropolisTrackerState> {
       entities: initialEntities,
       selectedGame: akropolisGame,
     );
+  }
 
+  void _updateState(AkropolisTrackerState newState) {
+    state = newState;
     saveLocalState();
   }
 
   void setActiveEntity(int index) {
-    state = state.copyWith(activeEntityIndex: index);
-    saveLocalState();
+    _updateState(state.copyWith(activeEntityIndex: index));
   }
 
   void updateEntity(int index, {String? name, Color? color}) {
     final newEntities = List<AkropolisEntity>.from(state.entities);
     newEntities[index] = newEntities[index].copyWith(name: name, color: color);
-    state = state.copyWith(entities: newEntities);
-    saveLocalState();
+    _updateState(state.copyWith(entities: newEntities));
   }
 
   void setBufferHexagon(AkropolisHexagon hexagon) {
-    state = state.copyWith(
+    _updateState(state.copyWith(
       buffer: state.buffer.copyWith(
         selectedHexagon: hexagon,
         districtValue: 0,
         starsValue: hexagon == AkropolisHexagon.stones ? -1 : 0,
       ),
-    );
+    ));
   }
 
   void updateBuffer({int? districtValue, int? starsValue}) {
-    state = state.copyWith(
+    _updateState(state.copyWith(
       buffer: state.buffer.copyWith(
         districtValue: districtValue,
         starsValue: starsValue,
       ),
-    );
+    ));
   }
 
   void commitBuffer() {
@@ -303,7 +309,7 @@ class AkropolisTrackerNotifier extends Notifier<AkropolisTrackerState> {
       nextHex = hexValues[(currentHexIndex + 1) % hexValues.length];
     }
 
-    state = state.copyWith(
+    _updateState(state.copyWith(
       entities: newEntities,
       activeEntityIndex: nextIndex,
       buffer: AkropolisBuffer(
@@ -311,8 +317,7 @@ class AkropolisTrackerNotifier extends Notifier<AkropolisTrackerState> {
         districtValue: 0,
         starsValue: nextHex == AkropolisHexagon.stones ? -1 : 0,
       ),
-    );
-    saveLocalState();
+    ));
   }
 
   void resetAllScores() {
@@ -322,15 +327,14 @@ class AkropolisTrackerNotifier extends Notifier<AkropolisTrackerState> {
       color: e.color,
     )).toList();
 
-    state = state.copyWith(
+    _updateState(state.copyWith(
       entities: newEntities,
       buffer: const AkropolisBuffer(),
-    );
-    saveLocalState();
+    ));
   }
 
   Future<void> saveLocalState() async {
-    if (_currentUserId.isEmpty) return;
+    if (_currentUserId.isEmpty || state.entities.isEmpty || _currentKey.isEmpty) return;
     
     final encoded = jsonEncode({
       'activeEntityIndex': state.activeEntityIndex,
@@ -340,9 +344,15 @@ class AkropolisTrackerNotifier extends Notifier<AkropolisTrackerState> {
         'color': e.color.toARGB32(),
         'scores': e.scores.map((key, value) => MapEntry(key.toString(), value.toJson())),
       }).toList(),
+      'lastModified': DateTime.now().toIso8601String(),
     });
     
-    await _localStorage.saveData('akropolis_state_${_currentUserId}_$_playerCount', encoded);
+    await _localStorage.saveData(_currentKey, encoded);
+  }
+
+  Future<void> clearLocalState() async {
+    if (_currentUserId.isEmpty || _currentKey.isEmpty) return;
+    await _localStorage.removeData(_currentKey);
   }
 }
 

@@ -16,6 +16,13 @@ class LocalStorageRepository implements ILocalStorageRepository {
     return prefs.getString(key);
   }
 
+  /// Recupera todas las llaves almacenadas
+  @override
+  Future<Set<String>> getKeys() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getKeys();
+  }
+
   /// Borra un valor de local storage
   @override
   Future<void> removeData(String key) async {

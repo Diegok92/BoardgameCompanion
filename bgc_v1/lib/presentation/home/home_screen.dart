@@ -153,7 +153,7 @@ class HomeScreen extends ConsumerWidget {
                             foregroundColor: Colors.white,
                             isSecondary: true,
                             onPressed: () {
-                              // Navegar a historial
+                              context.push('/historial');
                             },
                           ),
                         ),

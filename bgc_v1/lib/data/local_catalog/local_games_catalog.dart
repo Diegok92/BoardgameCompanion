@@ -22,7 +22,12 @@ class LocalGamesCatalog {
       iconPath: 'assets/images/burako_icon.svg',
     ),
     Game(id: 'generala', name: 'Generala', validPlayerCounts: [2, 3, 4, 5, 6]),
-    Game(id: 'akropolis', name: 'Akropolis', validPlayerCounts: [1, 2, 3, 4]),
+    Game(
+      id: 'akropolis',
+      name: 'Akropolis',
+      validPlayerCounts: [1, 2, 3, 4],
+      iconPath: 'assets/images/akropolis_icon.svg',
+    ),
   ];
 
   // Juegos que NO tienen un anotador especial, sino que se juegan

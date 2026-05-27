@@ -61,27 +61,33 @@ class HpTrackerState {
 }
 
 class HpTrackerNotifier extends Notifier<HpTrackerState> {
+  final ILocalStorageRepository _localStorage = LocalStorageRepository();
+  String _currentUserId = '';
+  String _currentKey = '';
+
   @override
   HpTrackerState build() {
     return HpTrackerState(players: [], initialHp: 0);
   }
 
-  // Guardamos el userId actual para usarlo en saveLocalState()
-  String _currentUserId = '';
-  final ILocalStorageRepository _localStorage = LocalStorageRepository();
-
-  Future<void> initialize(int playerCount, User user, int initialHp) async {
+  Future<void> initialize(int playerCount, User user, int initialHp, {String? fullKey}) async {
     _currentUserId = user.id;
 
     // Resetear estado para evitar datos residuales de otro usuario
     state = HpTrackerState(players: [], initialHp: 0);
 
-    // Clave incluye el userId para aislar datos por usuario
-    final savedData = await _localStorage.getData('tracker_state_${user.id}_$playerCount');
+    // Check local storage using fullKey if provided
+    String? localDataStr;
+    if (fullKey != null) {
+      _currentKey = fullKey;
+      localDataStr = await _localStorage.getData(fullKey);
+    } else {
+      _currentKey = 'tracker_state_${user.id}_${playerCount}_${DateTime.now().millisecondsSinceEpoch}';
+    }
     
-    if (savedData != null) {
+    if (localDataStr != null) {
       try {
-        final decoded = jsonDecode(savedData);
+        final decoded = jsonDecode(localDataStr);
         final playersJson = decoded['players'] as List;
         List<TrackerPlayer> restoredPlayers = playersJson.map((p) => TrackerPlayer(
           index: p['index'],
@@ -149,54 +155,57 @@ class HpTrackerNotifier extends Notifier<HpTrackerState> {
     );
   }
 
+  void _updateState(HpTrackerState newState) {
+    state = newState;
+    saveLocalState();
+  }
+
   void addHp(int index, int amount) {
     final updatedPlayers = List<TrackerPlayer>.from(state.players);
     updatedPlayers[index] = updatedPlayers[index].copyWith(
       hp: updatedPlayers[index].hp + amount
     );
-    state = state.copyWith(players: updatedPlayers);
+    _updateState(state.copyWith(players: updatedPlayers));
   }
 
   void resetHp() {
     final updatedPlayers = state.players.map((p) => p.copyWith(hp: state.initialHp)).toList();
-    state = state.copyWith(players: updatedPlayers);
+    _updateState(state.copyWith(players: updatedPlayers));
   }
 
   void changeInitialHp(int delta) {
     int newInitial = state.initialHp + delta;
     if (newInitial < 1) newInitial = 1;
-    state = state.copyWith(initialHp: newInitial);
+    _updateState(state.copyWith(initialHp: newInitial));
   }
 
   void setInitialHp(int val) {
     if (val < 1) val = 1;
-    state = state.copyWith(initialHp: val);
+    _updateState(state.copyWith(initialHp: val));
   }
 
   void updatePlayerName(int index, String name) {
     final updatedPlayers = List<TrackerPlayer>.from(state.players);
     updatedPlayers[index] = updatedPlayers[index].copyWith(name: name);
-    state = state.copyWith(players: updatedPlayers);
+    _updateState(state.copyWith(players: updatedPlayers));
   }
 
   void updatePlayerColor(int index, Color newColor) {
     final updatedPlayers = List<TrackerPlayer>.from(state.players);
     updatedPlayers[index] = updatedPlayers[index].copyWith(color: newColor);
-    state = state.copyWith(players: updatedPlayers);
+    _updateState(state.copyWith(players: updatedPlayers));
   }
 
   void selectGame(Game? game) {
-    state = HpTrackerState(
+    _updateState(HpTrackerState(
       players: state.players,
       selectedGame: game,
       initialHp: state.initialHp,
-    );
+    ));
   }
 
   Future<void> saveLocalState() async {
-    if (state.players.isEmpty || _currentUserId.isEmpty) return;
-    
-    final playerCount = state.players.length;
+    if (state.players.isEmpty || _currentUserId.isEmpty || _currentKey.isEmpty) return;
     
     final data = {
       'players': state.players.map((p) => {
@@ -207,16 +216,15 @@ class HpTrackerNotifier extends Notifier<HpTrackerState> {
       }).toList(),
       'initialHp': state.initialHp,
       'selectedGameId': state.selectedGame?.id,
+      'lastModified': DateTime.now().toIso8601String(),
     };
     
-    // Clave incluye el userId para aislar datos por usuario
-    await _localStorage.saveData('tracker_state_${_currentUserId}_$playerCount', jsonEncode(data));
+    await _localStorage.saveData(_currentKey, jsonEncode(data));
   }
 
   Future<void> clearLocalState() async {
-    if (state.players.isEmpty || _currentUserId.isEmpty) return;
-    final playerCount = state.players.length;
-    await _localStorage.removeData('tracker_state_${_currentUserId}_$playerCount');
+    if (state.players.isEmpty || _currentUserId.isEmpty || _currentKey.isEmpty) return;
+    await _localStorage.removeData(_currentKey);
   }
 }
 

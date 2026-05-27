@@ -108,7 +108,22 @@ class StatsNotifier extends Notifier<StatsState> {
 
     List<Partida> filtered = state.allPartidas.where((p) {
       bool matchJuego = state.selectedJuego == 'TODOS' || p.juegoNombre.toUpperCase() == state.selectedJuego;
-      bool matchOpponent = state.selectedOpponent == 'TODOS' || p.participantes.map((n) => n.toUpperCase()).contains(state.selectedOpponent);
+      bool matchOpponent = true;
+      
+      if (state.selectedOpponent != 'TODOS') {
+        matchOpponent = p.participantes.map((n) => n.toUpperCase()).contains(state.selectedOpponent.toUpperCase());
+        
+        if (matchOpponent && p.isTeamGame) {
+          bool isGanador = p.ganadores.contains(username);
+          bool opponentWon = p.ganadores.map((g) => g.toUpperCase()).contains(state.selectedOpponent.toUpperCase());
+          
+          if (isGanador == opponentWon) {
+            // Están en el mismo equipo (ambos ganaron o ambos perdieron). Ignorar la partida.
+            matchOpponent = false;
+          }
+        }
+      }
+      
       return matchJuego && matchOpponent;
     }).toList();
 
@@ -120,17 +135,40 @@ class StatsNotifier extends Notifier<StatsState> {
 
     for (var p in filtered) {
       bool isGanador = p.ganadores.contains(username);
-      bool isEmpate = isGanador && p.ganadores.length > 1 && !p.isTeamGame;
-
-      if (isEmpate) {
-        empatadas++;
-        rachaRota = true;
-      } else if (isGanador) {
-        ganadas++;
-        if (!rachaRota) racha++;
+      
+      if (state.selectedOpponent == 'TODOS') {
+        bool isEmpate = isGanador && p.ganadores.length > 1 && !p.isTeamGame;
+        if (isEmpate) {
+          empatadas++;
+          rachaRota = true;
+        } else if (isGanador) {
+          ganadas++;
+          if (!rachaRota) racha++;
+        } else {
+          perdidas++;
+          rachaRota = true;
+        }
       } else {
-        perdidas++;
-        rachaRota = true;
+        // Lógica de "Mano a Mano" (Head-to-head)
+        bool opponentWon = p.ganadores.map((g) => g.toUpperCase()).contains(state.selectedOpponent.toUpperCase());
+        
+        if (isGanador && opponentWon) {
+          // Ambos ganaron (empate en primer lugar)
+          empatadas++;
+          rachaRota = true;
+        } else if (isGanador && !opponentWon) {
+          // Usuario ganó, oponente no -> Victoria
+          ganadas++;
+          if (!rachaRota) racha++;
+        } else if (!isGanador && opponentWon) {
+          // Oponente ganó, usuario no -> Derrota
+          perdidas++;
+          rachaRota = true;
+        } else {
+          // Ninguno de los dos ganó (Ganó un tercero)
+          // No cuenta como victoria, derrota o empate en el mano a mano
+          rachaRota = true;
+        }
       }
     }
 
