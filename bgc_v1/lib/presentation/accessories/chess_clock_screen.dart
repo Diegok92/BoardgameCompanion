@@ -6,6 +6,9 @@ import 'providers/chess_clock_provider.dart';
 import '../providers/auth_provider.dart';
 
 import '../scores/widgets/tracker_dialogs.dart';
+import 'widgets/accessory_control_bar.dart';
+import 'widgets/accessory_resume_dialog.dart';
+import 'widgets/accessory_time_dialog.dart';
 
 class ChessClockScreen extends ConsumerStatefulWidget {
   const ChessClockScreen({super.key});
@@ -36,33 +39,24 @@ class _ChessClockScreenState extends ConsumerState<ChessClockScreen> {
       });
       if (isNew) {
         _showTimeDialog();
+      } else {
+        // Había una partida pausada: preguntar si retomar o arrancar de nuevo.
+        AccessoryResumeDialog.show(
+          context,
+          onResume: () {}, // El estado ya quedó restaurado (pausado).
+          onNew: _showTimeDialog,
+        );
       }
     }
   }
 
   void _showTimeDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('¿De cuántos minutos será la partida?', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-          content: Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            alignment: WrapAlignment.center,
-            children: [1, 3, 5, 10, 15, 30].map((mins) {
-              return ActionChip(
-                label: Text('$mins min'),
-                onPressed: () {
-                  ref.read(chessClockProvider.notifier).setInitialSeconds(mins * 60);
-                  Navigator.pop(context);
-                },
-              );
-            }).toList(),
-          ),
-        );
-      },
+    AccessoryTimeDialog.show(
+      context,
+      title: '¿De cuántos minutos será la partida?',
+      optionsSeconds: const [60, 180, 300, 600, 900, 1800],
+      onSelect: (seconds) =>
+          ref.read(chessClockProvider.notifier).setInitialSeconds(seconds),
     );
   }
 
@@ -71,8 +65,19 @@ class _ChessClockScreenState extends ConsumerState<ChessClockScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('¡TIEMPO AGOTADO!', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w900, color: Theme.of(context).colorScheme.error)),
-          content: Text('$playerName SE QUEDÓ SIN TIEMPO', textAlign: TextAlign.center, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          title: Text(
+            '¡TIEMPO AGOTADO!',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontWeight: FontWeight.w900,
+              color: Theme.of(context).colorScheme.error,
+            ),
+          ),
+          content: Text(
+            '$playerName SE QUEDÓ SIN TIEMPO',
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
           actionsAlignment: MainAxisAlignment.center,
           actions: [
             FilledButton(
@@ -87,6 +92,13 @@ class _ChessClockScreenState extends ConsumerState<ChessClockScreen> {
 
   void _editPlayer(int player, String currentName, Color currentColor) {
     final user = ref.read(authProvider);
+    final state = ref.read(chessClockProvider);
+
+    // Datos del otro jugador, para no permitir repetir nombre ni color.
+    final otherName = player == 1 ? state.playerTwoName : state.playerOneName;
+    final otherColor = player == 1
+        ? state.playerTwoColor
+        : state.playerOneColor;
 
     TrackerDialogs.showEntityEditor(
       context: context,
@@ -96,10 +108,14 @@ class _ChessClockScreenState extends ConsumerState<ChessClockScreen> {
       entityIndex: player == 1 ? 0 : 1,
       loggedInUsername: user?.username,
       invitados: user?.invitados ?? [],
-      assignedNames: [],
-      assignedColors: [],
-      onNameChanged: (name) => ref.read(chessClockProvider.notifier).updatePlayer(player, name: name),
-      onColorChanged: (color) => ref.read(chessClockProvider.notifier).updatePlayer(player, color: color),
+      assignedNames: [otherName],
+      assignedColors: [otherColor],
+      onNameChanged: (name) => ref
+          .read(chessClockProvider.notifier)
+          .updatePlayer(player, name: name),
+      onColorChanged: (color) => ref
+          .read(chessClockProvider.notifier)
+          .updatePlayer(player, color: color),
       onAddInvitado: () {
         Navigator.pop(context);
         context.push('/register-invitado');
@@ -123,104 +139,84 @@ class _ChessClockScreenState extends ConsumerState<ChessClockScreen> {
     final notifier = ref.read(chessClockProvider.notifier);
 
     ref.listen<ChessClockState>(chessClockProvider, (previous, next) {
-      if (previous != null && previous.playerOneSeconds > 0 && next.playerOneSeconds == 0) {
+      if (previous != null &&
+          previous.playerOneSeconds > 0 &&
+          next.playerOneSeconds == 0) {
         _showOutOfTimeDialog(next.playerOneName);
-      } else if (previous != null && previous.playerTwoSeconds > 0 && next.playerTwoSeconds == 0) {
+      } else if (previous != null &&
+          previous.playerTwoSeconds > 0 &&
+          next.playerTwoSeconds == 0) {
         _showOutOfTimeDialog(next.playerTwoName);
       }
     });
 
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Panel Superior (Jugador 2) - Invertido
-            Expanded(
-              child: Transform.rotate(
-                angle: pi,
+    return PopScope(
+      // Al salir (botón atrás o gesto del sistema) pausamos para conservar
+      // el estado de los relojes al volver a entrar.
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) notifier.pause();
+      },
+      child: Scaffold(
+        backgroundColor: colorScheme.surface,
+        body: SafeArea(
+          child: Column(
+            children: [
+              // Panel Superior (Jugador 2) - Invertido
+              Expanded(
+                child: Transform.rotate(
+                  angle: pi,
+                  child: _buildPlayerPanel(
+                    player: 2,
+                    name: state.playerTwoName,
+                    color: state.playerTwoColor,
+                    seconds: state.playerTwoSeconds,
+                    isActive: state.activePlayer == 2,
+                    isRunning: state.isRunning,
+                    onTapPanel: () {
+                      if (state.activePlayer == 2 && state.isRunning) {
+                        notifier.switchTurn();
+                      }
+                    },
+                  ),
+                ),
+              ),
+
+              // Barra de control central
+              AccessoryControlBar(
+                onBack: () {
+                  notifier.pause();
+                  if (context.canPop()) {
+                    context.pop();
+                  } else {
+                    context.go('/home');
+                  }
+                },
+                onPlay: () => notifier.start(),
+                onPause: () => notifier.pause(),
+                onStop: () => notifier.stop(),
+                onRestart: _showTimeDialog,
+              ),
+
+              // Panel Inferior (Jugador 1)
+              Expanded(
                 child: _buildPlayerPanel(
-                  player: 2,
-                  name: state.playerTwoName,
-                  color: state.playerTwoColor,
-                  seconds: state.playerTwoSeconds,
-                  isActive: state.activePlayer == 2,
+                  player: 1,
+                  name: state.playerOneName,
+                  color: state.playerOneColor,
+                  seconds: state.playerOneSeconds,
+                  isActive: state.activePlayer == 1,
                   isRunning: state.isRunning,
                   onTapPanel: () {
-                    if (state.activePlayer == 2 && state.isRunning) {
+                    if (state.activePlayer == 1 && state.isRunning) {
                       notifier.switchTurn();
                     }
                   },
                 ),
               ),
-            ),
-
-            // Barra de control central
-            Container(
-              height: 70,
-              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new, size: 28),
-                    onPressed: () {
-                      notifier.pause();
-                      if (context.canPop()) {
-                        context.pop();
-                      } else {
-                        context.go('/home');
-                      }
-                    },
-                    tooltip: 'Volver',
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.play_arrow, size: 36),
-                    color: Colors.green,
-                    onPressed: () => notifier.start(),
-                    tooltip: 'Comenzar',
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.pause, size: 36),
-                    color: Colors.orange,
-                    onPressed: () => notifier.pause(),
-                    tooltip: 'Pausa',
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.stop, size: 36),
-                    color: Colors.red,
-                    onPressed: () => notifier.stop(),
-                    tooltip: 'Detener',
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.restart_alt, size: 32),
-                    color: colorScheme.primary,
-                    onPressed: _showTimeDialog,
-                    tooltip: 'Reiniciar con nuevo tiempo',
-                  ),
-                ],
-              ),
-            ),
-
-            // Panel Inferior (Jugador 1)
-            Expanded(
-              child: _buildPlayerPanel(
-                player: 1,
-                name: state.playerOneName,
-                color: state.playerOneColor,
-                seconds: state.playerOneSeconds,
-                isActive: state.activePlayer == 1,
-                isRunning: state.isRunning,
-                onTapPanel: () {
-                  if (state.activePlayer == 1 && state.isRunning) {
-                    notifier.switchTurn();
-                  }
-                },
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -236,7 +232,7 @@ class _ChessClockScreenState extends ConsumerState<ChessClockScreen> {
     required VoidCallback onTapPanel,
   }) {
     final bool isLost = seconds == 0;
-    
+
     return GestureDetector(
       onTap: onTapPanel,
       child: Container(
@@ -255,7 +251,7 @@ class _ChessClockScreenState extends ConsumerState<ChessClockScreen> {
                 color: color.withValues(alpha: 0.2),
                 blurRadius: 20,
                 spreadRadius: 2,
-              )
+              ),
           ],
         ),
         child: Stack(
@@ -287,7 +283,9 @@ class _ChessClockScreenState extends ConsumerState<ChessClockScreen> {
                     style: TextStyle(
                       fontSize: 80,
                       fontWeight: FontWeight.w900,
-                      color: isLost ? Colors.red : Theme.of(context).colorScheme.onSurface,
+                      color: isLost
+                          ? Colors.red
+                          : Theme.of(context).colorScheme.onSurface,
                       fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
@@ -296,12 +294,16 @@ class _ChessClockScreenState extends ConsumerState<ChessClockScreen> {
                     isLost
                         ? 'TIEMPO AGOTADO'
                         : (isActive
-                            ? (isRunning ? 'TU TURNO' : 'LISTO')
-                            : 'ESPERANDO'),
+                              ? (isRunning ? 'TU TURNO' : 'LISTO')
+                              : 'ESPERANDO'),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: isLost ? Colors.red : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                      color: isLost
+                          ? Colors.red
+                          : Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withValues(alpha: 0.5),
                       letterSpacing: 1.2,
                     ),
                   ),

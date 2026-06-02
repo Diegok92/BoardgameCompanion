@@ -5,8 +5,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 // removed app colors
-import '../../../data/local_catalog/local_games_catalog.dart';
-import '../../../domain/models/game_model.dart';
 import '../../widgets/app_drawer.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/match_service.dart';
@@ -14,6 +12,7 @@ import 'providers/hp_tracker_provider.dart';
 import '../widgets/tracker_app_bar.dart';
 import '../widgets/tracker_bottom_bar.dart';
 import '../widgets/tracker_dialogs.dart';
+import '../widgets/tracker_game_dropdown.dart';
 import 'widgets/hp_player_card.dart';
 
 class HpTrackerScreen extends ConsumerStatefulWidget {
@@ -52,48 +51,10 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
     }
   }
 
-  Widget _buildDropdownWidget(
-    HpTrackerState state,
-    List<Game> allDropdownGames,
-  ) {
-    return Container(
-      height: 44,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<Game?>(
-          value: state.selectedGame,
-          hint: const Text('Juego', style: TextStyle(fontSize: 14)),
-          isExpanded: true,
-          icon: Icon(Icons.arrow_drop_down, color: Theme.of(context).colorScheme.onSurfaceVariant),
-          items: [
-            DropdownMenuItem<Game?>(
-              value: null,
-              child: Text(
-                'Sin Asignar',
-                style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
-              ),
-            ),
-            ...allDropdownGames.map((g) {
-              return DropdownMenuItem<Game?>(
-                value: g,
-                child: Text(
-                  g.name,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 14),
-                ),
-              );
-            }),
-          ],
-          onChanged: (val) {
-            ref.read(hpTrackerProvider.notifier).selectGame(val);
-          },
-        ),
-      ),
+  Widget _buildDropdownWidget(HpTrackerState state) {
+    return TrackerGameDropdown(
+      selectedGame: state.selectedGame,
+      onChanged: (val) => ref.read(hpTrackerProvider.notifier).selectGame(val),
     );
   }
 
@@ -249,13 +210,12 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
 
     final user = ref.watch(authProvider);
     final invitados = user?.invitados ?? [];
-    final allDropdownGames = LocalGamesCatalog.trackerGames;
 
     return Scaffold(
       appBar: TrackerAppBar(
         rightWidget: SizedBox(
           width: 200,
-          child: _buildDropdownWidget(state, allDropdownGames),
+          child: _buildDropdownWidget(state),
         ),
       ),
       drawer: const AppDrawer(),
@@ -328,7 +288,7 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
                             ],
                           ),
                           const SizedBox(height: 16),
-                          _buildDropdownWidget(state, allDropdownGames),
+                          _buildDropdownWidget(state),
                           const Spacer(),
                           FittedBox(
                             fit: BoxFit.scaleDown,

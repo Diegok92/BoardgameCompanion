@@ -5,8 +5,6 @@ import '../../domain/models/accessory_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/accessories_provider.dart';
 import '../widgets/custom_alert.dart';
-import 'chess_clock_screen.dart';
-import 'sand_timer_screen.dart';
 
 class AccessoriesScreen extends ConsumerWidget {
   const AccessoriesScreen({super.key});
@@ -25,18 +23,12 @@ class AccessoriesScreen extends ConsumerWidget {
     }
 
     if (accessoryName.contains('ajedrez') || accessoryName.contains('chess')) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const ChessClockScreen()),
-      );
+      context.push('/chess-clock');
       return;
     }
 
     if (accessoryName.contains('arena') || accessoryName.contains('sand')) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const SandTimerScreen()),
-      );
+      context.push('/sand-timer');
       return;
     }
 

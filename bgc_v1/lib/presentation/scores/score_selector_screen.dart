@@ -8,7 +8,6 @@ import '../widgets/custom_alert.dart';
 import '../historial/providers/historial_provider.dart';
 import '../../data/local_catalog/local_games_catalog.dart';
 import '../providers/auth_provider.dart';
-import 'standard_scoreboard_screen.dart';
 
 class ScoreSelectorScreen extends ConsumerStatefulWidget {
   const ScoreSelectorScreen({super.key});
@@ -66,19 +65,8 @@ class _ScoreSelectorScreenState extends ConsumerState<ScoreSelectorScreen> {
 
     String route = '';
 
-    if (_selectedGame!.id == 'vp_tracker' ||
-        _selectedGame!.id == 'points_tracker' ||
-        _selectedGame!.id == 'standard_vp' ||
-        _selectedGame!.name.toLowerCase().contains('vp') ||
-        _selectedGame!.name.toLowerCase().contains('puntos')) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) =>
-              StandardScoreboardScreen(playerCount: _selectedPlayerCount!),
-        ),
-      );
-      return;
+    if (_selectedGame!.id == 'vp_tracker') {
+      route = '/standard-scoreboard';
     } else if (_selectedGame!.id == 'burako') {
       route = '/burako-tracker';
     } else if (_selectedGame!.id == 'hp_tracker' ||
@@ -114,8 +102,9 @@ class _ScoreSelectorScreenState extends ConsumerState<ScoreSelectorScreen> {
 
     if (matchingMatches.isNotEmpty) {
       matchingMatches.sort((a, b) {
-        if (a.fechaFinalizacion == null && b.fechaFinalizacion == null)
+        if (a.fechaFinalizacion == null && b.fechaFinalizacion == null) {
           return 0;
+        }
         if (a.fechaFinalizacion == null) return 1;
         if (b.fechaFinalizacion == null) return -1;
         return b.fechaFinalizacion!.compareTo(a.fechaFinalizacion!);
