@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/accessories_provider.dart';
 import '../widgets/custom_alert.dart';
 import 'chess_clock_screen.dart';
+import 'sand_timer_screen.dart';
 
 class AccessoriesScreen extends ConsumerWidget {
   const AccessoriesScreen({super.key});
@@ -27,6 +28,14 @@ class AccessoriesScreen extends ConsumerWidget {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const ChessClockScreen()),
+      );
+      return;
+    }
+
+    if (accessoryName.contains('arena') || accessoryName.contains('sand')) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const SandTimerScreen()),
       );
       return;
     }
