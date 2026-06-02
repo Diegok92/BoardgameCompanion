@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/burako_tracker_provider.dart';
 import 'burako_reference_card.dart';
-import 'fichas_calculator_dialog.dart';
+import '../../widgets/calculator_dialog.dart';
 import '../../../widgets/custom_alert.dart';
 
 class BurakoBufferEditor extends ConsumerWidget {
@@ -12,9 +12,9 @@ class BurakoBufferEditor extends ConsumerWidget {
     final state = ref.read(burakoTrackerProvider);
     final initialVal = state.buffer.fichasScore;
 
-    final result = await showDialog<int>(
-      context: context,
-      builder: (context) => FichasCalculatorDialog(initialValue: initialVal),
+    final result = await CalculatorDialog.show(
+      context,
+      initialValue: initialVal,
     );
 
     if (result != null) {

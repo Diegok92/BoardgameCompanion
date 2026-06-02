@@ -1,15 +1,38 @@
 import 'package:flutter/material.dart';
 
-class FichasCalculatorDialog extends StatefulWidget {
+/// Diálogo calculadora reutilizable: permite componer una expresión con
+/// sumas y restas y devuelve el resultado evaluado al confirmar.
+///
+/// Lo usan el anotador de Burako (calcular fichas) y el anotador de puntos
+/// estándar (sumar puntos). Devuelve un `int` al confirmar, o `null` si se
+/// descarta el diálogo.
+class CalculatorDialog extends StatefulWidget {
   final int initialValue;
+  final String title;
 
-  const FichasCalculatorDialog({super.key, this.initialValue = 0});
+  const CalculatorDialog({
+    super.key,
+    this.initialValue = 0,
+    this.title = 'Calcular Fichas',
+  });
+
+  /// Helper para abrir el diálogo y obtener el resultado.
+  static Future<int?> show(
+    BuildContext context, {
+    int initialValue = 0,
+    String title = 'Calcular Fichas',
+  }) {
+    return showDialog<int>(
+      context: context,
+      builder: (_) => CalculatorDialog(initialValue: initialValue, title: title),
+    );
+  }
 
   @override
-  State<FichasCalculatorDialog> createState() => _FichasCalculatorDialogState();
+  State<CalculatorDialog> createState() => _CalculatorDialogState();
 }
 
-class _FichasCalculatorDialogState extends State<FichasCalculatorDialog> {
+class _CalculatorDialogState extends State<CalculatorDialog> {
   String _expression = '';
 
   @override
@@ -46,7 +69,7 @@ class _FichasCalculatorDialogState extends State<FichasCalculatorDialog> {
   int _evaluate(String exp) {
     try {
       if (exp.isEmpty) return 0;
-      
+
       // Permitir un negativo al principio
       bool startsWithNegative = exp.startsWith('-');
       if (startsWithNegative) {
@@ -59,7 +82,7 @@ class _FichasCalculatorDialogState extends State<FichasCalculatorDialog> {
         var term = terms[t];
         var subTerms = term.split('-');
         int termVal = int.tryParse(subTerms[0]) ?? 0;
-        
+
         // Aplicar el negativo inicial al primer término
         if (t == 0 && startsWithNegative) {
           termVal = -termVal;
@@ -100,16 +123,25 @@ class _FichasCalculatorDialogState extends State<FichasCalculatorDialog> {
     Navigator.of(context).pop(result);
   }
 
-  Widget _buildButton(String text, {Color? color, Color? textColor, VoidCallback? onTap}) {
+  Widget _buildButton(
+    String text, {
+    Color? color,
+    Color? textColor,
+    VoidCallback? onTap,
+  }) {
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.all(4.0),
         child: FilledButton(
           style: FilledButton.styleFrom(
-            backgroundColor: color ?? Theme.of(context).colorScheme.surfaceContainer,
-            foregroundColor: textColor ?? Theme.of(context).colorScheme.onSurface,
+            backgroundColor:
+                color ?? Theme.of(context).colorScheme.surfaceContainer,
+            foregroundColor:
+                textColor ?? Theme.of(context).colorScheme.onSurface,
             padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
           onPressed: onTap ?? () => _onPressed(text),
           child: Text(
@@ -130,9 +162,12 @@ class _FichasCalculatorDialogState extends State<FichasCalculatorDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Calcular Fichas', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(
+              widget.title,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 16),
-            
+
             // Display
             Container(
               width: double.infinity,
@@ -159,7 +194,12 @@ class _FichasCalculatorDialogState extends State<FichasCalculatorDialog> {
                 _buildButton('7'),
                 _buildButton('8'),
                 _buildButton('9'),
-                _buildButton('C', color: Colors.red[100], textColor: Colors.red, onTap: _clear),
+                _buildButton(
+                  'C',
+                  color: Colors.red[100],
+                  textColor: Colors.red,
+                  onTap: _clear,
+                ),
               ],
             ),
             Row(
@@ -167,7 +207,12 @@ class _FichasCalculatorDialogState extends State<FichasCalculatorDialog> {
                 _buildButton('4'),
                 _buildButton('5'),
                 _buildButton('6'),
-                _buildButton('⌫', color: Colors.orange[100], textColor: Colors.orange[800], onTap: _delete),
+                _buildButton(
+                  '⌫',
+                  color: Colors.orange[100],
+                  textColor: Colors.orange[800],
+                  onTap: _delete,
+                ),
               ],
             ),
             Row(
@@ -175,14 +220,27 @@ class _FichasCalculatorDialogState extends State<FichasCalculatorDialog> {
                 _buildButton('1'),
                 _buildButton('2'),
                 _buildButton('3'),
-                _buildButton('+', color: Colors.blue[100], textColor: Colors.blue[800]),
+                _buildButton(
+                  '+',
+                  color: Colors.blue[100],
+                  textColor: Colors.blue[800],
+                ),
               ],
             ),
             Row(
               children: [
                 _buildButton('0'),
-                _buildButton('=' , color: Colors.blue[600], textColor: Colors.white, onTap: _calculate),
-                _buildButton('-', color: Colors.blue[100], textColor: Colors.blue[800]),
+                _buildButton(
+                  '=',
+                  color: Colors.blue[600],
+                  textColor: Colors.white,
+                  onTap: _calculate,
+                ),
+                _buildButton(
+                  '-',
+                  color: Colors.blue[100],
+                  textColor: Colors.blue[800],
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -192,10 +250,15 @@ class _FichasCalculatorDialogState extends State<FichasCalculatorDialog> {
               child: FilledButton(
                 style: FilledButton.styleFrom(
                   backgroundColor: Colors.green,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 onPressed: _confirm,
-                child: const Text('CONFIRMAR', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                child: const Text(
+                  'CONFIRMAR',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
           ],

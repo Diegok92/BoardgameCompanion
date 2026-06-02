@@ -103,12 +103,18 @@ class ChessClockNotifier extends Notifier<ChessClockState> {
     }
 
     // Default initialization
+    final playerOneColor = user.favoriteColor ?? AppColors.blue;
+    // El jugador 2 arranca con un color distinto al del usuario.
+    final playerTwoColor = AppColors.availableColors.firstWhere(
+      (c) => c.toARGB32() != playerOneColor.toARGB32(),
+      orElse: () => AppColors.red,
+    );
     state = ChessClockState(
       playerOneName: user.username,
-      playerOneColor: user.favoriteColor ?? AppColors.blue,
+      playerOneColor: playerOneColor,
       playerOneSeconds: 300,
       playerTwoName: 'Jugador 2',
-      playerTwoColor: AppColors.red,
+      playerTwoColor: playerTwoColor,
       playerTwoSeconds: 300,
       activePlayer: 1,
       isRunning: false,
