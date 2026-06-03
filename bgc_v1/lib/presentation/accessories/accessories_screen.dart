@@ -32,6 +32,11 @@ class AccessoriesScreen extends ConsumerWidget {
       return;
     }
 
+    if (accessoryName.contains('letra') || accessoryName.contains('letter')) {
+      context.push('/letter-generator');
+      return;
+    }
+
     CustomAlert.show(context, 'Abriendo accesorio: ${accessory.name}...');
   }
 
