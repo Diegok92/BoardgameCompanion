@@ -12,6 +12,7 @@ import '../presentation/accessories/coin_flip_screen.dart';
 import '../presentation/accessories/dice_screen.dart';
 import '../presentation/accessories/chess_clock_screen.dart';
 import '../presentation/accessories/sand_timer_screen.dart';
+import '../presentation/accessories/letter_generator_screen.dart';
 import '../presentation/settings/config_screen.dart';
 import '../presentation/scores/akropolis_tracker/akropolis_tracker_screen.dart';
 import '../presentation/scores/standard_scoreboard/standard_scoreboard_screen.dart';
@@ -111,6 +112,12 @@ final appRouter = GoRouter(
       path: '/sand-timer',
       builder: (context, state) {
         return const SandTimerScreen();
+      },
+    ),
+    GoRoute(
+      path: '/letter-generator',
+      builder: (context, state) {
+        return const LetterGeneratorScreen();
       },
     ),
     GoRoute(
