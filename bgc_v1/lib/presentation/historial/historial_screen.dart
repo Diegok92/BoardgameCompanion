@@ -48,6 +48,10 @@ class _HistorialScreenState extends ConsumerState<HistorialScreen> {
       route = '/burako-tracker';
     } else if (partida.id.startsWith('akropolis')) {
       route = '/akropolis-tracker';
+    } else if (partida.id.startsWith('generala')) {
+      route = '/generala-tracker';
+    } else if (partida.id.startsWith('scoreboard')) {
+      route = '/standard-scoreboard';
     } else if (partida.id.startsWith('tracker')) {
       route = '/hp-tracker';
     } else {

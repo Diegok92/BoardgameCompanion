@@ -178,7 +178,8 @@ class HistorialNotifier extends Notifier<HistorialState> {
       if (key.startsWith('burako_state_${userId}_') ||
           key.startsWith('akropolis_state_${userId}_') ||
           key.startsWith('scoreboard_state_${userId}_') ||
-          key.startsWith('tracker_state_${userId}_')) {
+          key.startsWith('tracker_state_${userId}_') ||
+          key.startsWith('generala_state_${userId}_')) {
         
         final dataStr = await _localRepo.getData(key);
         if (dataStr == null) continue;
@@ -240,6 +241,14 @@ class HistorialNotifier extends Notifier<HistorialState> {
             final players = decoded['players'] as List;
             participantes = players
                 .map((p) => p['name']?.toString() ?? 'Jugador')
+                .toList();
+          }
+          else if (key.startsWith('generala_state_')) {
+            gameName = 'Generala';
+            gameId = 'generala';
+            final entities = decoded['entities'] as List;
+            participantes = entities
+                .map((e) => e['name']?.toString() ?? 'Jugador')
                 .toList();
           }
           else if (key.startsWith('tracker_state_')) {

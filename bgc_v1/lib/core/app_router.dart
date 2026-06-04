@@ -17,6 +17,7 @@ import '../presentation/scores/akropolis_tracker/akropolis_tracker_screen.dart';
 import '../presentation/scores/standard_scoreboard/standard_scoreboard_screen.dart';
 import '../presentation/stats/stats_screen.dart';
 import '../presentation/historial/historial_screen.dart';
+import '../presentation/scores/generala_tracker/generala_tracker_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/login',
@@ -135,6 +136,15 @@ final appRouter = GoRouter(
       path: '/historial',
       builder: (context, state) {
         return const HistorialScreen();
+      },
+    ),
+    GoRoute(
+      path: '/generala-tracker',
+      builder: (context, state) {
+        final extras = state.extra as Map<String, dynamic>?;
+        final playerCount = extras?['playerCount'] as int? ?? 2;
+        final fullKey = extras?['fullKey'] as String?;
+        return GeneralaTrackerScreen(playerCount: playerCount, fullKey: fullKey);
       },
     ),
   ],

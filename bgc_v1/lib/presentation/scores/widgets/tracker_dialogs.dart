@@ -253,7 +253,8 @@ class TrackerDialogs {
                               ? null
                               : entityName,
                           items: [
-                            ...invitados
+                            // Deduplicar por si acaso hay entradas repetidas
+                            ...invitados.toSet().toList()
                                 .where(
                                   (inv) =>
                                       !assignedNames.contains(inv) ||
