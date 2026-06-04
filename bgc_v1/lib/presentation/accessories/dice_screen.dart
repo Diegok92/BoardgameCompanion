@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../core/theme/app_colors.dart';
 
 class DiceRollScreen extends StatefulWidget {
@@ -20,14 +21,19 @@ class _DiceRollScreenState extends State<DiceRollScreen>
   late final Animation<double> _animation;
 
   final Random _random = Random();
+
   final List<int> _diceTypes = [4, 6, 10, 12, 20, 100];
+  final List<int> _diceAmounts = [1, 2, 3, 4, 5];
 
   int _selectedDice = 4;
   int _diceAmount = 1;
+
   List<int> _diceResults = [1];
+  List<bool> _lockedDice = [false];
+
   bool _isRolling = false;
 
-int get _total => _diceResults.fold(0, (sum, value) => sum + value);
+  int get _total => _diceResults.fold(0, (sum, value) => sum + value);
 
   @override
   void initState() {
@@ -42,10 +48,13 @@ int get _total => _diceResults.fold(0, (sum, value) => sum + value);
       CurvedAnimation(parent: _controller, curve: Curves.easeInOutBack),
     );
 
+    _diceResults = _generateResults(amount: _diceAmount);
+    _lockedDice = List.generate(_diceAmount, (_) => false);
+
     _controller.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         setState(() {
-          _diceResults = _generateResults();
+          _diceResults = _generateResultsKeepingLocked();
           _isRolling = false;
         });
 
@@ -54,15 +63,46 @@ int get _total => _diceResults.fold(0, (sum, value) => sum + value);
     });
   }
 
-  List<int> _generateResults() {
-    return List.generate(
-      _diceAmount,
-      (_) => _random.nextInt(_selectedDice) + 1,
-    );
+  int _generateSingleResult() {
+    if (_selectedDice == 100) {
+      return (_random.nextInt(10) + 1) * 10;
+    }
+
+    return _random.nextInt(_selectedDice) + 1;
+  }
+
+  List<int> _generateResults({required int amount}) {
+    return List.generate(amount, (_) => _generateSingleResult());
+  }
+
+  List<int> _generateResultsKeepingLocked() {
+    return List.generate(_diceAmount, (index) {
+      final isLocked = _lockedDice[index];
+
+      if (isLocked) {
+        return _diceResults[index];
+      }
+
+      return _generateSingleResult();
+    });
   }
 
   void _rollDice() {
     if (_isRolling) return;
+
+    final allDiceLocked = _lockedDice.every((isLocked) => isLocked);
+
+    if (allDiceLocked) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Todos los dados están bloqueados. Desbloqueá uno para tirar.',
+          ),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
 
     setState(() {
       _isRolling = true;
@@ -76,28 +116,58 @@ int get _total => _diceResults.fold(0, (sum, value) => sum + value);
 
     setState(() {
       _selectedDice = dice;
-      _diceResults = _generateResults();
+
+      // Regenera todos para evitar valores inválidos.
+      // Ejemplo: si antes era D100 y ahora es D10, no puede quedar 91.
+      _diceResults = _generateResults(amount: _diceAmount);
+
+      // Al cambiar el tipo de dado, se desbloquean todos.
+      _lockedDice = List.generate(_diceAmount, (_) => false);
     });
   }
 
- void _changeDiceAmount() {
-  if (_isRolling) return;
+  void _changeDiceAmount(int amount) {
+    if (_isRolling) return;
 
-  setState(() {
-    _diceAmount++;
+    setState(() {
+      _diceAmount = amount;
 
-    if (_diceAmount > 5) {
-      _diceAmount = 1;
-    }
+      if (_diceResults.length < amount) {
+        final missingAmount = amount - _diceResults.length;
 
-    _diceResults = _generateResults();
-  });
-}
+        _diceResults = [
+          ..._diceResults,
+          ..._generateResults(amount: missingAmount),
+        ];
+
+        _lockedDice = [
+          ..._lockedDice,
+          ...List.generate(missingAmount, (_) => false),
+        ];
+      } else {
+        _diceResults = _diceResults.take(amount).toList();
+        _lockedDice = _lockedDice.take(amount).toList();
+      }
+    });
+  }
+
+  void _toggleDiceLock(int index) {
+    if (_isRolling) return;
+
+    setState(() {
+      _lockedDice[index] = !_lockedDice[index];
+    });
+  }
 
   double get _diceSize {
     if (_diceAmount == 1) return 220;
     if (_diceAmount == 2) return 145;
     return 115;
+  }
+
+  String get _rollButtonText {
+    if (_isRolling) return 'TIRANDO...';
+    return _diceAmount == 1 ? 'TIRAR DADO' : 'TIRAR DADOS';
   }
 
   @override
@@ -118,9 +188,9 @@ int get _total => _diceResults.fold(0, (sum, value) => sum + value);
           Text(
             'BG Companion',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
           ),
           const SizedBox(width: 8),
           SvgPicture.asset('assets/images/logo.svg', height: 24),
@@ -134,8 +204,10 @@ int get _total => _diceResults.fold(0, (sum, value) => sum + value);
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: colorScheme.surface,
       appBar: _buildAppBar(),
       body: SafeArea(
         child: Padding(
@@ -143,26 +215,29 @@ int get _total => _diceResults.fold(0, (sum, value) => sum + value);
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildDiceAmountButton(),
-
+              _buildDiceAmountDropdown(),
               const SizedBox(height: 18),
-
               Text(
                 'TIPO DE DADO (CARAS)',
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  color: colorScheme.onSurfaceVariant,
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 0.4,
                 ),
               ),
-
               const SizedBox(height: 10),
-
               _buildDiceSelector(),
-
+              const SizedBox(height: 10),
+              Text(
+                'Tocá el candado para bloquear un dado y seguir tirando solo los demás.',
+                style: TextStyle(
+                  color: colorScheme.onSurfaceVariant,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
               const Spacer(),
-
               Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -178,26 +253,31 @@ int get _total => _diceResults.fold(0, (sum, value) => sum + value);
                           spacing: 14,
                           runSpacing: 14,
                           children: List.generate(_diceAmount, (index) {
-                            return Transform(
-                              alignment: Alignment.center,
-                              transform: Matrix4.identity()
-                                ..setEntry(3, 2, 0.001)
-                                ..rotateZ(rotation),
-                              child: DiceWidget(
-                                result: _isRolling
-                                    ? '?'
-                                    : _diceResults[index].toString(),
-                                diceType: 'D$_selectedDice',
-                                size: _diceSize,
+                            final isLocked = _lockedDice[index];
+
+                            return DiceLockWrapper(
+                              isLocked: isLocked,
+                              onTapLock: () => _toggleDiceLock(index),
+                              child: Transform(
+                                alignment: Alignment.center,
+                                transform: Matrix4.identity()
+                                  ..setEntry(3, 2, 0.001)
+                                  ..rotateZ(isLocked ? 0 : rotation),
+                                child: DiceWidget(
+                                  result: _isRolling && !isLocked
+                                      ? '?'
+                                      : _diceResults[index].toString(),
+                                  diceType: 'D$_selectedDice',
+                                  size: _diceSize,
+                                  isLocked: isLocked,
+                                ),
                               ),
                             );
                           }),
                         );
                       },
                     ),
-
                     const SizedBox(height: 18),
-
                     Text(
                       _isRolling ? 'TOTAL: ...' : 'TOTAL: $_total',
                       style: const TextStyle(
@@ -210,9 +290,7 @@ int get _total => _diceResults.fold(0, (sum, value) => sum + value);
                   ],
                 ),
               ),
-
               const Spacer(),
-
               SizedBox(
                 width: double.infinity,
                 height: 56,
@@ -227,7 +305,7 @@ int get _total => _diceResults.fold(0, (sum, value) => sum + value);
                     ),
                   ),
                   child: Text(
-                    _isRolling ? 'TIRANDO...' : 'TIRAR DADO',
+                    _rollButtonText,
                     style: const TextStyle(
                       fontWeight: FontWeight.w900,
                       fontSize: 15,
@@ -243,40 +321,77 @@ int get _total => _diceResults.fold(0, (sum, value) => sum + value);
     );
   }
 
-  Widget _buildDiceAmountButton() {
-    return GestureDetector(
-      onTap: _changeDiceAmount,
-      child: Container(
-        width: 120,
-        height: 45,
-        decoration: BoxDecoration(
-          color: redColor,
-          borderRadius: BorderRadius.circular(10),
+  Widget _buildDiceAmountDropdown() {
+    return SizedBox(
+      width: 145,
+      height: 45,
+      child: DropdownButtonFormField<int>(
+        initialValue: _diceAmount,
+        dropdownColor: Theme.of(context).colorScheme.surface,
+        icon: const Icon(
+          Icons.keyboard_arrow_down,
+          color: Colors.white,
+          size: 22,
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'DADOS: $_diceAmount',
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w900,
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: redColor,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 14),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: redColor),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: redColor),
+          ),
+        ),
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w900,
+          fontSize: 13,
+        ),
+        selectedItemBuilder: (context) {
+          return _diceAmounts.map((amount) {
+            return Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'DADOS: $amount',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 13,
+                ),
+              ),
+            );
+          }).toList();
+        },
+        items: _diceAmounts.map((amount) {
+          return DropdownMenuItem<int>(
+            value: amount,
+            child: Text(
+              amount == 1 ? '1 dado' : '$amount dados',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: FontWeight.w800,
                 fontSize: 13,
               ),
             ),
-            const SizedBox(width: 8),
-            const Icon(
-              Icons.keyboard_arrow_down,
-              color: Colors.white,
-              size: 22,
-            ),
-          ],
-        ),
+          );
+        }).toList(),
+        onChanged: _isRolling
+            ? null
+            : (value) {
+                if (value == null) return;
+                _changeDiceAmount(value);
+              },
       ),
     );
   }
 
   Widget _buildDiceSelector() {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
@@ -289,20 +404,24 @@ int get _total => _diceResults.fold(0, (sum, value) => sum + value);
               onTap: () => _selectDice(dice),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
-                width: 45,
+                width: 50,
                 height: 35,
                 decoration: BoxDecoration(
-                  color: isSelected ? redColor : Theme.of(context).colorScheme.surfaceContainerHighest,
+                  color: isSelected
+                      ? redColor
+                      : colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: isSelected ? redColor : Theme.of(context).colorScheme.outlineVariant,
+                    color: isSelected ? redColor : colorScheme.outlineVariant,
                   ),
                 ),
                 child: Center(
                   child: Text(
                     'D$dice',
                     style: TextStyle(
-                      color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurfaceVariant,
+                      color: isSelected
+                          ? Colors.white
+                          : colorScheme.onSurfaceVariant,
                       fontSize: 13,
                       fontWeight: FontWeight.w900,
                     ),
@@ -317,24 +436,80 @@ int get _total => _diceResults.fold(0, (sum, value) => sum + value);
   }
 }
 
+class DiceLockWrapper extends StatelessWidget {
+  final Widget child;
+  final bool isLocked;
+  final VoidCallback onTapLock;
+
+  const DiceLockWrapper({
+    super.key,
+    required this.child,
+    required this.isLocked,
+    required this.onTapLock,
+  });
+
+  static const Color redColor = AppColors.red;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        child,
+        const SizedBox(height: 6),
+        GestureDetector(
+          onTap: onTapLock,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            width: 38,
+            height: 34,
+            decoration: BoxDecoration(
+              color: isLocked
+                  ? redColor
+                  : Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isLocked
+                    ? redColor
+                    : Theme.of(context).colorScheme.outlineVariant,
+              ),
+            ),
+            child: Icon(
+              isLocked ? Icons.lock : Icons.lock_open,
+              color: isLocked
+                  ? Colors.white
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
+              size: 18,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class DiceWidget extends StatelessWidget {
   final String result;
   final String diceType;
   final double size;
+  final bool isLocked;
 
   const DiceWidget({
     super.key,
     required this.result,
     required this.diceType,
     this.size = 220,
+    this.isLocked = false,
   });
 
-  static const Color redColor = Color(0xFFE63946);
+  // El dado se dibuja siempre blanco, por lo que el texto de adentro usa
+  // colores fijos (no dependen del tema) para mantener el contraste.
+  static const Color redColor = AppColors.red;
+  static const Color grayColor = Color(0xFF6B7280);
 
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      painter: DicePainter(),
+      painter: DicePainter(isLocked: isLocked),
       child: SizedBox(
         width: size,
         height: size,
@@ -355,7 +530,7 @@ class DiceWidget extends StatelessWidget {
               Text(
                 diceType,
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  color: grayColor,
                   fontSize: size * 0.10,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 1,
@@ -370,7 +545,11 @@ class DiceWidget extends StatelessWidget {
 }
 
 class DicePainter extends CustomPainter {
-  static const Color redColor = Color(0xFFE63946);
+  final bool isLocked;
+
+  DicePainter({required this.isLocked});
+
+  static const Color redColor = AppColors.red;
   static const Color lightRed = Color(0xFFFFE5E8);
 
   @override
@@ -388,7 +567,7 @@ class DicePainter extends CustomPainter {
     );
 
     final shadowPaint = Paint()
-      ..color = redColor.withValues(alpha: 0.12)
+      ..color = redColor.withValues(alpha: isLocked ? 0.20 : 0.12)
       ..style = PaintingStyle.fill;
 
     final dicePaint = Paint()
@@ -396,7 +575,7 @@ class DicePainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final borderPaint = Paint()
-      ..color = redColor
+      ..color = isLocked ? redColor.withValues(alpha: 0.75) : redColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = size.width * 0.022;
 
@@ -404,20 +583,12 @@ class DicePainter extends CustomPainter {
       ..color = lightRed
       ..style = PaintingStyle.fill;
 
-    canvas.drawRRect(
-      rrect.shift(Offset(0, size.height * 0.035)),
-      shadowPaint,
-    );
+    canvas.drawRRect(rrect.shift(Offset(0, size.height * 0.035)), shadowPaint);
 
     canvas.drawRRect(rrect, dicePaint);
     canvas.drawRRect(rrect, borderPaint);
 
-    _drawDots(
-      canvas: canvas,
-      rect: rect,
-      paint: dotPaint,
-      size: size,
-    );
+    _drawDots(canvas: canvas, rect: rect, paint: dotPaint, size: size);
   }
 
   void _drawDots({
@@ -442,5 +613,7 @@ class DicePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant DicePainter oldDelegate) {
+    return oldDelegate.isLocked != isLocked;
+  }
 }
