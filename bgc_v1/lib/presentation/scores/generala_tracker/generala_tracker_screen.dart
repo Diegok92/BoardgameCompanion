@@ -131,9 +131,16 @@ class _GeneralaTrackerScreenState
       backgroundColor: Theme.of(context).colorScheme.surface,
       drawer: const AppDrawer(),
       appBar: TrackerAppBar(
-        rightWidget: const Text(
-          'GENERALA',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        rightWidget: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'GENERALA',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+            SizedBox(width: 8),
+            Icon(Icons.casino, size: 24),
+          ],
         ),
       ),
       body: SafeArea(
