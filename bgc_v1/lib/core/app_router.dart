@@ -19,6 +19,7 @@ import '../presentation/scores/standard_scoreboard/standard_scoreboard_screen.da
 import '../presentation/scores/generala_tracker/generala_tracker_screen.dart';
 import '../presentation/stats/stats_screen.dart';
 import '../presentation/historial/historial_screen.dart';
+import '../presentation/scores/truco_tracker/truco_tracker_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/login',
@@ -100,6 +101,19 @@ final appRouter = GoRouter(
         );
       },
     ),
+GoRoute(
+  path: '/truco-tracker',
+  builder: (context, state) {
+    final extras = state.extra as Map<String, dynamic>?;
+    final playerCount = extras?['playerCount'] as int? ?? 4;
+    final fullKey = extras?['fullKey'] as String?;
+
+    return TrucoTrackerScreen(
+      playerCount: playerCount,
+      fullKey: fullKey,
+    );
+  },
+),
     GoRoute(
       path: '/config',
       builder: (context, state) {
