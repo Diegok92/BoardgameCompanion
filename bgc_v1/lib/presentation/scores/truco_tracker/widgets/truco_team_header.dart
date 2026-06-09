@@ -4,11 +4,7 @@ class TrucoTeamHeader extends StatelessWidget {
   final String title;
   final Color color;
 
-  const TrucoTeamHeader({
-    super.key,
-    required this.title,
-    required this.color,
-  });
+  const TrucoTeamHeader({super.key, required this.title, required this.color});
 
   @override
   Widget build(BuildContext context) {

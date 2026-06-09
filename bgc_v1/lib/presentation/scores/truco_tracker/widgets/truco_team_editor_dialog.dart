@@ -34,9 +34,7 @@ class TrucoTeamEditorDialog {
               title: Text(
                 'Jugadores ${currentTeam.name}',
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w900,
-                ),
+                style: const TextStyle(fontWeight: FontWeight.w900),
               ),
               content: SingleChildScrollView(
                 child: Column(
@@ -66,11 +64,15 @@ class TrucoTeamEditorDialog {
 
                       globalIndex += playerIndex;
 
-                      final selectablePlayers = availablePlayers.where((player) {
+                      final selectablePlayers = availablePlayers.where((
+                        player,
+                      ) {
                         for (int i = 0; i < currentState.teams.length; i++) {
-                          for (int j = 0;
-                              j < currentState.teams[i].playerNames.length;
-                              j++) {
+                          for (
+                            int j = 0;
+                            j < currentState.teams[i].playerNames.length;
+                            j++
+                          ) {
                             final isCurrentPosition =
                                 i == teamIndex && j == playerIndex;
 
@@ -88,9 +90,9 @@ class TrucoTeamEditorDialog {
 
                       final selectedValue =
                           currentName != null &&
-                                  selectablePlayers.contains(currentName)
-                              ? currentName
-                              : null;
+                              selectablePlayers.contains(currentName)
+                          ? currentName
+                          : null;
 
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12),
@@ -156,9 +158,7 @@ class TrucoTeamEditorDialog {
                       decoration: BoxDecoration(
                         color: const Color(0xFFF3F3F3),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: const Color(0xFFD0D0D0),
-                        ),
+                        border: Border.all(color: const Color(0xFFD0D0D0)),
                       ),
                       child: const Text(
                         'Un jugador no puede repetirse en dos posiciones.',

@@ -21,17 +21,9 @@ class TrucoPlayersFooter extends StatelessWidget {
       onTap: onEdit,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(
-          vertical: 6,
-          horizontal: 4,
-        ),
+        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
         decoration: const BoxDecoration(
-          border: Border(
-            top: BorderSide(
-              color: Color(0xFF9E9E9E),
-              width: 1,
-            ),
-          ),
+          border: Border(top: BorderSide(color: Color(0xFF9E9E9E), width: 1)),
         ),
         child: Column(
           children: [
@@ -62,8 +54,9 @@ class TrucoPlayersFooter extends StatelessWidget {
                         textAlign: TextAlign.center,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontWeight:
-                              name == null ? FontWeight.w600 : FontWeight.w900,
+                          fontWeight: name == null
+                              ? FontWeight.w600
+                              : FontWeight.w900,
                           color: name == null ? Colors.black54 : Colors.black87,
                           fontSize: 11,
                         ),

@@ -85,23 +85,13 @@ class TrucoTrackerNotifier extends Notifier<TrucoTrackerState> {
 
   @override
   TrucoTrackerState build() {
-    return TrucoTrackerState(
-      teams: [],
-      targetScore: 30,
-    );
+    return TrucoTrackerState(teams: [], targetScore: 30);
   }
 
-  Future<void> initialize(
-    int playerCount,
-    User user, {
-    String? fullKey,
-  }) async {
+  Future<void> initialize(int playerCount, User user, {String? fullKey}) async {
     _currentUserId = user.id;
 
-    state = TrucoTrackerState(
-      teams: [],
-      targetScore: 30,
-    );
+    state = TrucoTrackerState(teams: [], targetScore: 30);
 
     String? localDataStr;
 
@@ -200,10 +190,7 @@ class TrucoTrackerNotifier extends Notifier<TrucoTrackerState> {
       final total = team.totalPoints;
 
       if (targetScore == 15) {
-        return team.copyWith(
-          malas: total.clamp(0, 15).toInt(),
-          buenas: 0,
-        );
+        return team.copyWith(malas: total.clamp(0, 15).toInt(), buenas: 0);
       }
 
       return team.copyWith(
@@ -212,12 +199,7 @@ class TrucoTrackerNotifier extends Notifier<TrucoTrackerState> {
       );
     }).toList();
 
-    _updateState(
-      state.copyWith(
-        targetScore: targetScore,
-        teams: updatedTeams,
-      ),
-    );
+    _updateState(state.copyWith(targetScore: targetScore, teams: updatedTeams));
   }
 
   void addMalas(int teamIndex, int delta) {
@@ -264,14 +246,10 @@ class TrucoTrackerNotifier extends Notifier<TrucoTrackerState> {
     } else {
       final newMalas = score.clamp(0, 15).toInt();
 
-      updatedTeams[teamIndex] = currentTeam.copyWith(
-        malas: newMalas,
-      );
+      updatedTeams[teamIndex] = currentTeam.copyWith(malas: newMalas);
     }
 
-    _updateState(
-      state.copyWith(teams: updatedTeams),
-    );
+    _updateState(state.copyWith(teams: updatedTeams));
   }
 
   void setBuenasScore(int teamIndex, int score) {
@@ -288,20 +266,12 @@ class TrucoTrackerNotifier extends Notifier<TrucoTrackerState> {
 
     final newBuenas = score.clamp(0, 15).toInt();
 
-    updatedTeams[teamIndex] = currentTeam.copyWith(
-      buenas: newBuenas,
-    );
+    updatedTeams[teamIndex] = currentTeam.copyWith(buenas: newBuenas);
 
-    _updateState(
-      state.copyWith(teams: updatedTeams),
-    );
+    _updateState(state.copyWith(teams: updatedTeams));
   }
 
-  void updatePlayerNameInTeam(
-    int teamIndex,
-    int playerIndex,
-    String? newName,
-  ) {
+  void updatePlayerNameInTeam(int teamIndex, int playerIndex, String? newName) {
     if (!_isValidTeamIndex(teamIndex)) return;
 
     final currentTeam = state.teams[teamIndex];
@@ -319,20 +289,12 @@ class TrucoTrackerNotifier extends Notifier<TrucoTrackerState> {
 
     updatedNames[playerIndex] = newName;
 
-    updatedTeams[teamIndex] = currentTeam.copyWith(
-      playerNames: updatedNames,
-    );
+    updatedTeams[teamIndex] = currentTeam.copyWith(playerNames: updatedNames);
 
-    _updateState(
-      state.copyWith(teams: updatedTeams),
-    );
+    _updateState(state.copyWith(teams: updatedTeams));
   }
 
-  bool _canUsePlayerName(
-    int teamIndex,
-    int playerIndex,
-    String? playerName,
-  ) {
+  bool _canUsePlayerName(int teamIndex, int playerIndex, String? playerName) {
     if (playerName == null) return true;
 
     for (int i = 0; i < state.teams.length; i++) {
@@ -350,17 +312,10 @@ class TrucoTrackerNotifier extends Notifier<TrucoTrackerState> {
 
   void resetGame() {
     final resetTeams = state.teams.map((team) {
-      return team.copyWith(
-        malas: 0,
-        buenas: 0,
-      );
+      return team.copyWith(malas: 0, buenas: 0);
     }).toList();
 
-    _updateState(
-      state.copyWith(
-        teams: resetTeams,
-      ),
-    );
+    _updateState(state.copyWith(teams: resetTeams));
   }
 
   bool _isValidTeamIndex(int teamIndex) {
@@ -386,10 +341,7 @@ class TrucoTrackerNotifier extends Notifier<TrucoTrackerState> {
       'lastModified': DateTime.now().toIso8601String(),
     };
 
-    await _localStorage.saveData(
-      _currentKey,
-      jsonEncode(data),
-    );
+    await _localStorage.saveData(_currentKey, jsonEncode(data));
   }
 
   Future<void> clearLocalState() async {
@@ -397,14 +349,11 @@ class TrucoTrackerNotifier extends Notifier<TrucoTrackerState> {
 
     await _localStorage.removeData(_currentKey);
 
-    state = TrucoTrackerState(
-      teams: [],
-      targetScore: 30,
-    );
+    state = TrucoTrackerState(teams: [], targetScore: 30);
   }
 }
 
 final trucoTrackerProvider =
     NotifierProvider<TrucoTrackerNotifier, TrucoTrackerState>(() {
-  return TrucoTrackerNotifier();
-});
+      return TrucoTrackerNotifier();
+    });

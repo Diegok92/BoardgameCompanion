@@ -63,29 +63,29 @@ class _ScoreSelectorScreenState extends ConsumerState<ScoreSelectorScreen> {
       return;
     }
 
-String route = '';
+    String route = '';
 
-if (_selectedGame!.id == 'vp_tracker') {
-  route = '/standard-scoreboard';
-} else if (_selectedGame!.id == 'burako') {
-  route = '/burako-tracker';
-} else if (_selectedGame!.id == 'truco') {
-  route = '/truco-tracker';
-} else if (_selectedGame!.id == 'hp_tracker' ||
-    LocalGamesCatalog.trackerGames.any((g) => g.id == _selectedGame!.id)) {
-  route = '/hp-tracker';
-} else if (_selectedGame!.id == 'akropolis') {
-  route = '/akropolis-tracker';
-} else if (_selectedGame!.id == 'generala') {
-  route = '/generala-tracker';
-} else {
-  CustomAlert.show(
-    context,
-    'El anotador para ${_selectedGame!.name} aún no está implementado.',
-    isError: true,
-  );
-  return;
-}
+    if (_selectedGame!.id == 'vp_tracker') {
+      route = '/standard-scoreboard';
+    } else if (_selectedGame!.id == 'burako') {
+      route = '/burako-tracker';
+    } else if (_selectedGame!.id == 'truco') {
+      route = '/truco-tracker';
+    } else if (_selectedGame!.id == 'hp_tracker' ||
+        LocalGamesCatalog.trackerGames.any((g) => g.id == _selectedGame!.id)) {
+      route = '/hp-tracker';
+    } else if (_selectedGame!.id == 'akropolis') {
+      route = '/akropolis-tracker';
+    } else if (_selectedGame!.id == 'generala') {
+      route = '/generala-tracker';
+    } else {
+      CustomAlert.show(
+        context,
+        'El anotador para ${_selectedGame!.name} aún no está implementado.',
+        isError: true,
+      );
+      return;
+    }
 
     final user = ref.read(authProvider);
     if (user == null) return;

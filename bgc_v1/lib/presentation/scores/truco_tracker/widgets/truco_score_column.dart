@@ -30,10 +30,7 @@ class TrucoScoreColumn extends ConsumerWidget {
 
     return Column(
       children: [
-        TrucoTeamHeader(
-          title: team.name,
-          color: teamColor,
-        ),
+        TrucoTeamHeader(title: team.name, color: teamColor),
 
         const SizedBox(height: 10),
 
@@ -45,24 +42,24 @@ class TrucoScoreColumn extends ConsumerWidget {
 
         const SizedBox(height: 8),
 
-TrucoScoreSection(
-  title: targetScore == 15 ? 'Puntos' : 'Malas',
-  labelColor: targetScore == 15
-      ? Theme.of(context).colorScheme.primary
-      : const Color(0xFFFF8A1C),
-  points: team.malas,
-  onAddPoint: () => notifier.addMalas(teamIndex, 1),
-),
+        TrucoScoreSection(
+          title: targetScore == 15 ? 'Puntos' : 'Malas',
+          labelColor: targetScore == 15
+              ? Theme.of(context).colorScheme.primary
+              : const Color(0xFFFF8A1C),
+          points: team.malas,
+          onAddPoint: () => notifier.addMalas(teamIndex, 1),
+        ),
 
         if (targetScore == 30) ...[
           const SizedBox(height: 12),
 
-TrucoScoreSection(
-  title: 'Buenas',
-  labelColor: const Color(0xFF16A85A),
-  points: team.buenas,
-  onAddPoint: () => notifier.addBuenas(teamIndex, 1),
-),
+          TrucoScoreSection(
+            title: 'Buenas',
+            labelColor: const Color(0xFF16A85A),
+            points: team.buenas,
+            onAddPoint: () => notifier.addBuenas(teamIndex, 1),
+          ),
 
           const SizedBox(height: 8),
 
@@ -98,11 +95,7 @@ TrucoScoreSection(
         TrucoPlayersFooter(
           teamIndex: teamIndex,
           playerNames: team.playerNames,
-          onEdit: () => TrucoTeamEditorDialog.show(
-            context,
-            ref,
-            teamIndex,
-          ),
+          onEdit: () => TrucoTeamEditorDialog.show(context, ref, teamIndex),
         ),
       ],
     );

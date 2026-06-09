@@ -61,10 +61,7 @@ class _TrucoCircleButton extends StatelessWidget {
           elevation: 0,
         ),
         onPressed: onPressed,
-        child: Icon(
-          icon,
-          size: 22,
-        ),
+        child: Icon(icon, size: 22),
       ),
     );
   }

@@ -36,11 +36,9 @@ class _TrucoTrackerScreenState extends ConsumerState<TrucoTrackerScreen> {
       final user = ref.read(authProvider);
 
       if (user != null) {
-        ref.read(trucoTrackerProvider.notifier).initialize(
-              widget.playerCount,
-              user,
-              fullKey: widget.fullKey,
-            );
+        ref
+            .read(trucoTrackerProvider.notifier)
+            .initialize(widget.playerCount, user, fullKey: widget.fullKey);
       }
     });
   }
@@ -51,12 +49,14 @@ class _TrucoTrackerScreenState extends ConsumerState<TrucoTrackerScreen> {
     if (state.teams.length < 2) return;
 
     final winner = state.winner;
-    final maxScore = winner?.totalPoints ??
+    final maxScore =
+        winner?.totalPoints ??
         state.teams
             .map((team) => team.totalPoints)
             .reduce((a, b) => a > b ? a : b);
 
-    final winners = winner?.name ??
+    final winners =
+        winner?.name ??
         state.teams
             .where((team) => team.totalPoints == maxScore)
             .map((team) => team.name)
@@ -66,12 +66,7 @@ class _TrucoTrackerScreenState extends ConsumerState<TrucoTrackerScreen> {
 
     for (final team in state.teams) {
       for (final player in team.playerNames) {
-        flattenedPlayers.add(
-          DialogPlayerInfo(
-            player,
-            team.totalPoints,
-          ),
-        );
+        flattenedPlayers.add(DialogPlayerInfo(player, team.totalPoints));
       }
     }
 
@@ -86,16 +81,18 @@ class _TrucoTrackerScreenState extends ConsumerState<TrucoTrackerScreen> {
       customWinnerName: winners,
       customMaxScore: maxScore,
       onSaveMatch: (finalScores) async {
-        await ref.read(matchServiceProvider).saveMatch(
+        await ref
+            .read(matchServiceProvider)
+            .saveMatch(
               gameId: gameId,
               gameName: gameName,
               playerScores: finalScores,
               isTeamGame: widget.playerCount != 2,
             );
       },
-onClearState: () {
-  ref.read(trucoTrackerProvider.notifier).clearLocalState();
-},
+      onClearState: () {
+        ref.read(trucoTrackerProvider.notifier).clearLocalState();
+      },
       onNavigateHome: () {
         if (mounted) context.go('/home');
       },
@@ -124,11 +121,7 @@ onClearState: () {
     final state = ref.watch(trucoTrackerProvider);
 
     if (state.teams.length < 2) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final nosotros = state.teams[0];
@@ -143,16 +136,10 @@ onClearState: () {
           children: [
             Text(
               'TRUCO',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
             ),
             SizedBox(width: 8),
-            Icon(
-              Icons.style,
-              size: 24,
-            ),
+            Icon(Icons.style, size: 24),
           ],
         ),
       ),
@@ -199,10 +186,9 @@ onClearState: () {
                       Container(
                         width: 1,
                         margin: const EdgeInsets.symmetric(horizontal: 8),
-                        color: Theme.of(context)
-                            .colorScheme
-                            .outline
-                            .withValues(alpha: 0.5),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.outline.withValues(alpha: 0.5),
                       ),
                       Expanded(
                         child: TrucoScoreColumn(

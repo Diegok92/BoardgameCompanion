@@ -77,7 +77,10 @@ final appRouter = GoRouter(
         final extras = state.extra as Map<String, dynamic>?;
         final playerCount = extras?['playerCount'] as int? ?? 2;
         final fullKey = extras?['fullKey'] as String?;
-        return AkropolisTrackerScreen(playerCount: playerCount, fullKey: fullKey);
+        return AkropolisTrackerScreen(
+          playerCount: playerCount,
+          fullKey: fullKey,
+        );
       },
     ),
     GoRoute(
@@ -86,7 +89,10 @@ final appRouter = GoRouter(
         final extras = state.extra as Map<String, dynamic>?;
         final playerCount = extras?['playerCount'] as int? ?? 2;
         final fullKey = extras?['fullKey'] as String?;
-        return GeneralaTrackerScreen(playerCount: playerCount, fullKey: fullKey);
+        return GeneralaTrackerScreen(
+          playerCount: playerCount,
+          fullKey: fullKey,
+        );
       },
     ),
     GoRoute(
@@ -101,19 +107,16 @@ final appRouter = GoRouter(
         );
       },
     ),
-GoRoute(
-  path: '/truco-tracker',
-  builder: (context, state) {
-    final extras = state.extra as Map<String, dynamic>?;
-    final playerCount = extras?['playerCount'] as int? ?? 4;
-    final fullKey = extras?['fullKey'] as String?;
+    GoRoute(
+      path: '/truco-tracker',
+      builder: (context, state) {
+        final extras = state.extra as Map<String, dynamic>?;
+        final playerCount = extras?['playerCount'] as int? ?? 4;
+        final fullKey = extras?['fullKey'] as String?;
 
-    return TrucoTrackerScreen(
-      playerCount: playerCount,
-      fullKey: fullKey,
-    );
-  },
-),
+        return TrucoTrackerScreen(playerCount: playerCount, fullKey: fullKey);
+      },
+    ),
     GoRoute(
       path: '/config',
       builder: (context, state) {
@@ -150,7 +153,7 @@ GoRoute(
         return const CoinFlipScreen();
       },
     ),
-        GoRoute(
+    GoRoute(
       path: '/dice-roll',
       builder: (context, state) {
         return const DiceRollScreen();

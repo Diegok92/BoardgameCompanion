@@ -31,11 +31,11 @@ class HistorialState {
 
   List<Partida> get filteredPartidas {
     List<Partida> all = [];
-    
+
     if (statusFilter == 'TODOS' || statusFilter == 'EN CURSO') {
       all.addAll(localPartidas);
     }
-    
+
     if (statusFilter == 'TODOS' || statusFilter == 'FINALIZADA') {
       all.addAll(firestorePartidas);
     }
@@ -70,12 +70,13 @@ class HistorialState {
       isFetchingMore: isFetchingMore ?? this.isFetchingMore,
       localPartidas: localPartidas ?? this.localPartidas,
       firestorePartidas: firestorePartidas ?? this.firestorePartidas,
-      lastDocument: lastDocument, // Forzamos la actualización directa para manejar nulls
+      lastDocument:
+          lastDocument, // Forzamos la actualización directa para manejar nulls
       hasMore: hasMore ?? this.hasMore,
       statusFilter: statusFilter ?? this.statusFilter,
     );
   }
-  
+
   // Custom copy para manejar nullable explícito de lastDocument
   HistorialState copyWithNullDocument({
     bool? isLoading,
@@ -122,8 +123,11 @@ class HistorialNotifier extends Notifier<HistorialState> {
       final localMatches = await fetchLocalMatches(user.id);
 
       // 2. Cargar primera página de Firestore
-      final result = await _firestoreRepo.getHistorialPartidasPaginated(user.id, limit: 15);
-      
+      final result = await _firestoreRepo.getHistorialPartidasPaginated(
+        user.id,
+        limit: 15,
+      );
+
       state = state.copyWith(
         isLoading: false,
         hasFetched: true,
@@ -148,7 +152,10 @@ class HistorialNotifier extends Notifier<HistorialState> {
     final user = ref.read(authProvider);
     if (user == null || state.lastDocument == null) return;
 
-    state = state.copyWith(isFetchingMore: true, lastDocument: state.lastDocument);
+    state = state.copyWith(
+      isFetchingMore: true,
+      lastDocument: state.lastDocument,
+    );
 
     try {
       final result = await _firestoreRepo.getHistorialPartidasPaginated(
@@ -158,7 +165,7 @@ class HistorialNotifier extends Notifier<HistorialState> {
       );
 
       final newPartidas = result['partidas'] as List<Partida>;
-      
+
       state = state.copyWith(
         isFetchingMore: false,
         firestorePartidas: [...state.firestorePartidas, ...newPartidas],
@@ -166,7 +173,10 @@ class HistorialNotifier extends Notifier<HistorialState> {
         hasMore: result['hasMore'] as bool,
       );
     } catch (e) {
-      state = state.copyWith(isFetchingMore: false, lastDocument: state.lastDocument);
+      state = state.copyWith(
+        isFetchingMore: false,
+        lastDocument: state.lastDocument,
+      );
     }
   }
 
@@ -178,9 +188,9 @@ class HistorialNotifier extends Notifier<HistorialState> {
       if (key.startsWith('burako_state_${userId}_') ||
           key.startsWith('akropolis_state_${userId}_') ||
           key.startsWith('generala_state_${userId}_') ||
+          key.startsWith('truco_state_${userId}_') ||
           key.startsWith('scoreboard_state_${userId}_') ||
           key.startsWith('tracker_state_${userId}_')) {
-        
         final dataStr = await _localRepo.getData(key);
         if (dataStr == null) continue;
 
@@ -191,7 +201,7 @@ class HistorialNotifier extends Notifier<HistorialState> {
             lastModified = DateTime.parse(decoded['lastModified']);
           } else {
             // Fallback si la crearon antes de añadir el campo
-            lastModified = null; 
+            lastModified = null;
           }
 
           String gameName = 'Desconocido';
@@ -214,20 +224,32 @@ class HistorialNotifier extends Notifier<HistorialState> {
               }
             }
             if (participantes.length == 4) isTeamGame = true;
-          } 
-          else if (key.startsWith('akropolis_state_')) {
+          } else if (key.startsWith('akropolis_state_')) {
             gameName = 'Akropolis';
             gameId = 'akropolis';
             final entities = decoded['entities'] as List;
             participantes = entities.map((e) => e['name'].toString()).toList();
-          }
-          else if (key.startsWith('generala_state_')) {
+          } else if (key.startsWith('generala_state_')) {
             gameName = 'Generala';
             gameId = 'generala';
             final entities = decoded['entities'] as List;
             participantes = entities.map((e) => e['name'].toString()).toList();
-          }
-          else if (key.startsWith('scoreboard_state_')) {
+          } else if (key.startsWith('truco_state_')) {
+            gameName = 'Truco';
+            gameId = 'truco';
+            final teams = decoded['teams'] as List;
+            for (var t in teams) {
+              final names = (t['playerNames'] as List?) ?? [];
+              for (var n in names) {
+                if (n != null && n.toString().isNotEmpty) {
+                  participantes.add(n.toString());
+                } else {
+                  participantes.add('Jugador');
+                }
+              }
+            }
+            if (participantes.length >= 4) isTeamGame = true;
+          } else if (key.startsWith('scoreboard_state_')) {
             String? selectedId = decoded['selectedGameId'];
             if (selectedId != null &&
                 selectedId.isNotEmpty &&
@@ -248,13 +270,14 @@ class HistorialNotifier extends Notifier<HistorialState> {
             participantes = players
                 .map((p) => p['name']?.toString() ?? 'Jugador')
                 .toList();
-          }
-          else if (key.startsWith('tracker_state_')) {
+          } else if (key.startsWith('tracker_state_')) {
             String? selectedId = decoded['selectedGameId'];
             if (selectedId != null && selectedId.isNotEmpty) {
               gameId = selectedId;
               try {
-                gameName = LocalGamesCatalog.trackerGames.firstWhere((g) => g.id == selectedId).name;
+                gameName = LocalGamesCatalog.trackerGames
+                    .firstWhere((g) => g.id == selectedId)
+                    .name;
               } catch (_) {
                 gameName = 'Por Puntos - HP';
               }
@@ -263,26 +286,30 @@ class HistorialNotifier extends Notifier<HistorialState> {
               gameName = 'Por Puntos - HP';
             }
             final players = decoded['players'] as List;
-            participantes = players.map((p) => p['name']?.toString() ?? 'Jugador').toList();
+            participantes = players
+                .map((p) => p['name']?.toString() ?? 'Jugador')
+                .toList();
           }
 
-          locales.add(Partida(
-            id: key, // Usamos la key como ID para saber cuál borrar o cargar
-            juegoId: gameId, 
-            juegoNombre: gameName,
-            participantes: participantes,
-            ganadores: [],
-            puntajesFinales: {},
-            estado: 'en curso',
-            isTeamGame: isTeamGame,
-            fechaFinalizacion: lastModified, // Usamos este campo para ordenar
-          ));
+          locales.add(
+            Partida(
+              id: key, // Usamos la key como ID para saber cuál borrar o cargar
+              juegoId: gameId,
+              juegoNombre: gameName,
+              participantes: participantes,
+              ganadores: [],
+              puntajesFinales: {},
+              estado: 'en curso',
+              isTeamGame: isTeamGame,
+              fechaFinalizacion: lastModified, // Usamos este campo para ordenar
+            ),
+          );
         } catch (e) {
           // Ignorar error de parseo
         }
       }
     }
-    
+
     // Ordenar locales por lastModified descendente
     locales.sort((a, b) {
       if (a.fechaFinalizacion == null && b.fechaFinalizacion == null) return 0;
@@ -294,14 +321,20 @@ class HistorialNotifier extends Notifier<HistorialState> {
   }
 
   void setFilter(String filter) {
-    state = state.copyWith(statusFilter: filter, lastDocument: state.lastDocument);
+    state = state.copyWith(
+      statusFilter: filter,
+      lastDocument: state.lastDocument,
+    );
   }
 
   Future<void> removeLocalMatch(String key) async {
     await _localRepo.removeData(key);
     // Remover del estado actual para no recargar todo de Firestore
     final updated = state.localPartidas.where((p) => p.id != key).toList();
-    state = state.copyWith(localPartidas: updated, lastDocument: state.lastDocument);
+    state = state.copyWith(
+      localPartidas: updated,
+      lastDocument: state.lastDocument,
+    );
   }
 
   Future<void> removeFirestoreMatch(String id) async {
@@ -309,11 +342,16 @@ class HistorialNotifier extends Notifier<HistorialState> {
     if (user != null) {
       await _firestoreRepo.borrarPartida(user.id, id);
       final updated = state.firestorePartidas.where((p) => p.id != id).toList();
-      state = state.copyWith(firestorePartidas: updated, lastDocument: state.lastDocument);
+      state = state.copyWith(
+        firestorePartidas: updated,
+        lastDocument: state.lastDocument,
+      );
     }
   }
 }
 
-final historialProvider = NotifierProvider<HistorialNotifier, HistorialState>(() {
-  return HistorialNotifier();
-});
+final historialProvider = NotifierProvider<HistorialNotifier, HistorialState>(
+  () {
+    return HistorialNotifier();
+  },
+);

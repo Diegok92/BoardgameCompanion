@@ -15,10 +15,7 @@ class TrucoScoreMark extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!isActive) {
-      return const SizedBox(
-        width: 18,
-        height: 42,
-      );
+      return const SizedBox(width: 18, height: 42);
     }
 
     final isDiagonal = index == 4;
