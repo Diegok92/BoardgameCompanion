@@ -74,6 +74,8 @@ class _ScoreSelectorScreenState extends ConsumerState<ScoreSelectorScreen> {
       route = '/hp-tracker';
     } else if (_selectedGame!.id == 'akropolis') {
       route = '/akropolis-tracker';
+    } else if (_selectedGame!.id == 'generala') {
+      route = '/generala-tracker';
     } else {
       CustomAlert.show(
         context,

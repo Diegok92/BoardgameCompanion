@@ -177,6 +177,7 @@ class HistorialNotifier extends Notifier<HistorialState> {
     for (final key in keys) {
       if (key.startsWith('burako_state_${userId}_') ||
           key.startsWith('akropolis_state_${userId}_') ||
+          key.startsWith('generala_state_${userId}_') ||
           key.startsWith('scoreboard_state_${userId}_') ||
           key.startsWith('tracker_state_${userId}_')) {
         
@@ -217,6 +218,12 @@ class HistorialNotifier extends Notifier<HistorialState> {
           else if (key.startsWith('akropolis_state_')) {
             gameName = 'Akropolis';
             gameId = 'akropolis';
+            final entities = decoded['entities'] as List;
+            participantes = entities.map((e) => e['name'].toString()).toList();
+          }
+          else if (key.startsWith('generala_state_')) {
+            gameName = 'Generala';
+            gameId = 'generala';
             final entities = decoded['entities'] as List;
             participantes = entities.map((e) => e['name'].toString()).toList();
           }
