@@ -47,12 +47,20 @@ class HomeMenuButton extends StatelessWidget {
                   if (svgAsset != null)
                     SvgPicture.asset(svgAsset!, height: 32)
                   else if (icon != null)
-                    Icon(icon, size: 32, color: foregroundColor ?? Theme.of(context).colorScheme.primary),
+                    Icon(
+                      icon,
+                      size: 32,
+                      color:
+                          foregroundColor ??
+                          Theme.of(context).colorScheme.primary,
+                    ),
                   const SizedBox(height: 8),
                   Text(
                     label,
                     style: TextStyle(
-                      color: foregroundColor ?? Theme.of(context).colorScheme.onSurface,
+                      color:
+                          foregroundColor ??
+                          Theme.of(context).colorScheme.onSurface,
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
                     ),
@@ -63,16 +71,27 @@ class HomeMenuButton extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: (foregroundColor ?? Colors.white).withValues(alpha: 0.2),
+                  color: (foregroundColor ?? Colors.white).withValues(
+                    alpha: 0.2,
+                  ),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: svgAsset != null 
+                child: svgAsset != null
                     ? SvgPicture.asset(
-                        svgAsset!, 
+                        svgAsset!,
                         height: 24,
-                        colorFilter: ColorFilter.mode(foregroundColor ?? Colors.white, BlendMode.srcIn),
+                        colorFilter: ColorFilter.mode(
+                          foregroundColor ?? Colors.white,
+                          BlendMode.srcIn,
+                        ),
                       )
-                    : (icon != null ? Icon(icon, color: foregroundColor ?? Colors.white, size: 24) : const SizedBox(width: 24)),
+                    : (icon != null
+                          ? Icon(
+                              icon,
+                              color: foregroundColor ?? Colors.white,
+                              size: 24,
+                            )
+                          : const SizedBox(width: 24)),
               ),
               const SizedBox(width: 16),
               Text(

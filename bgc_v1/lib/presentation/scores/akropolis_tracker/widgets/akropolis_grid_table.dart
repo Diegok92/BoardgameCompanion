@@ -23,10 +23,9 @@ class AkropolisGridTable extends ConsumerWidget {
           i + 1: const FlexColumnWidth(),
       },
       children: [
-        // Header
         TableRow(
           children: [
-            const SizedBox(height: 40), // Empty top-left
+            const SizedBox(height: 40),
             for (int i = 0; i < state.entities.length; i++)
               GestureDetector(
                 onTap: () {
@@ -41,8 +40,12 @@ class AkropolisGridTable extends ConsumerWidget {
                     invitados: user?.invitados ?? [],
                     assignedNames: state.entities.map((e) => e.name).toList(),
                     assignedColors: state.entities.map((e) => e.color).toList(),
-                    onNameChanged: (name) => ref.read(akropolisTrackerProvider.notifier).updateEntity(i, name: name),
-                    onColorChanged: (color) => ref.read(akropolisTrackerProvider.notifier).updateEntity(i, color: color),
+                    onNameChanged: (name) => ref
+                        .read(akropolisTrackerProvider.notifier)
+                        .updateEntity(i, name: name),
+                    onColorChanged: (color) => ref
+                        .read(akropolisTrackerProvider.notifier)
+                        .updateEntity(i, color: color),
                     onAddInvitado: () => context.push('/register-invitado'),
                   );
                 },
@@ -56,7 +59,6 @@ class AkropolisGridTable extends ConsumerWidget {
               ),
           ],
         ),
-        // Hexagons
         for (final hex in AkropolisHexagon.values)
           TableRow(
             children: [
@@ -74,7 +76,9 @@ class AkropolisGridTable extends ConsumerWidget {
                   height: 50,
                   alignment: Alignment.center,
                   child: Text(
-                    entity.scores[hex]?.isScored == true ? entity.scores[hex]!.total.toString() : '',
+                    entity.scores[hex]?.isScored == true
+                        ? entity.scores[hex]!.total.toString()
+                        : '',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -84,7 +88,6 @@ class AkropolisGridTable extends ConsumerWidget {
                 ),
             ],
           ),
-        // Total
         TableRow(
           children: [
             Container(

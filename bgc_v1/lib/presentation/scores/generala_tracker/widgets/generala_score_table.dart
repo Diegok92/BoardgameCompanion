@@ -11,10 +11,12 @@ class GeneralaScoreTable extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state    = ref.watch(generalaTrackerProvider);
+    final state = ref.watch(generalaTrackerProvider);
     final notifier = ref.read(generalaTrackerProvider.notifier);
-    final user     = ref.watch(authProvider); // watch para recargar invitados al volver
-    final cs       = Theme.of(context).colorScheme;
+    final user = ref.watch(
+      authProvider,
+    ); // watch para recargar invitados al volver
+    final cs = Theme.of(context).colorScheme;
 
     if (state.entities.isEmpty) return const SizedBox.shrink();
 
@@ -30,26 +32,25 @@ class GeneralaScoreTable extends ConsumerWidget {
         invitados: user?.invitados ?? [],
         assignedNames: state.entities.map((e) => e.name).toList(),
         assignedColors: state.entities.map((e) => e.color).toList(),
-        onNameChanged:  (n) => notifier.updateEntity(i, name: n),
+        onNameChanged: (n) => notifier.updateEntity(i, name: n),
         onColorChanged: (c) => notifier.updateEntity(i, color: c),
-        onAddInvitado:  () => context.push('/register-invitado'),
+        onAddInvitado: () => context.push('/register-invitado'),
       );
     }
 
-    // ── Celda de puntaje ──────────────────────────────────────────────────────
     Widget scoreCell(GeneralaEntity entity, GeneralaCategory cat) {
       final score = entity.scores[cat];
       String text;
-      Color  color;
+      Color color;
 
       if (score == null) {
-        text  = '';
+        text = '';
         color = Colors.transparent;
       } else if (score == 0) {
-        text  = '—';
+        text = '—';
         color = cs.onSurface.withValues(alpha: 0.3);
       } else {
-        text  = score.toString();
+        text = score.toString();
         color = entity.color;
       }
 
@@ -68,10 +69,7 @@ class GeneralaScoreTable extends ConsumerWidget {
     }
 
     return Table(
-      border: TableBorder.all(
-        color: cs.outline,
-        width: 1.5,
-      ),
+      border: TableBorder.all(color: cs.outline, width: 1.5),
       columnWidths: {
         0: const FixedColumnWidth(88),
         for (int i = 0; i < state.entities.length; i++)
@@ -79,7 +77,6 @@ class GeneralaScoreTable extends ConsumerWidget {
       },
       defaultVerticalAlignment: TableCellVerticalAlignment.middle,
       children: [
-        // ── Encabezado: nombres de jugadores ──────────────────────────────────
         TableRow(
           children: [
             const SizedBox(height: 46), // celda vacía arriba-izquierda
@@ -97,7 +94,6 @@ class GeneralaScoreTable extends ConsumerWidget {
           ],
         ),
 
-        // ── Filas de categorías ───────────────────────────────────────────────
         for (final cat in GeneralaCategory.values)
           TableRow(
             children: [
@@ -120,7 +116,6 @@ class GeneralaScoreTable extends ConsumerWidget {
             ],
           ),
 
-        // ── Fila de total ─────────────────────────────────────────────────────
         TableRow(
           children: [
             Container(

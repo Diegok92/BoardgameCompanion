@@ -27,8 +27,7 @@ class GeneralaTrackerScreen extends ConsumerStatefulWidget {
       _GeneralaTrackerScreenState();
 }
 
-class _GeneralaTrackerScreenState
-    extends ConsumerState<GeneralaTrackerScreen> {
+class _GeneralaTrackerScreenState extends ConsumerState<GeneralaTrackerScreen> {
   bool _completionDialogShown = false;
 
   @override
@@ -37,16 +36,12 @@ class _GeneralaTrackerScreenState
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final user = ref.read(authProvider);
       if (user != null) {
-        ref.read(generalaTrackerProvider.notifier).initialize(
-              widget.playerCount,
-              user,
-              fullKey: widget.fullKey,
-            );
+        ref
+            .read(generalaTrackerProvider.notifier)
+            .initialize(widget.playerCount, user, fullKey: widget.fullKey);
       }
     });
   }
-
-  // ── Diálogo de fin de partida (botón guardar) ───────────────────────────────
 
   void _showFinishDialog(GeneralaTrackerState state) {
     final players = state.entities
@@ -71,7 +66,9 @@ class _GeneralaTrackerScreenState
       customMaxScore: maxScore,
       onSaveMatch: (finalScores) async {
         if (state.selectedGame != null) {
-          await ref.read(matchServiceProvider).saveMatch(
+          await ref
+              .read(matchServiceProvider)
+              .saveMatch(
                 gameId: state.selectedGame!.id,
                 gameName: state.selectedGame!.name,
                 playerScores: finalScores,
@@ -87,8 +84,6 @@ class _GeneralaTrackerScreenState
     );
   }
 
-  // ── Diálogo de reinicio de puntajes (botón central) ─────────────────────────
-
   void _showResetDialog() {
     TrackerDialogs.showResetDialog(
       context: context,
@@ -100,13 +95,10 @@ class _GeneralaTrackerScreenState
     );
   }
 
-  // ── Build ───────────────────────────────────────────────────────────────────
-
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(generalaTrackerProvider);
 
-    // Detección automática de fin de partida
     ref.listen<GeneralaTrackerState>(generalaTrackerProvider, (prev, next) {
       if (!_completionDialogShown &&
           prev != null &&
@@ -120,9 +112,7 @@ class _GeneralaTrackerScreenState
     });
 
     if (state.entities.isEmpty) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
@@ -144,19 +134,18 @@ class _GeneralaTrackerScreenState
       body: SafeArea(
         child: Column(
           children: [
-            // ── Tabla de puntajes (scrolleable) ───────────────────────────────
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 8.0, vertical: 12.0),
+                  horizontal: 8.0,
+                  vertical: 12.0,
+                ),
                 child: const GeneralaScoreTable(),
               ),
             ),
 
-            // ── Panel de entrada ───────────────────────────────────────────────
             const GeneralaInputPanel(),
 
-            // ── Barra inferior (TrackerBottomBar — igual que Akropolis) ────────
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSizes.p24,

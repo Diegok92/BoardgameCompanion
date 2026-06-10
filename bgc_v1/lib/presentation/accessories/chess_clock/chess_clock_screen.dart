@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'providers/chess_clock_provider.dart';
-import '../providers/auth_provider.dart';
+import '../../providers/auth_provider.dart';
 
-import '../scores/widgets/tracker_dialogs.dart';
-import 'widgets/accessory_control_bar.dart';
-import 'widgets/accessory_resume_dialog.dart';
-import 'widgets/accessory_time_dialog.dart';
+import '../../scores/widgets/tracker_dialogs.dart';
+import '../widgets/accessory_control_bar.dart';
+import '../widgets/accessory_resume_dialog.dart';
+import '../widgets/accessory_time_dialog.dart';
 
 class ChessClockScreen extends ConsumerStatefulWidget {
   const ChessClockScreen({super.key});
@@ -94,7 +94,6 @@ class _ChessClockScreenState extends ConsumerState<ChessClockScreen> {
     final user = ref.read(authProvider);
     final state = ref.read(chessClockProvider);
 
-    // Datos del otro jugador, para no permitir repetir nombre ni color.
     final otherName = player == 1 ? state.playerTwoName : state.playerOneName;
     final otherColor = player == 1
         ? state.playerTwoColor
@@ -163,7 +162,6 @@ class _ChessClockScreenState extends ConsumerState<ChessClockScreen> {
         body: SafeArea(
           child: Column(
             children: [
-              // Panel Superior (Jugador 2) - Invertido
               Expanded(
                 child: Transform.rotate(
                   angle: pi,
@@ -183,7 +181,6 @@ class _ChessClockScreenState extends ConsumerState<ChessClockScreen> {
                 ),
               ),
 
-              // Barra de control central
               AccessoryControlBar(
                 onBack: () {
                   notifier.pause();
@@ -199,7 +196,6 @@ class _ChessClockScreenState extends ConsumerState<ChessClockScreen> {
                 onRestart: _showTimeDialog,
               ),
 
-              // Panel Inferior (Jugador 1)
               Expanded(
                 child: _buildPlayerPanel(
                   player: 1,

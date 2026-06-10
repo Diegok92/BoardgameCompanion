@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import '../../domain/models/accessory_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/accessories_provider.dart';
+import '../widgets/bgc_app_bar.dart';
 import '../widgets/custom_alert.dart';
 
 class AccessoriesScreen extends ConsumerWidget {
@@ -46,37 +46,13 @@ class AccessoriesScreen extends ConsumerWidget {
     final accessoriesAsyncValue = ref.watch(accessoriesProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.chevron_left, size: 32),
-          onPressed: () => context.pop(),
-        ),
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'BG Companion',
-              style: textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
-            ),
-            const SizedBox(width: 8),
-            SvgPicture.asset('assets/images/logo.svg', height: 24),
-          ],
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
+      appBar: const BgcAppBar(),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: accessoriesAsyncValue.when(
             data: (accessories) {
-              // Los primeros 4 accesorios van en grilla (2x2)
               final gridAccessories = accessories.take(4).toList();
-              // El último accesorio (Reloj de Arena) va expandido abajo
               final lastAccessory = accessories.length > 4
                   ? accessories.last
                   : null;
@@ -93,7 +69,6 @@ class AccessoriesScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  // Cuadrícula para los primeros 4 accesorios
                   Expanded(
                     flex: 2,
                     child: GridView.builder(
@@ -103,7 +78,7 @@ class AccessoriesScreen extends ConsumerWidget {
                             crossAxisCount: 2,
                             crossAxisSpacing: 16,
                             mainAxisSpacing: 16,
-                            childAspectRatio: 1.0, // Botones cuadrados
+                            childAspectRatio: 1.0,
                           ),
                       itemCount: gridAccessories.length,
                       itemBuilder: (context, index) {
@@ -117,7 +92,6 @@ class AccessoriesScreen extends ConsumerWidget {
                     ),
                   ),
 
-                  // Botón grande inferior para el último accesorio
                   if (lastAccessory != null) ...[
                     const SizedBox(height: 16),
                     Expanded(

@@ -6,7 +6,6 @@ import '../../data/repositories/local_storage_repository.dart';
 import '../../domain/repositories/i_local_storage_repository.dart';
 import '../widgets/custom_alert.dart';
 
-// Proveedor para inyectar el LocalStorageRepository en la vista
 final localStorageProvider = Provider<ILocalStorageRepository>((ref) {
   return LocalStorageRepository();
 });
@@ -41,7 +40,6 @@ class ConfigScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
           children: [
-            // --- SECCIÓN: TEMA Y APARIENCIA ---
             _buildSectionHeader('Apariencia', colorScheme),
             Card(
               elevation: 0,
@@ -70,9 +68,6 @@ class ConfigScreen extends ConsumerWidget {
               ),
             ),
 
-
-
-            // --- SECCIÓN: DATOS ---
             _buildSectionHeader('Datos', colorScheme),
             Card(
               elevation: 0,
@@ -108,7 +103,10 @@ class ConfigScreen extends ConsumerWidget {
                             Navigator.pop(context);
                             await ref.read(localStorageProvider).clearAllData();
                             if (context.mounted) {
-                              CustomAlert.show(context, 'Caché borrada exitosamente.');
+                              CustomAlert.show(
+                                context,
+                                'Caché borrada exitosamente.',
+                              );
                             }
                           },
                           style: TextButton.styleFrom(
@@ -128,7 +126,6 @@ class ConfigScreen extends ConsumerWidget {
     );
   }
 
-  // Widget de ayuda para construir el título de cada sección
   Widget _buildSectionHeader(String title, ColorScheme colorScheme) {
     return Padding(
       padding: const EdgeInsets.only(left: 8, bottom: 8),

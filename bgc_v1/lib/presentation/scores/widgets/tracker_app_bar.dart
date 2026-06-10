@@ -4,21 +4,17 @@ import 'package:flutter_svg/flutter_svg.dart';
 class TrackerAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget rightWidget;
 
-  const TrackerAppBar({
-    super.key,
-    required this.rightWidget,
-  });
+  const TrackerAppBar({super.key, required this.rightWidget});
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      automaticallyImplyLeading: false, // Ocultar el botón de back por defecto para poner nuestro logo
+      automaticallyImplyLeading: false,
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Logo e indicador
           Builder(
             builder: (context) => InkWell(
               onTap: () => Scaffold.of(context).openDrawer(),
@@ -43,8 +39,7 @@ class TrackerAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
-          
-          // Widget dinámico a la derecha (dropdown o título)
+
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(left: 12.0),

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/bgc_app_bar.dart';
 import '../../core/theme/app_colors.dart';
 
 class RegisterInvitadoScreen extends ConsumerStatefulWidget {
@@ -80,36 +79,13 @@ class _RegisterInvitadoScreenState
     final invitados = user?.invitados ?? [];
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.chevron_left, size: 32),
-          onPressed: () => context.pop(),
-        ),
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'BG Companion',
-              style: textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
-            ),
-            const SizedBox(width: 8),
-            SvgPicture.asset('assets/images/logo.svg', height: 24),
-          ],
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
+      appBar: const BgcAppBar(),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Avatar del usuario
               CircleAvatar(
                 radius: 40,
                 backgroundColor: user?.favoriteColor ?? Colors.blue,
@@ -134,7 +110,6 @@ class _RegisterInvitadoScreenState
               ),
               const SizedBox(height: 24),
 
-              // Formulario para agregar nuevo invitado
               Row(
                 children: [
                   Expanded(
@@ -166,14 +141,15 @@ class _RegisterInvitadoScreenState
               ),
               const SizedBox(height: 32),
 
-              // Lista de invitados
               Expanded(
                 child: invitados.isEmpty
                     ? Center(
                         child: Text(
                           'Aún no tienes invitados registrados.',
                           style: textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                           ),
                         ),
                       )
@@ -185,11 +161,16 @@ class _RegisterInvitadoScreenState
                           final invitado = invitados[index];
                           return Card(
                             elevation: 0,
-                            color: Theme.of(context).colorScheme.surfaceContainer,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainer,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                               side: BorderSide(
-                                  color: Theme.of(context).colorScheme.outlineVariant),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.outlineVariant,
+                              ),
                             ),
                             child: ListTile(
                               leading: CircleAvatar(

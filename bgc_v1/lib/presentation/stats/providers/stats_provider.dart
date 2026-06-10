@@ -7,10 +7,9 @@ class StatsState {
   final bool isLoading;
   final bool hasFetched;
   final List<Partida> allPartidas;
-  final String selectedJuego; // 'TODOS' por defecto
-  final String selectedOpponent; // 'TODOS' por defecto
+  final String selectedJuego;
+  final String selectedOpponent;
 
-  // Campos calculados
   final int totalPartidas;
   final int ganadas;
   final int perdidas;
@@ -78,9 +77,10 @@ class StatsNotifier extends Notifier<StatsState> {
     );
     try {
       final historial = await _repository.getHistorialPartidas(user.id);
-      final validPartidas = historial.where((p) => p.estado == 'finalizada').toList();
-      
-      // Ordenar por fecha de más reciente a más antigua
+      final validPartidas = historial
+          .where((p) => p.estado == 'finalizada')
+          .toList();
+
       validPartidas.sort((a, b) {
         if (a.fechaFinalizacion == null) return 1;
         if (b.fechaFinalizacion == null) return -1;
@@ -92,15 +92,25 @@ class StatsNotifier extends Notifier<StatsState> {
         isLoading: false,
         hasFetched: true,
       );
-      
+
       _calculateStats();
     } catch (e) {
       state = state.copyWith(isLoading: false);
     }
   }
 
-  void invalidateData() {
-    state = state.copyWith(hasFetched: false);
+  /// Suma una partida recién terminada al cache en memoria y recalcula, SIN
+  /// volver a leer Firestore. Si las stats todavía no se cargaron en esta
+  /// sesión, no hace nada: la próxima carga ya la va a incluir.
+  void addFinishedMatch(Partida partida) {
+    if (!state.hasFetched || partida.estado != 'finalizada') return;
+
+    final conFecha = partida.copyWith(
+      fechaFinalizacion: partida.fechaFinalizacion ?? DateTime.now(),
+    );
+    // Va al frente porque es la más reciente (la lista está ordenada desc).
+    state = state.copyWith(allPartidas: [conFecha, ...state.allPartidas]);
+    _calculateStats();
   }
 
   void setJuegoFilter(String juego) {
@@ -118,23 +128,29 @@ class StatsNotifier extends Notifier<StatsState> {
     if (username == null) return;
 
     List<Partida> filtered = state.allPartidas.where((p) {
-      bool matchJuego = state.selectedJuego == 'TODOS' || p.juegoNombre.toUpperCase() == state.selectedJuego;
+      bool matchJuego =
+          state.selectedJuego == 'TODOS' ||
+          p.juegoNombre.toUpperCase() == state.selectedJuego;
       bool matchOpponent = true;
-      
+
       if (state.selectedOpponent != 'TODOS') {
-        matchOpponent = p.participantes.map((n) => n.toUpperCase()).contains(state.selectedOpponent.toUpperCase());
-        
+        matchOpponent = p.participantes
+            .map((n) => n.toUpperCase())
+            .contains(state.selectedOpponent.toUpperCase());
+
         if (matchOpponent && p.isTeamGame) {
           bool isGanador = p.ganadores.contains(username);
-          bool opponentWon = p.ganadores.map((g) => g.toUpperCase()).contains(state.selectedOpponent.toUpperCase());
-          
+          bool opponentWon = p.ganadores
+              .map((g) => g.toUpperCase())
+              .contains(state.selectedOpponent.toUpperCase());
+
           if (isGanador == opponentWon) {
             // Están en el mismo equipo (ambos ganaron o ambos perdieron). Ignorar la partida.
             matchOpponent = false;
           }
         }
       }
-      
+
       return matchJuego && matchOpponent;
     }).toList();
 
@@ -142,11 +158,12 @@ class StatsNotifier extends Notifier<StatsState> {
     int empatadas = 0;
     int perdidas = 0;
     int racha = 0;
-    bool rachaRota = false; // Racha is consecutive from most recent. Since list is sorted desc, iterate from 0 to N.
+    // Racha consecutiva desde la partida más reciente (lista ordenada desc).
+    bool rachaRota = false;
 
     for (var p in filtered) {
       bool isGanador = p.ganadores.contains(username);
-      
+
       if (state.selectedOpponent == 'TODOS') {
         bool isEmpate = isGanador && p.ganadores.length > 1 && !p.isTeamGame;
         if (isEmpate) {
@@ -160,24 +177,22 @@ class StatsNotifier extends Notifier<StatsState> {
           rachaRota = true;
         }
       } else {
-        // Lógica de "Mano a Mano" (Head-to-head)
-        bool opponentWon = p.ganadores.map((g) => g.toUpperCase()).contains(state.selectedOpponent.toUpperCase());
-        
+        // Head-to-head contra el oponente seleccionado
+        bool opponentWon = p.ganadores
+            .map((g) => g.toUpperCase())
+            .contains(state.selectedOpponent.toUpperCase());
+
         if (isGanador && opponentWon) {
-          // Ambos ganaron (empate en primer lugar)
           empatadas++;
           rachaRota = true;
         } else if (isGanador && !opponentWon) {
-          // Usuario ganó, oponente no -> Victoria
           ganadas++;
           if (!rachaRota) racha++;
         } else if (!isGanador && opponentWon) {
-          // Oponente ganó, usuario no -> Derrota
           perdidas++;
           rachaRota = true;
         } else {
-          // Ninguno de los dos ganó (Ganó un tercero)
-          // No cuenta como victoria, derrota o empate en el mano a mano
+          // Ganó un tercero: no cuenta en el mano a mano
           rachaRota = true;
         }
       }
@@ -193,7 +208,10 @@ class StatsNotifier extends Notifier<StatsState> {
   }
 
   List<String> get uniqueJuegos {
-    final juegos = state.allPartidas.map((p) => p.juegoNombre.toUpperCase()).toSet().toList();
+    final juegos = state.allPartidas
+        .map((p) => p.juegoNombre.toUpperCase())
+        .toSet()
+        .toList();
     juegos.sort();
     return ['TODOS', ...juegos];
   }

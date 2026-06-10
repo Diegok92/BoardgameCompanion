@@ -19,9 +19,7 @@ class AppDrawer extends ConsumerWidget {
       child: Column(
         children: [
           UserAccountsDrawerHeader(
-            decoration: BoxDecoration(
-              color: user.favoriteColor ?? Colors.blue,
-            ),
+            decoration: BoxDecoration(color: user.favoriteColor ?? Colors.blue),
             currentAccountPicture: CircleAvatar(
               backgroundColor: Colors.white24,
               child: Text(
@@ -35,10 +33,7 @@ class AppDrawer extends ConsumerWidget {
             ),
             accountName: Text(
               user.username,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             accountEmail: Text(user.email),
           ),
@@ -46,7 +41,7 @@ class AppDrawer extends ConsumerWidget {
             leading: const Icon(Icons.person_outline),
             title: const Text('Perfil'),
             onTap: () {
-              Navigator.pop(context); // Cerrar Drawer
+              Navigator.pop(context);
               context.push('/user-edit');
             },
           ),
@@ -54,7 +49,7 @@ class AppDrawer extends ConsumerWidget {
             leading: const Icon(Icons.settings_outlined),
             title: const Text('Configuración'),
             onTap: () {
-              Navigator.pop(context); // Cierra el Drawer
+              Navigator.pop(context);
               context.push('/config');
             },
           ),

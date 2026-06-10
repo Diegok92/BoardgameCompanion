@@ -16,7 +16,7 @@ class HistorialState {
   final List<Partida> firestorePartidas;
   final DocumentSnapshot? lastDocument;
   final bool hasMore;
-  final String statusFilter; // 'TODOS', 'FINALIZADA', 'EN CURSO'
+  final String statusFilter;
 
   HistorialState({
     this.isLoading = true,
@@ -40,7 +40,6 @@ class HistorialState {
       all.addAll(firestorePartidas);
     }
 
-    // Ordenar de más reciente a más antigua
     all.sort((a, b) {
       if (a.fechaFinalizacion == null && b.fechaFinalizacion == null) return 0;
       if (a.fechaFinalizacion == null) return 1;
@@ -51,6 +50,7 @@ class HistorialState {
     return all;
   }
 
+  // lastDocument se asigna directamente (no con ??) para poder setearlo en null explícitamente.
   HistorialState copyWith({
     bool? isLoading,
     bool? hasFetched,
@@ -61,23 +61,19 @@ class HistorialState {
     bool? hasMore,
     String? statusFilter,
   }) {
-    // Si pasamos lastDocument como null explícitamente, no lo copiamos, lo sobreescribimos.
-    // Usamos un pequeño truco: pasamos un valor especial o simplemente comprobamos.
-    // Para simplificar, asumiremos que se pasa correctamente.
     return HistorialState(
       isLoading: isLoading ?? this.isLoading,
       hasFetched: hasFetched ?? this.hasFetched,
       isFetchingMore: isFetchingMore ?? this.isFetchingMore,
       localPartidas: localPartidas ?? this.localPartidas,
       firestorePartidas: firestorePartidas ?? this.firestorePartidas,
-      lastDocument:
-          lastDocument, // Forzamos la actualización directa para manejar nulls
+      lastDocument: lastDocument,
       hasMore: hasMore ?? this.hasMore,
       statusFilter: statusFilter ?? this.statusFilter,
     );
   }
 
-  // Custom copy para manejar nullable explícito de lastDocument
+  /// Variante de [copyWith] que fuerza [lastDocument] a null.
   HistorialState copyWithNullDocument({
     bool? isLoading,
     bool? hasFetched,
@@ -105,7 +101,6 @@ class HistorialNotifier extends Notifier<HistorialState> {
 
   @override
   HistorialState build() {
-    // Iniciamos la carga al instanciar
     Future.microtask(() => initialFetch());
     return HistorialState();
   }
@@ -119,10 +114,7 @@ class HistorialNotifier extends Notifier<HistorialState> {
     state = state.copyWithNullDocument(isLoading: true, hasMore: true);
 
     try {
-      // 1. Cargar locales
       final localMatches = await fetchLocalMatches(user.id);
-
-      // 2. Cargar primera página de Firestore
       final result = await _firestoreRepo.getHistorialPartidasPaginated(
         user.id,
         limit: 15,
@@ -144,6 +136,19 @@ class HistorialNotifier extends Notifier<HistorialState> {
   void invalidateData() {
     state = state.copyWith(hasFetched: false);
     initialFetch();
+  }
+
+  /// Refresca solo las partidas en curso (locales). Se llama al abrir el
+  /// historial para reflejar partidas creadas durante la sesión sin recargar
+  /// toda la paginación de Firestore.
+  Future<void> refreshLocalMatches() async {
+    final user = ref.read(authProvider);
+    if (user == null) return;
+    final localMatches = await fetchLocalMatches(user.id);
+    state = state.copyWith(
+      localPartidas: localMatches,
+      lastDocument: state.lastDocument,
+    );
   }
 
   Future<void> fetchMore() async {
@@ -199,9 +204,6 @@ class HistorialNotifier extends Notifier<HistorialState> {
           DateTime? lastModified;
           if (decoded['lastModified'] != null) {
             lastModified = DateTime.parse(decoded['lastModified']);
-          } else {
-            // Fallback si la crearon antes de añadir el campo
-            lastModified = null;
           }
 
           String gameName = 'Desconocido';
@@ -293,7 +295,7 @@ class HistorialNotifier extends Notifier<HistorialState> {
 
           locales.add(
             Partida(
-              id: key, // Usamos la key como ID para saber cuál borrar o cargar
+              id: key,
               juegoId: gameId,
               juegoNombre: gameName,
               participantes: participantes,
@@ -301,16 +303,13 @@ class HistorialNotifier extends Notifier<HistorialState> {
               puntajesFinales: {},
               estado: 'en curso',
               isTeamGame: isTeamGame,
-              fechaFinalizacion: lastModified, // Usamos este campo para ordenar
+              fechaFinalizacion: lastModified,
             ),
           );
-        } catch (e) {
-          // Ignorar error de parseo
-        }
+        } catch (_) {}
       }
     }
 
-    // Ordenar locales por lastModified descendente
     locales.sort((a, b) {
       if (a.fechaFinalizacion == null && b.fechaFinalizacion == null) return 0;
       if (a.fechaFinalizacion == null) return 1;
@@ -329,7 +328,6 @@ class HistorialNotifier extends Notifier<HistorialState> {
 
   Future<void> removeLocalMatch(String key) async {
     await _localRepo.removeData(key);
-    // Remover del estado actual para no recargar todo de Firestore
     final updated = state.localPartidas.where((p) => p.id != key).toList();
     state = state.copyWith(
       localPartidas: updated,

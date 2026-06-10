@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Import para SystemChrome
-import 'package:flutter_riverpod/flutter_riverpod.dart'; // Asegúrate de tener esto
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'presentation/providers/settings_provider.dart';
@@ -16,7 +16,6 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  // Inicializa Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   runApp(const ProviderScope(child: MainApp()));
@@ -27,7 +26,6 @@ class MainApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Esto ahora funcionará porque está dentro de ProviderScope
     final settings = ref.watch(settingsProvider);
 
     return MaterialApp.router(

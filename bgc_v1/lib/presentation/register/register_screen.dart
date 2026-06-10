@@ -39,7 +39,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final repeatPassword = _repeatPasswordController.text.trim();
 
     if (email.isEmpty || username.isEmpty || password.isEmpty) {
-      CustomAlert.show(context, 'Por favor, completa todos los campos', isError: true);
+      CustomAlert.show(
+        context,
+        'Por favor, completa todos los campos',
+        isError: true,
+      );
       return;
     }
 
@@ -49,7 +53,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     }
 
     final newUser = User(
-      id: Random().nextInt(10000).toString(), // ID aleatorio simple
+      id: Random().nextInt(10000).toString(),
       username: username,
       email: email,
       password: password,
@@ -85,27 +89,24 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Título y Logo
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text('BG Companion', style: textTheme.headlineSmall),
                       const SizedBox(width: 8),
-                      SvgPicture.asset(
-                        'assets/images/logo.svg',
-                        height: 32, // Logo más pequeño
-                      ),
+                      SvgPicture.asset('assets/images/logo.svg', height: 32),
                     ],
                   ),
                   const SizedBox(height: 32),
 
-                  // Avatar
                   Stack(
                     alignment: Alignment.bottomRight,
                     children: [
                       CircleAvatar(
                         radius: 40,
-                        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
                         child: Icon(
                           Icons.person,
                           size: 60,
@@ -116,7 +117,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         decoration: BoxDecoration(
                           color: Colors.red,
                           shape: BoxShape.circle,
-                          border: Border.all(color: Theme.of(context).colorScheme.surface, width: 2),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.surface,
+                            width: 2,
+                          ),
                         ),
                         child: const Icon(
                           Icons.add,
@@ -128,7 +132,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ),
                   const SizedBox(height: 32),
 
-                  // Email
                   _buildTextField(
                     'EMAIL',
                     'nombre@ejemplo.com',
@@ -137,7 +140,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Nombre de Usuario
                   _buildTextField(
                     'NOMBRE DE USUARIO',
                     'Ej: MagoSupremo',
@@ -146,7 +148,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Selector de Color
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
@@ -174,7 +175,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             color: color,
                             shape: BoxShape.circle,
                             border: isSelected
-                                ? Border.all(color: Theme.of(context).colorScheme.onSurface, width: 3)
+                                ? Border.all(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurface,
+                                    width: 3,
+                                  )
                                 : null,
                             boxShadow: [
                               if (isSelected)
@@ -191,7 +197,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Contraseña
                   _buildTextField(
                     'CONTRASEÑA',
                     '............',
@@ -201,7 +206,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Repetir Contraseña
                   _buildTextField(
                     'REPETIR CONTRASEÑA',
                     '............',
@@ -211,7 +215,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ),
                   const SizedBox(height: 32),
 
-                  // Botón Registrarse
                   SizedBox(
                     width: double.infinity,
                     height: 50,
@@ -222,7 +225,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Volver al Login
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -247,7 +249,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 
-  // Método auxiliar simplificado gracias al AppTheme global
   Widget _buildTextField(
     String label,
     String hint,

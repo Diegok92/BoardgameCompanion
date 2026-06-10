@@ -5,7 +5,6 @@ import 'auth_provider.dart';
 import '../stats/providers/stats_provider.dart';
 import '../historial/providers/historial_provider.dart';
 
-// Proveedor del repositorio de partidas
 final partidasRepositoryProvider = Provider<PartidasRepository>((ref) {
   return PartidasRepository();
 });
@@ -24,7 +23,7 @@ class MatchService {
   MatchService(this._repository, this._userId, this._ref);
 
   /// Guarda una partida genérica calculando ganadores en base a los puntajes (el puntaje más alto gana)
-  /// Si el juego tiene otras condiciones de victoria (ej. gana el que tiene menos puntos), 
+  /// Si el juego tiene otras condiciones de victoria (ej. gana el que tiene menos puntos),
   /// se deberá ajustar este método o sobrecargarlo a futuro.
   Future<void> saveMatch({
     required String gameId,
@@ -41,7 +40,6 @@ class MatchService {
       throw Exception('No hay jugadores en la partida');
     }
 
-    // Calcular ganadores (el que tiene más puntos)
     int maxScore = playerScores.values.reduce((a, b) => a > b ? a : b);
     List<String> ganadores = playerScores.entries
         .where((entry) => entry.value == maxScore)
@@ -61,8 +59,10 @@ class MatchService {
 
     await _repository.registrarPartida(_userId, partida);
 
-    // Invalidar caché de estadísticas e historial para forzar actualización
-    _ref.read(statsProvider.notifier).invalidateData();
+    // Stats: en vez de releer toda la colección de Firestore, sumamos la
+    // partida al cache en memoria (0 lecturas). El historial sí refresca
+    // (lee solo 1 página).
+    _ref.read(statsProvider.notifier).addFinishedMatch(partida);
     _ref.read(historialProvider.notifier).invalidateData();
   }
 }

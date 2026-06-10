@@ -17,10 +17,15 @@ class BurakoTrackerScreen extends ConsumerStatefulWidget {
   final int playerCount;
   final String? fullKey;
 
-  const BurakoTrackerScreen({super.key, required this.playerCount, this.fullKey});
+  const BurakoTrackerScreen({
+    super.key,
+    required this.playerCount,
+    this.fullKey,
+  });
 
   @override
-  ConsumerState<BurakoTrackerScreen> createState() => _BurakoTrackerScreenState();
+  ConsumerState<BurakoTrackerScreen> createState() =>
+      _BurakoTrackerScreenState();
 }
 
 class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
@@ -30,12 +35,12 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final user = ref.read(authProvider);
       if (user != null) {
-        ref.read(burakoTrackerProvider.notifier).initialize(widget.playerCount, user, fullKey: widget.fullKey);
+        ref
+            .read(burakoTrackerProvider.notifier)
+            .initialize(widget.playerCount, user, fullKey: widget.fullKey);
       }
     });
   }
-
-  // Extracted methods replaced by BurakoEntityEditorDialog and BurakoBufferEditor
 
   Widget _buildEntityHeader(BurakoEntity entity, int index) {
     return Expanded(
@@ -60,8 +65,6 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
     );
   }
 
-  // _buildBufferEditor removed, using BurakoBufferEditor
-
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(burakoTrackerProvider);
@@ -82,7 +85,11 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
             ),
             const SizedBox(width: 8),
-            SvgPicture.asset('assets/images/burako_icon.svg', height: 24, width: 24),
+            SvgPicture.asset(
+              'assets/images/burako_icon.svg',
+              height: 24,
+              width: 24,
+            ),
           ],
         ),
       ),
@@ -92,7 +99,6 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
           child: Column(
             children: [
               const SizedBox(height: 16),
-              // Header de totales
               Row(
                 children: List.generate(state.entities.length, (index) {
                   final e = state.entities[index];
@@ -100,20 +106,15 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
                 }),
               ),
               const Divider(height: 32),
-              
-              // Buffer Editor (sin scroll)
-              const Expanded(
-                child: BurakoBufferEditor(),
-              ),
 
-              // Bottom Bar
+              const Expanded(child: BurakoBufferEditor()),
               TrackerBottomBar(
                 onBack: () {
                   Navigator.pop(context);
                 },
                 onSave: () {
                   final state = ref.read(burakoTrackerProvider);
-                  
+
                   List<DialogPlayerInfo> flattenedPlayers = [];
                   for (var e in state.entities) {
                     for (var p in e.playerNames) {
@@ -121,8 +122,15 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
                     }
                   }
 
-                  int maxScore = state.entities.isNotEmpty ? state.entities.map((e) => e.totalScore).reduce((a, b) => a > b ? a : b) : 0;
-                  String winners = state.entities.where((e) => e.totalScore == maxScore).map((e) => e.name).join(' y ');
+                  int maxScore = state.entities.isNotEmpty
+                      ? state.entities
+                            .map((e) => e.totalScore)
+                            .reduce((a, b) => a > b ? a : b)
+                      : 0;
+                  String winners = state.entities
+                      .where((e) => e.totalScore == maxScore)
+                      .map((e) => e.name)
+                      .join(' y ');
 
                   TrackerDialogs.showFinishMatchDialog(
                     context: context,
@@ -132,14 +140,18 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
                     customWinnerName: winners,
                     customMaxScore: maxScore,
                     onSaveMatch: (finalScores) async {
-                      await ref.read(matchServiceProvider).saveMatch(
-                        gameId: state.selectedGame!.id,
-                        gameName: state.selectedGame!.name,
-                        playerScores: finalScores,
-                        isTeamGame: widget.playerCount == 4,
-                      );
+                      await ref
+                          .read(matchServiceProvider)
+                          .saveMatch(
+                            gameId: state.selectedGame!.id,
+                            gameName: state.selectedGame!.name,
+                            playerScores: finalScores,
+                            isTeamGame: widget.playerCount == 4,
+                          );
                     },
-                    onClearState: () => ref.read(burakoTrackerProvider.notifier).clearLocalState(),
+                    onClearState: () => ref
+                        .read(burakoTrackerProvider.notifier)
+                        .clearLocalState(),
                     onNavigateHome: () {
                       if (mounted) context.go('/home');
                     },
@@ -156,7 +168,8 @@ class _BurakoTrackerScreenState extends ConsumerState<BurakoTrackerScreen> {
                   onPressed: () {
                     TrackerDialogs.showResetDialog(
                       context: context,
-                      onConfirm: () => ref.read(burakoTrackerProvider.notifier).resetGame(),
+                      onConfirm: () =>
+                          ref.read(burakoTrackerProvider.notifier).resetGame(),
                     );
                   },
                 ),

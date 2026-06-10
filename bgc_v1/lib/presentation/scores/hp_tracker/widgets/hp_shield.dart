@@ -56,7 +56,6 @@ class _HpShieldState extends State<HpShield> {
           alignment: Alignment.center,
           clipBehavior: Clip.none,
           children: [
-            // Flechas internas
             Align(
               alignment: const Alignment(0, -0.42),
               child: Icon(
@@ -79,20 +78,12 @@ class _HpShieldState extends State<HpShield> {
               size: shieldSize,
               color: widget.color.withValues(alpha: 0.2),
             ),
-            Icon(
-              Icons.shield_outlined,
-              size: shieldSize,
-              color: widget.color,
-            ),
+            Icon(Icons.shield_outlined, size: shieldSize, color: widget.color),
 
-            // Número Central con animación
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 250),
               transitionBuilder: (Widget child, Animation<double> animation) {
-                return ScaleTransition(
-                  scale: animation,
-                  child: child,
-                );
+                return ScaleTransition(scale: animation, child: child);
               },
               child: Text(
                 '$displayHp',
@@ -104,7 +95,9 @@ class _HpShieldState extends State<HpShield> {
                   color: Theme.of(context).colorScheme.onSurface,
                   shadows: [
                     Shadow(
-                      color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surface.withValues(alpha: 0.9),
                       blurRadius: 8,
                     ),
                   ],
@@ -112,7 +105,6 @@ class _HpShieldState extends State<HpShield> {
               ),
             ),
 
-            // Popup de Delta Acumulado
             if (_pendingDelta != 0)
               Positioned(
                 top: constraints.maxHeight * 0.15,
@@ -132,7 +124,10 @@ class _HpShieldState extends State<HpShield> {
                           ? Colors.green[700]
                           : Colors.red[700],
                       shadows: [
-                        Shadow(color: Theme.of(context).colorScheme.surface, blurRadius: 10),
+                        Shadow(
+                          color: Theme.of(context).colorScheme.surface,
+                          blurRadius: 10,
+                        ),
                       ],
                     ),
                   ),
@@ -144,7 +139,6 @@ class _HpShieldState extends State<HpShield> {
         return Stack(
           children: [
             Center(child: shieldStack),
-            // Zonas Táctiles Invisibles
             Column(
               children: [
                 Expanded(

@@ -35,12 +35,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         .login(email, password);
 
     if (success) {
-      // Navegamos al Home
       if (mounted) {
         context.go('/home');
       }
     } else {
-      // Login fallido
       if (mounted) {
         CustomAlert.show(context, 'Credenciales incorrectas.', isError: true);
       }
@@ -70,11 +68,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // LOGO
                   SvgPicture.asset('assets/images/logo.svg', height: 100),
                   const SizedBox(height: 16),
-
-                  // Textos de título
                   Text('BG Companion', style: textTheme.headlineSmall),
                   const SizedBox(height: 8),
                   Text(
@@ -83,7 +78,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   const SizedBox(height: 40),
 
-                  // Campo de Email
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -99,7 +93,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Campo de Contraseña
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -128,7 +121,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   const SizedBox(height: 32),
 
-                  // Botón de Ingresar
                   SizedBox(
                     width: double.infinity,
                     height: 50,
@@ -139,14 +131,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   const SizedBox(height: 8),
 
-                  // Olvidaste contraseña
                   TextButton(
                     onPressed: () {},
                     child: const Text('¿Olvidaste tu contraseña?'),
                   ),
                   const SizedBox(height: 24),
 
-                  // Botón Crear Cuenta
                   SizedBox(
                     width: double.infinity,
                     height: 50,

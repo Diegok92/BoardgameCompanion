@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/bgc_app_bar.dart';
 import '../widgets/custom_alert.dart';
 import '../../core/theme/app_colors.dart';
 
@@ -14,7 +14,6 @@ class UserEditScreen extends ConsumerStatefulWidget {
 }
 
 class _UserEditScreenState extends ConsumerState<UserEditScreen> {
-  // Lista de colores disponibles referenciada desde AppColors
   final List<Color> _availableColors = AppColors.availableColors;
 
   late Color? _selectedColor;
@@ -25,8 +24,6 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
   @override
   void initState() {
     super.initState();
-    // No podemos usar ref.watch en initState, pero podemos usar ref.read
-    // Esto asegura que inicializamos los campos con los datos actuales.
     _emailController = TextEditingController();
     _usernameController = TextEditingController();
   }
@@ -34,7 +31,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Leemos el usuario una sola vez para inicializar los controllers
+    // didChangeDependencies se llama varias veces; inicializamos solo una vez
     if (_usernameController.text.isEmpty) {
       final user = ref.read(authProvider);
       if (user != null) {
@@ -67,7 +64,6 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
     );
 
     try {
-      // Actualizamos el Provider
       await ref.read(authProvider.notifier).updateUser(updatedUser);
 
       if (!mounted) return;
@@ -77,7 +73,6 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
-      // Removemos el "Exception: " del mensaje si existe
       final errorMsg = e.toString().replaceFirst('Exception: ', '');
       CustomAlert.show(context, errorMsg, isError: true);
     }
@@ -154,29 +149,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.chevron_left, size: 32),
-          onPressed: () => context.pop(),
-        ),
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'BG Companion',
-              style: textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
-            ),
-            const SizedBox(width: 8),
-            SvgPicture.asset('assets/images/logo.svg', height: 24),
-          ],
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
+      appBar: const BgcAppBar(),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -187,7 +160,6 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Avatar (Simula cambio de foto)
                 Stack(
                   alignment: Alignment.bottomRight,
                   children: [
@@ -222,7 +194,6 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                 ),
                 const SizedBox(height: 32),
 
-                // Email
                 _buildTextField(
                   'EMAIL',
                   'nombre@ejemplo.com',
@@ -231,7 +202,6 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Nombre de Usuario
                 _buildTextField(
                   'NOMBRE DE USUARIO',
                   'Ej: MagoSupremo',
@@ -240,7 +210,6 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Selector de Color
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
@@ -290,9 +259,6 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                 ),
                 const SizedBox(height: 24),
 
-
-
-                // Botón Guardar
                 SizedBox(
                   width: double.infinity,
                   height: 56,
@@ -303,24 +269,26 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
-                    child: _isLoading 
-                      ? const SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
-                        )
-                      : const Text(
-                          'GUARDAR CAMBIOS',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 3,
+                            ),
+                          )
+                        : const Text(
+                            'GUARDAR CAMBIOS',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
                   ),
                 ),
                 const SizedBox(height: 24),
 
-                // Botón Cerrar Sesión
                 SizedBox(
                   width: double.infinity,
                   height: 56,
@@ -346,7 +314,6 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Botón Eliminar Cuenta
                 TextButton(
                   onPressed: _confirmDeleteAccount,
                   child: const Text(

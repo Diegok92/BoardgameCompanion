@@ -1,10 +1,7 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-
-// removed app colors
 import '../../widgets/app_drawer.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/match_service.dart';
@@ -39,11 +36,10 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
     });
   }
 
-
   int _getCrossAxisCount(int players, Orientation orientation) {
     if (orientation == Orientation.portrait) {
-      if (players <= 3) return 1; // 1, 2 y 3 jugadores ocupan todo el ancho
-      return 2; // 4, 5 y 6 jugadores se dividen en 2 columnas
+      if (players <= 3) return 1;
+      return 2;
     } else {
       if (players <= 3) return players;
       if (players == 4) return 2;
@@ -58,7 +54,6 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
     );
   }
 
-  // _buildSaveButton removed
   Widget _buildControls(HpTrackerState state) {
     return TrackerBottomBar(
       onBack: () {
@@ -71,16 +66,21 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
           context: context,
           gameId: state.selectedGame?.id,
           gameName: state.selectedGame?.name,
-          players: state.players.map((p) => DialogPlayerInfo(p.name, p.hp)).toList(),
+          players: state.players
+              .map((p) => DialogPlayerInfo(p.name, p.hp))
+              .toList(),
           onSaveMatch: (finalScores) async {
-            await ref.read(matchServiceProvider).saveMatch(
-              gameId: state.selectedGame!.id,
-              gameName: state.selectedGame!.name,
-              playerScores: finalScores,
-              isTeamGame: false,
-            );
+            await ref
+                .read(matchServiceProvider)
+                .saveMatch(
+                  gameId: state.selectedGame!.id,
+                  gameName: state.selectedGame!.name,
+                  playerScores: finalScores,
+                  isTeamGame: false,
+                );
           },
-          onClearState: () => ref.read(hpTrackerProvider.notifier).clearLocalState(),
+          onClearState: () =>
+              ref.read(hpTrackerProvider.notifier).clearLocalState(),
           onNavigateHome: () {
             if (mounted) context.go('/home');
           },
@@ -92,7 +92,11 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
         children: [
           Text(
             'Vida Inicial',
-            style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontSize: 12,
+            ),
           ),
           const SizedBox(height: 4),
           Row(
@@ -105,19 +109,28 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
                     title: 'Setear Vida Inicial',
                     label: 'Vida Inicial',
                     initialValue: state.initialHp,
-                    onConfirm: (val) => ref.read(hpTrackerProvider.notifier).setInitialHp(val),
+                    onConfirm: (val) =>
+                        ref.read(hpTrackerProvider.notifier).setInitialHp(val),
                   );
                 },
                 borderRadius: BorderRadius.circular(16),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
                     '${state.initialHp}',
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -133,7 +146,8 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
                 onPressed: () {
                   TrackerDialogs.showResetDialog(
                     context: context,
-                    onConfirm: () => ref.read(hpTrackerProvider.notifier).resetHp(),
+                    onConfirm: () =>
+                        ref.read(hpTrackerProvider.notifier).resetHp(),
                   );
                 },
               ),
@@ -213,16 +227,11 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
 
     return Scaffold(
       appBar: TrackerAppBar(
-        rightWidget: SizedBox(
-          width: 200,
-          child: _buildDropdownWidget(state),
-        ),
+        rightWidget: SizedBox(width: 200, child: _buildDropdownWidget(state)),
       ),
       drawer: const AppDrawer(),
       body: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-        ),
+        decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface),
         child: SafeArea(
           child: OrientationBuilder(
             builder: (context, orientation) {
@@ -239,7 +248,12 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.only(top: 8.0, bottom: 16.0, left: 16.0, right: 16.0), // Equilibré el padding de los controles
+                      padding: const EdgeInsets.only(
+                        top: 8.0,
+                        bottom: 16.0,
+                        left: 16.0,
+                        right: 16.0,
+                      ),
                       child: _buildControls(state),
                     ),
                   ],
@@ -251,9 +265,14 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
                       width: 250,
                       padding: const EdgeInsets.all(12.0),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest
+                            .withValues(alpha: 0.5),
                         border: Border(
-                          right: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+                          right: BorderSide(
+                            color: Theme.of(context).colorScheme.outlineVariant,
+                          ),
                         ),
                       ),
                       child: Column(
@@ -277,7 +296,9 @@ class _HpTrackerScreenState extends ConsumerState<HpTrackerScreen> {
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 16,
-                                          color: Theme.of(context).colorScheme.onSurface,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurface,
                                         ),
                                       ),
                                     ],

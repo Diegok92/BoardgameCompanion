@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../data/repositories/local_storage_repository.dart';
-import '../../../domain/repositories/i_local_storage_repository.dart';
-import '../../../domain/models/user_model.dart';
+import '../../../../data/repositories/local_storage_repository.dart';
+import '../../../../domain/repositories/i_local_storage_repository.dart';
+import '../../../../domain/models/user_model.dart';
 
 class SandTimerState {
   final int initialSeconds;
@@ -70,12 +70,12 @@ class SandTimerNotifier extends Notifier<SandTimerState> {
         state = SandTimerState(
           initialSeconds: initial,
           remainingSeconds: decoded['remainingSeconds'] ?? initial,
-          isRunning: false, // Siempre se reanuda pausado
+          isRunning: false,
           hasStarted: decoded['hasStarted'] ?? false,
         );
-        return false; // No es nuevo
+        return false;
       } catch (_) {
-        // Si falla el parseo, cae al estado por defecto.
+        // ignorado: cae al estado por defecto
       }
     }
 
@@ -86,7 +86,7 @@ class SandTimerNotifier extends Notifier<SandTimerState> {
       hasStarted: false,
     );
     await _saveState();
-    return true; // Es nuevo
+    return true;
   }
 
   Future<void> setInitialSeconds(int seconds) async {
@@ -144,7 +144,8 @@ class SandTimerNotifier extends Notifier<SandTimerState> {
   }
 }
 
-final sandTimerProvider =
-    NotifierProvider<SandTimerNotifier, SandTimerState>(() {
-      return SandTimerNotifier();
-    });
+final sandTimerProvider = NotifierProvider<SandTimerNotifier, SandTimerState>(
+  () {
+    return SandTimerNotifier();
+  },
+);

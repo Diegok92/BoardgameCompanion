@@ -61,7 +61,6 @@ class HomeScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // --- SECCIÓN 1: PERFIL ---
                     CircleAvatar(
                       radius: 40,
                       backgroundColor: user.favoriteColor ?? Colors.blue,
@@ -90,10 +89,8 @@ class HomeScreen extends ConsumerWidget {
                       ),
                     ),
 
-                    // Espaciador flexible
                     const Spacer(flex: 1),
 
-                    // --- SECCIÓN 2: BOTONES PRINCIPALES ---
                     HomeMenuButton(
                       icon: Icons.person_add,
                       label: AppStrings.addGuests,
@@ -126,10 +123,8 @@ class HomeScreen extends ConsumerWidget {
                       },
                     ),
 
-                    // Espaciador para acercar los botones inferiores
                     const SizedBox(height: 32),
 
-                    // --- SECCIÓN 3: BOTONES SECUNDARIOS ---
                     Row(
                       children: [
                         Expanded(

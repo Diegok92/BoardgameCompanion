@@ -1,16 +1,16 @@
-import 'dart:convert';
-
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/theme/app_colors.dart';
 import '../../../../data/local_catalog/local_games_catalog.dart';
-import '../../../../data/repositories/local_storage_repository.dart';
+import '../../../../data/repositories/tracker_local_store.dart';
 import '../../../../domain/models/game_model.dart';
 import '../../../../domain/models/user_model.dart';
-import '../../../../domain/repositories/i_local_storage_repository.dart';
 
 class TrucoTeam {
   final String id;
   final String name;
+  final Color color;
   final List<String?> playerNames;
   final int malas;
   final int buenas;
@@ -18,6 +18,7 @@ class TrucoTeam {
   TrucoTeam({
     required this.id,
     required this.name,
+    required this.color,
     required this.playerNames,
     this.malas = 0,
     this.buenas = 0,
@@ -27,6 +28,7 @@ class TrucoTeam {
 
   TrucoTeam copyWith({
     String? name,
+    Color? color,
     List<String?>? playerNames,
     int? malas,
     int? buenas,
@@ -34,6 +36,7 @@ class TrucoTeam {
     return TrucoTeam(
       id: id,
       name: name ?? this.name,
+      color: color ?? this.color,
       playerNames: playerNames ?? this.playerNames,
       malas: malas ?? this.malas,
       buenas: buenas ?? this.buenas,
@@ -78,10 +81,7 @@ class TrucoTrackerState {
 }
 
 class TrucoTrackerNotifier extends Notifier<TrucoTrackerState> {
-  final ILocalStorageRepository _localStorage = LocalStorageRepository();
-
-  String _currentUserId = '';
-  String _currentKey = '';
+  final TrackerLocalStore _store = TrackerLocalStore();
 
   @override
   TrucoTrackerState build() {
@@ -89,21 +89,14 @@ class TrucoTrackerNotifier extends Notifier<TrucoTrackerState> {
   }
 
   Future<void> initialize(int playerCount, User user, {String? fullKey}) async {
-    _currentUserId = user.id;
-
     state = TrucoTrackerState(teams: [], targetScore: 30);
 
-    String? localDataStr;
-
-    if (fullKey != null) {
-      _currentKey = fullKey;
-      localDataStr = await _localStorage.getData(fullKey);
-    } else {
-      final normalizedPlayerCount = _normalizePlayerCount(playerCount);
-
-      _currentKey =
-          'truco_state_${user.id}_${normalizedPlayerCount}_${DateTime.now().millisecondsSinceEpoch}';
-    }
+    _store.resolveKey(
+      fullKey: fullKey,
+      prefix: 'truco',
+      userId: user.id,
+      playerCount: _normalizePlayerCount(playerCount),
+    );
 
     Game? trucoGame;
 
@@ -113,9 +106,9 @@ class TrucoTrackerNotifier extends Notifier<TrucoTrackerState> {
       );
     } catch (_) {}
 
-    if (localDataStr != null) {
+    final decoded = await _store.load();
+    if (decoded != null) {
       try {
-        final decoded = jsonDecode(localDataStr);
         final teamsJson = decoded['teams'] as List;
 
         final restoredTeams = teamsJson.map((teamJson) {
@@ -124,6 +117,9 @@ class TrucoTrackerNotifier extends Notifier<TrucoTrackerState> {
           return TrucoTeam(
             id: teamJson['id'],
             name: teamJson['name'],
+            color: teamJson['color'] != null
+                ? Color(teamJson['color'])
+                : _defaultTeamColor(teamJson['id']),
             playerNames: namesJson.map((name) => name as String?).toList(),
             malas: teamJson['malas'] ?? 0,
             buenas: teamJson['buenas'] ?? 0,
@@ -137,18 +133,23 @@ class TrucoTrackerNotifier extends Notifier<TrucoTrackerState> {
         );
 
         return;
-      } catch (_) {
-        // Si falla la carga local, se crea una partida nueva.
-      }
+      } catch (_) {}
     }
 
     final normalizedPlayerCount = _normalizePlayerCount(playerCount);
     final playersPerTeam = normalizedPlayerCount ~/ 2;
 
+    final nosotrosColor = user.favoriteColor ?? AppColors.red;
+    final ellosColor = AppColors.availableColors.firstWhere(
+      (c) => c.toARGB32() != nosotrosColor.toARGB32(),
+      orElse: () => AppColors.blue,
+    );
+
     final initialTeams = [
       TrucoTeam(
         id: 'team_1',
         name: 'Nosotros',
+        color: nosotrosColor,
         playerNames: [
           user.username,
           ...List.generate(playersPerTeam - 1, (_) => null),
@@ -157,17 +158,19 @@ class TrucoTrackerNotifier extends Notifier<TrucoTrackerState> {
       TrucoTeam(
         id: 'team_2',
         name: 'Ellos',
+        color: ellosColor,
         playerNames: List.generate(playersPerTeam, (_) => null),
       ),
     ];
 
+    // Partida nueva: NO se guarda hasta que el usuario modifique algo
+    // (puntos, nombres o colores). Si entra y sale sin tocar nada, no queda
+    // ninguna partida en curso.
     state = TrucoTrackerState(
       teams: initialTeams,
       targetScore: 30,
       selectedGame: trucoGame,
     );
-
-    await saveLocalState();
   }
 
   int _normalizePlayerCount(int playerCount) {
@@ -177,6 +180,10 @@ class TrucoTrackerNotifier extends Notifier<TrucoTrackerState> {
 
     return 4;
   }
+
+  /// Color por defecto al restaurar partidas viejas sin color guardado.
+  Color _defaultTeamColor(String teamId) =>
+      teamId == 'team_1' ? AppColors.red : AppColors.blue;
 
   void _updateState(TrucoTrackerState newState) {
     state = newState;
@@ -202,33 +209,6 @@ class TrucoTrackerNotifier extends Notifier<TrucoTrackerState> {
     _updateState(state.copyWith(targetScore: targetScore, teams: updatedTeams));
   }
 
-  void addMalas(int teamIndex, int delta) {
-    if (!_isValidTeamIndex(teamIndex)) return;
-    if (state.isFinished && delta > 0) return;
-
-    final currentTeam = state.teams[teamIndex];
-
-    if (state.targetScore == 15) {
-      setMalasScore(teamIndex, currentTeam.totalPoints + delta);
-    } else {
-      setMalasScore(teamIndex, currentTeam.malas + delta);
-    }
-  }
-
-  void addBuenas(int teamIndex, int delta) {
-    if (!_isValidTeamIndex(teamIndex)) return;
-    if (state.isFinished && delta > 0) return;
-
-    if (state.targetScore == 15) {
-      addMalas(teamIndex, delta);
-      return;
-    }
-
-    final currentTeam = state.teams[teamIndex];
-
-    setBuenasScore(teamIndex, currentTeam.buenas + delta);
-  }
-
   void setMalasScore(int teamIndex, int score) {
     if (!_isValidTeamIndex(teamIndex)) return;
     if (state.isFinished && score > state.teams[teamIndex].totalPoints) return;
@@ -250,6 +230,35 @@ class TrucoTrackerNotifier extends Notifier<TrucoTrackerState> {
     }
 
     _updateState(state.copyWith(teams: updatedTeams));
+  }
+
+  /// Agrega o quita un fósforo respetando el orden del Truco: en "A 30" primero
+  /// se completan las malas (0..15) y recién ahí empiezan las buenas (0..15).
+  /// En "A 15" hay una sola tira de 0..15.
+  void addPoint(int teamIndex, int delta) {
+    if (!_isValidTeamIndex(teamIndex)) return;
+    if (state.isFinished && delta > 0) return;
+
+    final team = state.teams[teamIndex];
+
+    if (state.targetScore == 15) {
+      setMalasScore(teamIndex, team.malas + delta);
+      return;
+    }
+
+    if (delta > 0) {
+      if (team.malas < 15) {
+        setMalasScore(teamIndex, team.malas + 1);
+      } else {
+        setBuenasScore(teamIndex, team.buenas + 1);
+      }
+    } else {
+      if (team.buenas > 0) {
+        setBuenasScore(teamIndex, team.buenas - 1);
+      } else {
+        setMalasScore(teamIndex, team.malas - 1);
+      }
+    }
   }
 
   void setBuenasScore(int teamIndex, int score) {
@@ -294,6 +303,15 @@ class TrucoTrackerNotifier extends Notifier<TrucoTrackerState> {
     _updateState(state.copyWith(teams: updatedTeams));
   }
 
+  void updateTeamColor(int teamIndex, Color color) {
+    if (!_isValidTeamIndex(teamIndex)) return;
+
+    final updatedTeams = List<TrucoTeam>.from(state.teams);
+    updatedTeams[teamIndex] = updatedTeams[teamIndex].copyWith(color: color);
+
+    _updateState(state.copyWith(teams: updatedTeams));
+  }
+
   bool _canUsePlayerName(int teamIndex, int playerIndex, String? playerName) {
     if (playerName == null) return true;
 
@@ -323,32 +341,27 @@ class TrucoTrackerNotifier extends Notifier<TrucoTrackerState> {
   }
 
   Future<void> saveLocalState() async {
-    if (state.teams.isEmpty || _currentUserId.isEmpty || _currentKey.isEmpty) {
-      return;
-    }
+    if (state.teams.isEmpty || !_store.hasKey) return;
 
     final data = {
       'teams': state.teams.map((team) {
         return {
           'id': team.id,
           'name': team.name,
+          'color': team.color.toARGB32(),
           'playerNames': team.playerNames,
           'malas': team.malas,
           'buenas': team.buenas,
         };
       }).toList(),
       'targetScore': state.targetScore,
-      'lastModified': DateTime.now().toIso8601String(),
     };
 
-    await _localStorage.saveData(_currentKey, jsonEncode(data));
+    await _store.save(data);
   }
 
   Future<void> clearLocalState() async {
-    if (_currentUserId.isEmpty || _currentKey.isEmpty) return;
-
-    await _localStorage.removeData(_currentKey);
-
+    await _store.clear();
     state = TrucoTrackerState(teams: [], targetScore: 30);
   }
 }

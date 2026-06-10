@@ -7,6 +7,7 @@ class TrucoScoreSection extends StatelessWidget {
   final Color labelColor;
   final int points;
   final VoidCallback onAddPoint;
+  final bool showLabel;
 
   const TrucoScoreSection({
     super.key,
@@ -14,6 +15,7 @@ class TrucoScoreSection extends StatelessWidget {
     required this.labelColor,
     required this.points,
     required this.onAddPoint,
+    this.showLabel = true,
   });
 
   @override
@@ -22,25 +24,27 @@ class TrucoScoreSection extends StatelessWidget {
 
     return Column(
       children: [
-        Container(
-          width: 92,
-          height: 26,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: labelColor,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(
-            title,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w900,
-              fontSize: 12,
+        if (showLabel) ...[
+          Container(
+            width: 92,
+            height: 26,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: labelColor,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+                fontSize: 12,
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: 8),
+          const SizedBox(height: 8),
+        ],
         GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: onAddPoint,

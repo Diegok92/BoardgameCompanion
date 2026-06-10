@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:math';
 import '../../../../core/theme/app_colors.dart';
-import 'dart:convert';
-import '../../../../data/repositories/local_storage_repository.dart';
-import '../../../../domain/repositories/i_local_storage_repository.dart';
+import '../../../../data/repositories/tracker_local_store.dart';
 import '../../../../data/local_catalog/local_games_catalog.dart';
 import '../../../../domain/models/game_model.dart';
 import '../../../../domain/models/user_model.dart';
@@ -22,11 +20,7 @@ class TrackerPlayer {
     required this.hp,
   });
 
-  TrackerPlayer copyWith({
-    String? name,
-    Color? color,
-    int? hp,
-  }) {
+  TrackerPlayer copyWith({String? name, Color? color, int? hp}) {
     return TrackerPlayer(
       index: index,
       name: name ?? this.name,
@@ -61,90 +55,88 @@ class HpTrackerState {
 }
 
 class HpTrackerNotifier extends Notifier<HpTrackerState> {
-  final ILocalStorageRepository _localStorage = LocalStorageRepository();
-  String _currentUserId = '';
-  String _currentKey = '';
+  final TrackerLocalStore _store = TrackerLocalStore();
 
   @override
   HpTrackerState build() {
     return HpTrackerState(players: [], initialHp: 0);
   }
 
-  Future<void> initialize(int playerCount, User user, int initialHp, {String? fullKey}) async {
-    _currentUserId = user.id;
-
-    // Resetear estado para evitar datos residuales de otro usuario
+  Future<void> initialize(
+    int playerCount,
+    User user,
+    int initialHp, {
+    String? fullKey,
+  }) async {
     state = HpTrackerState(players: [], initialHp: 0);
 
-    // Check local storage using fullKey if provided
-    String? localDataStr;
-    if (fullKey != null) {
-      _currentKey = fullKey;
-      localDataStr = await _localStorage.getData(fullKey);
-    } else {
-      _currentKey = 'tracker_state_${user.id}_${playerCount}_${DateTime.now().millisecondsSinceEpoch}';
-    }
-    
-    if (localDataStr != null) {
+    _store.resolveKey(
+      fullKey: fullKey,
+      prefix: 'tracker',
+      userId: user.id,
+      playerCount: playerCount,
+    );
+
+    final decoded = await _store.load();
+    if (decoded != null) {
       try {
-        final decoded = jsonDecode(localDataStr);
         final playersJson = decoded['players'] as List;
-        List<TrackerPlayer> restoredPlayers = playersJson.map((p) => TrackerPlayer(
-          index: p['index'],
-          name: p['name'],
-          color: Color(p['color']),
-          hp: p['hp'],
-        )).toList();
+        List<TrackerPlayer> restoredPlayers = playersJson
+            .map(
+              (p) => TrackerPlayer(
+                index: p['index'],
+                name: p['name'],
+                color: Color(p['color']),
+                hp: p['hp'],
+              ),
+            )
+            .toList();
         String? gameId = decoded['selectedGameId'];
         Game? restoredGame;
         if (gameId != null) {
           try {
-            restoredGame = LocalGamesCatalog.trackerGames.firstWhere((g) => g.id == gameId);
+            restoredGame = LocalGamesCatalog.trackerGames.firstWhere(
+              (g) => g.id == gameId,
+            );
           } catch (_) {}
         }
-        
+
         state = HpTrackerState(
           players: restoredPlayers,
           selectedGame: restoredGame,
           initialHp: decoded['initialHp'] ?? initialHp,
         );
-        return; // Carga exitosa desde local
+        return;
       } catch (e) {
-        // Fallback en caso de error
+        // ignore
       }
     }
 
     List<TrackerPlayer> initialPlayers = [];
-    
-    // Obtener color del usuario, por defecto rojo si no tiene
+
     Color userColor = user.favoriteColor ?? AppColors.availableColors[0];
-    
+
     initialPlayers.add(
       TrackerPlayer(
         index: 0,
         name: user.username,
         color: userColor,
         hp: initialHp,
-      )
+      ),
     );
 
-    // Asignar colores random a los demás (que no sean el del usuario)
     List<Color> remainingColors = List.from(AppColors.availableColors)
       ..removeWhere((c) => c.toARGB32() == userColor.toARGB32());
     remainingColors.shuffle(Random());
 
     for (int i = 1; i < playerCount; i++) {
-      Color randomColor = remainingColors.isNotEmpty 
-          ? remainingColors.removeAt(0) 
-          : Colors.grey; // Fallback si son más de 10 jugadores
+      // Fallback grey if palette exhausted (>10 players)
+      Color randomColor = remainingColors.isNotEmpty
+          ? remainingColors.removeAt(0)
+          : Colors.grey;
 
       initialPlayers.add(
-        TrackerPlayer(
-          index: i,
-          name: null, // Sin invitado asignado por defecto
-          color: randomColor,
-          hp: initialHp,
-        )
+        TrackerPlayer(index: i, name: null, color: randomColor, hp: initialHp),
       );
     }
 
@@ -163,20 +155,16 @@ class HpTrackerNotifier extends Notifier<HpTrackerState> {
   void addHp(int index, int amount) {
     final updatedPlayers = List<TrackerPlayer>.from(state.players);
     updatedPlayers[index] = updatedPlayers[index].copyWith(
-      hp: updatedPlayers[index].hp + amount
+      hp: updatedPlayers[index].hp + amount,
     );
     _updateState(state.copyWith(players: updatedPlayers));
   }
 
   void resetHp() {
-    final updatedPlayers = state.players.map((p) => p.copyWith(hp: state.initialHp)).toList();
+    final updatedPlayers = state.players
+        .map((p) => p.copyWith(hp: state.initialHp))
+        .toList();
     _updateState(state.copyWith(players: updatedPlayers));
-  }
-
-  void changeInitialHp(int delta) {
-    int newInitial = state.initialHp + delta;
-    if (newInitial < 1) newInitial = 1;
-    _updateState(state.copyWith(initialHp: newInitial));
   }
 
   void setInitialHp(int val) {
@@ -197,40 +185,43 @@ class HpTrackerNotifier extends Notifier<HpTrackerState> {
   }
 
   void selectGame(Game? game) {
-    _updateState(HpTrackerState(
-      players: state.players,
-      selectedGame: game,
-      initialHp: state.initialHp,
-    ));
+    _updateState(
+      HpTrackerState(
+        players: state.players,
+        selectedGame: game,
+        initialHp: state.initialHp,
+      ),
+    );
   }
 
   Future<void> saveLocalState() async {
-    if (state.players.isEmpty || _currentUserId.isEmpty || _currentKey.isEmpty) return;
-    
+    if (state.players.isEmpty || !_store.hasKey) return;
+
     final data = {
-      'players': state.players.map((p) => {
-        'index': p.index,
-        'name': p.name,
-        'color': p.color.toARGB32(),
-        'hp': p.hp,
-      }).toList(),
+      'players': state.players
+          .map(
+            (p) => {
+              'index': p.index,
+              'name': p.name,
+              'color': p.color.toARGB32(),
+              'hp': p.hp,
+            },
+          )
+          .toList(),
       'initialHp': state.initialHp,
       'selectedGameId': state.selectedGame?.id,
-      'lastModified': DateTime.now().toIso8601String(),
     };
-    
-    await _localStorage.saveData(_currentKey, jsonEncode(data));
+
+    await _store.save(data);
   }
 
   Future<void> clearLocalState() async {
-    if (state.players.isEmpty || _currentUserId.isEmpty || _currentKey.isEmpty) return;
-    await _localStorage.removeData(_currentKey);
+    await _store.clear();
   }
 }
 
-// Para pasarlo con parámetros usamos un Family si necesitamos instanciarlo con datos,
-// pero como el popup va a definir el initialHp, lo hacemos NotifierProvider estándar
-// y llamamos a initialize() al cargar la pantalla.
-final hpTrackerProvider = NotifierProvider<HpTrackerNotifier, HpTrackerState>(() {
-  return HpTrackerNotifier();
-});
+final hpTrackerProvider = NotifierProvider<HpTrackerNotifier, HpTrackerState>(
+  () {
+    return HpTrackerNotifier();
+  },
+);

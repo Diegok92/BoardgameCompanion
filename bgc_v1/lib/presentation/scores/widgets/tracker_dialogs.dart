@@ -9,7 +9,6 @@ class DialogPlayerInfo {
 }
 
 class TrackerDialogs {
-  /// Muestra el diálogo para terminar y guardar la partida, incluyendo toda la validación
   static void showFinishMatchDialog({
     required BuildContext context,
     required String? gameId,
@@ -103,7 +102,6 @@ class TrackerDialogs {
     );
   }
 
-  /// Muestra el diálogo de confirmación para resetear los puntajes
   static void showResetDialog({
     required BuildContext context,
     required VoidCallback onConfirm,
@@ -134,7 +132,6 @@ class TrackerDialogs {
     );
   }
 
-  /// Muestra un pop-up con input numérico (Ej: Vida inicial)
   static void showNumberInputDialog({
     required BuildContext context,
     required String title,
@@ -185,7 +182,6 @@ class TrackerDialogs {
     );
   }
 
-  /// Muestra el diálogo para editar un jugador (nombre y color)
   static void showEntityEditor({
     required BuildContext context,
     required String entityName,
@@ -350,7 +346,6 @@ class TrackerDialogs {
     );
   }
 
-  /// Muestra un teclado numérico (NumberPad)
   static void showNumberPadDialog({
     required BuildContext context,
     required String title,

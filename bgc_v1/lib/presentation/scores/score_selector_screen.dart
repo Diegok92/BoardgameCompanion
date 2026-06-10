@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../widgets/bgc_app_bar.dart';
 import '../../domain/models/game_model.dart';
 import '../providers/games_provider.dart';
 import '../widgets/custom_alert.dart';
@@ -94,14 +95,24 @@ class _ScoreSelectorScreenState extends ConsumerState<ScoreSelectorScreen> {
         .read(historialProvider.notifier)
         .fetchLocalMatches(user.id);
     if (!mounted) return;
+
+    // Identificamos las partidas en curso por el PREFIJO de la clave (que define
+    // el tipo de anotador) + jugadores, no por el juego elegido en el dropdown
+    // interno (ese puede cambiar y no debe afectar la posibilidad de retomar).
+    final keyPrefix = {
+      '/hp-tracker': 'tracker',
+      '/standard-scoreboard': 'scoreboard',
+      '/burako-tracker': 'burako',
+      '/akropolis-tracker': 'akropolis',
+      '/generala-tracker': 'generala',
+      '/truco-tracker': 'truco',
+    }[route];
+
     final matchingMatches = localMatches.where((p) {
-      final parts = p.id.split('_');
-      if (parts.length >= 4) {
-        final pCount = parts[3];
-        return p.juegoId == _selectedGame!.id &&
-            pCount == _selectedPlayerCount.toString();
-      }
-      return false;
+      if (keyPrefix == null) return false;
+      return p.id.startsWith(
+        '${keyPrefix}_state_${user.id}_${_selectedPlayerCount}_',
+      );
     }).toList();
 
     if (matchingMatches.isNotEmpty) {
@@ -160,36 +171,13 @@ class _ScoreSelectorScreenState extends ConsumerState<ScoreSelectorScreen> {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.chevron_left, size: 32),
-          onPressed: () => context.pop(),
-        ),
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'BG Companion',
-              style: textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
-            ),
-            const SizedBox(width: 8),
-            SvgPicture.asset('assets/images/logo.svg', height: 24),
-          ],
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
+      appBar: const BgcAppBar(),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Sección superior: Buscador y Jugadores
               Row(
                 children: [
                   Expanded(
@@ -292,7 +280,6 @@ class _ScoreSelectorScreenState extends ConsumerState<ScoreSelectorScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Anotadores Rápidos (Estándares)
                             Text(
                               'Anotadores Estándar',
                               style: textTheme.titleMedium?.copyWith(
@@ -387,7 +374,6 @@ class _ScoreSelectorScreenState extends ConsumerState<ScoreSelectorScreen> {
                             ),
                             const SizedBox(height: 24),
 
-                            // Otros Juegos
                             Text(
                               'Anotadores Personalizados',
                               style: textTheme.titleMedium?.copyWith(
@@ -480,7 +466,6 @@ class _ScoreSelectorScreenState extends ConsumerState<ScoreSelectorScreen> {
                   ),
               const SizedBox(height: 16),
 
-              // Botón de Confirmar
               SizedBox(
                 width: double.infinity,
                 height: 56,

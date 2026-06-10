@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'dart:convert';
 import 'dart:math';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../data/repositories/local_storage_repository.dart';
-import '../../../../domain/repositories/i_local_storage_repository.dart';
+import '../../../../data/repositories/tracker_local_store.dart';
 import '../../../../domain/models/game_model.dart';
 import '../../../../domain/models/user_model.dart';
 import '../../../../data/local_catalog/local_games_catalog.dart';
@@ -14,12 +12,18 @@ enum AkropolisHexagon { blue, yellow, red, purple, green, stones }
 extension AkropolisHexagonExtension on AkropolisHexagon {
   Color get color {
     switch (this) {
-      case AkropolisHexagon.blue: return const Color(0xFF2D7DCA);
-      case AkropolisHexagon.yellow: return const Color(0xFFF4C300);
-      case AkropolisHexagon.red: return const Color(0xFFD9382E);
-      case AkropolisHexagon.purple: return const Color(0xFF7D3C98);
-      case AkropolisHexagon.green: return const Color(0xFF3E9C35);
-      case AkropolisHexagon.stones: return const Color(0xFF9E9E9E);
+      case AkropolisHexagon.blue:
+        return const Color(0xFF2D7DCA);
+      case AkropolisHexagon.yellow:
+        return const Color(0xFFF4C300);
+      case AkropolisHexagon.red:
+        return const Color(0xFFD9382E);
+      case AkropolisHexagon.purple:
+        return const Color(0xFF7D3C98);
+      case AkropolisHexagon.green:
+        return const Color(0xFF3E9C35);
+      case AkropolisHexagon.stones:
+        return const Color(0xFF9E9E9E);
     }
   }
 
@@ -47,14 +51,19 @@ class AkropolisScore {
   final bool isScored;
   const AkropolisScore({this.value = 0, this.stars = 0, this.isScored = false});
 
-  int get total => stars == -1 ? value : value * stars; // -1 represents stones where no stars apply
+  // stars == -1 for Stones tile, where the count is the score directly (no multiplier)
+  int get total => stars == -1 ? value : value * stars;
 
-  Map<String, dynamic> toJson() => {'value': value, 'stars': stars, 'isScored': isScored};
+  Map<String, dynamic> toJson() => {
+    'value': value,
+    'stars': stars,
+    'isScored': isScored,
+  };
   factory AkropolisScore.fromJson(Map<String, dynamic> json) => AkropolisScore(
-        value: json['value'] ?? 0,
-        stars: json['stars'] ?? 0,
-        isScored: json['isScored'] ?? true, // if saved without this field, assume it was scored
-      );
+    value: json['value'] ?? 0,
+    stars: json['stars'] ?? 0,
+    isScored: json['isScored'] ?? true,
+  );
 }
 
 class AkropolisEntity {
@@ -68,16 +77,19 @@ class AkropolisEntity {
     required this.name,
     required this.color,
     Map<AkropolisHexagon, AkropolisScore>? scores,
-  }) : scores = scores ?? {
-          AkropolisHexagon.blue: const AkropolisScore(),
-          AkropolisHexagon.yellow: const AkropolisScore(),
-          AkropolisHexagon.red: const AkropolisScore(),
-          AkropolisHexagon.purple: const AkropolisScore(),
-          AkropolisHexagon.green: const AkropolisScore(),
-          AkropolisHexagon.stones: const AkropolisScore(stars: -1),
-        };
+  }) : scores =
+           scores ??
+           {
+             AkropolisHexagon.blue: const AkropolisScore(),
+             AkropolisHexagon.yellow: const AkropolisScore(),
+             AkropolisHexagon.red: const AkropolisScore(),
+             AkropolisHexagon.purple: const AkropolisScore(),
+             AkropolisHexagon.green: const AkropolisScore(),
+             AkropolisHexagon.stones: const AkropolisScore(stars: -1),
+           };
 
-  int get totalScore => scores.values.fold(0, (sum, score) => sum + score.total);
+  int get totalScore =>
+      scores.values.fold(0, (sum, score) => sum + score.total);
 
   AkropolisEntity copyWith({
     String? name,
@@ -104,7 +116,9 @@ class AkropolisBuffer {
     this.starsValue = 0,
   });
 
-  int get totalPoints => selectedHexagon == AkropolisHexagon.stones ? districtValue : districtValue * starsValue;
+  int get totalPoints => selectedHexagon == AkropolisHexagon.stones
+      ? districtValue
+      : districtValue * starsValue;
 
   AkropolisBuffer copyWith({
     AkropolisHexagon? selectedHexagon,
@@ -148,9 +162,7 @@ class AkropolisTrackerState {
 }
 
 class AkropolisTrackerNotifier extends Notifier<AkropolisTrackerState> {
-  final ILocalStorageRepository _localStorage = LocalStorageRepository();
-  String _currentUserId = '';
-  String _currentKey = '';
+  final TrackerLocalStore _store = TrackerLocalStore();
 
   @override
   AkropolisTrackerState build() {
@@ -162,36 +174,39 @@ class AkropolisTrackerNotifier extends Notifier<AkropolisTrackerState> {
   }
 
   Future<void> initialize(int playerCount, User user, {String? fullKey}) async {
-    _currentUserId = user.id;
-
     state = AkropolisTrackerState(
       entities: [],
       activeEntityIndex: 0,
       buffer: const AkropolisBuffer(),
     );
 
-    String? localDataStr;
-    if (fullKey != null) {
-      _currentKey = fullKey;
-      localDataStr = await _localStorage.getData(fullKey);
-    } else {
-      _currentKey = 'akropolis_state_${user.id}_${playerCount}_${DateTime.now().millisecondsSinceEpoch}';
-    }
+    _store.resolveKey(
+      fullKey: fullKey,
+      prefix: 'akropolis',
+      userId: user.id,
+      playerCount: playerCount,
+    );
 
     Game? akropolisGame;
     try {
-      akropolisGame = LocalGamesCatalog.games.firstWhere((g) => g.id == 'akropolis');
+      akropolisGame = LocalGamesCatalog.games.firstWhere(
+        (g) => g.id == 'akropolis',
+      );
     } catch (_) {}
 
-    if (localDataStr != null) {
+    final decoded = await _store.load();
+    if (decoded != null) {
       try {
-        final decoded = jsonDecode(localDataStr);
         final entitiesJson = decoded['entities'] as List;
         List<AkropolisEntity> restoredEntities = entitiesJson.map((e) {
           final scoresJson = e['scores'] as Map<String, dynamic>;
           final Map<AkropolisHexagon, AkropolisScore> restoredScores = {};
           scoresJson.forEach((key, value) {
-            restoredScores[AkropolisHexagon.values.firstWhere((e) => e.toString() == key)] = AkropolisScore.fromJson(value);
+            restoredScores[AkropolisHexagon.values.firstWhere(
+              (e) => e.toString() == key,
+            )] = AkropolisScore.fromJson(
+              value,
+            );
           });
           return AkropolisEntity(
             id: e['id'],
@@ -208,37 +223,37 @@ class AkropolisTrackerNotifier extends Notifier<AkropolisTrackerState> {
           selectedGame: akropolisGame,
         );
         return;
-      } catch (e) {
-        // Fallback si falla
-      }
+      } catch (_) {}
     }
 
     List<AkropolisEntity> initialEntities = [];
     Color userColor = user.favoriteColor ?? AppColors.availableColors[0];
-    
+
     List<Color> remainingColors = List.from(AppColors.availableColors)
       ..removeWhere((c) => c.toARGB32() == userColor.toARGB32());
     remainingColors.shuffle(Random());
 
-    initialEntities.add(AkropolisEntity(
-      id: 'jugador_1',
-      name: user.username,
-      color: userColor,
-    ));
+    initialEntities.add(
+      AkropolisEntity(id: 'jugador_1', name: user.username, color: userColor),
+    );
 
     if (playerCount == 1) {
-      initialEntities.add(AkropolisEntity(
-        id: 'ilustre',
-        name: 'Ilustre',
-        color: remainingColors[0],
-      ));
+      initialEntities.add(
+        AkropolisEntity(
+          id: 'ilustre',
+          name: 'Ilustre',
+          color: remainingColors[0],
+        ),
+      );
     } else {
       for (int i = 1; i < playerCount; i++) {
-        initialEntities.add(AkropolisEntity(
-          id: 'jugador_${i + 1}',
-          name: 'Jugador ${i + 1}',
-          color: remainingColors[i - 1],
-        ));
+        initialEntities.add(
+          AkropolisEntity(
+            id: 'jugador_${i + 1}',
+            name: 'Jugador ${i + 1}',
+            color: remainingColors[i - 1],
+          ),
+        );
       }
     }
 
@@ -264,28 +279,32 @@ class AkropolisTrackerNotifier extends Notifier<AkropolisTrackerState> {
   }
 
   void setBufferHexagon(AkropolisHexagon hexagon) {
-    _updateState(state.copyWith(
-      buffer: state.buffer.copyWith(
-        selectedHexagon: hexagon,
-        districtValue: 0,
-        starsValue: hexagon == AkropolisHexagon.stones ? -1 : 0,
+    _updateState(
+      state.copyWith(
+        buffer: state.buffer.copyWith(
+          selectedHexagon: hexagon,
+          districtValue: 0,
+          starsValue: hexagon == AkropolisHexagon.stones ? -1 : 0,
+        ),
       ),
-    ));
+    );
   }
 
   void updateBuffer({int? districtValue, int? starsValue}) {
-    _updateState(state.copyWith(
-      buffer: state.buffer.copyWith(
-        districtValue: districtValue,
-        starsValue: starsValue,
+    _updateState(
+      state.copyWith(
+        buffer: state.buffer.copyWith(
+          districtValue: districtValue,
+          starsValue: starsValue,
+        ),
       ),
-    ));
+    );
   }
 
   void commitBuffer() {
     final activeIndex = state.activeEntityIndex;
     final entity = state.entities[activeIndex];
-    
+
     final hex = state.buffer.selectedHexagon;
     final newScore = AkropolisScore(
       value: state.buffer.districtValue,
@@ -297,7 +316,7 @@ class AkropolisTrackerNotifier extends Notifier<AkropolisTrackerState> {
     newScores[hex] = newScore;
 
     final newEntity = entity.copyWith(scores: newScores);
-    
+
     final newEntities = List<AkropolisEntity>.from(state.entities);
     newEntities[activeIndex] = newEntity;
 
@@ -309,53 +328,57 @@ class AkropolisTrackerNotifier extends Notifier<AkropolisTrackerState> {
       nextHex = hexValues[(currentHexIndex + 1) % hexValues.length];
     }
 
-    _updateState(state.copyWith(
-      entities: newEntities,
-      activeEntityIndex: nextIndex,
-      buffer: AkropolisBuffer(
-        selectedHexagon: nextHex,
-        districtValue: 0,
-        starsValue: nextHex == AkropolisHexagon.stones ? -1 : 0,
+    _updateState(
+      state.copyWith(
+        entities: newEntities,
+        activeEntityIndex: nextIndex,
+        buffer: AkropolisBuffer(
+          selectedHexagon: nextHex,
+          districtValue: 0,
+          starsValue: nextHex == AkropolisHexagon.stones ? -1 : 0,
+        ),
       ),
-    ));
+    );
   }
 
   void resetAllScores() {
-    final newEntities = state.entities.map((e) => AkropolisEntity(
-      id: e.id,
-      name: e.name,
-      color: e.color,
-    )).toList();
+    final newEntities = state.entities
+        .map((e) => AkropolisEntity(id: e.id, name: e.name, color: e.color))
+        .toList();
 
-    _updateState(state.copyWith(
-      entities: newEntities,
-      buffer: const AkropolisBuffer(),
-    ));
+    _updateState(
+      state.copyWith(entities: newEntities, buffer: const AkropolisBuffer()),
+    );
   }
 
   Future<void> saveLocalState() async {
-    if (_currentUserId.isEmpty || state.entities.isEmpty || _currentKey.isEmpty) return;
-    
-    final encoded = jsonEncode({
+    if (state.entities.isEmpty || !_store.hasKey) return;
+
+    final data = {
       'activeEntityIndex': state.activeEntityIndex,
-      'entities': state.entities.map((e) => {
-        'id': e.id,
-        'name': e.name,
-        'color': e.color.toARGB32(),
-        'scores': e.scores.map((key, value) => MapEntry(key.toString(), value.toJson())),
-      }).toList(),
-      'lastModified': DateTime.now().toIso8601String(),
-    });
-    
-    await _localStorage.saveData(_currentKey, encoded);
+      'entities': state.entities
+          .map(
+            (e) => {
+              'id': e.id,
+              'name': e.name,
+              'color': e.color.toARGB32(),
+              'scores': e.scores.map(
+                (key, value) => MapEntry(key.toString(), value.toJson()),
+              ),
+            },
+          )
+          .toList(),
+    };
+
+    await _store.save(data);
   }
 
   Future<void> clearLocalState() async {
-    if (_currentUserId.isEmpty || _currentKey.isEmpty) return;
-    await _localStorage.removeData(_currentKey);
+    await _store.clear();
   }
 }
 
-final akropolisTrackerProvider = NotifierProvider<AkropolisTrackerNotifier, AkropolisTrackerState>(() {
-  return AkropolisTrackerNotifier();
-});
+final akropolisTrackerProvider =
+    NotifierProvider<AkropolisTrackerNotifier, AkropolisTrackerState>(() {
+      return AkropolisTrackerNotifier();
+    });

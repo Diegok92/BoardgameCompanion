@@ -8,16 +8,16 @@ class GeneralaInputPanel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state    = ref.watch(generalaTrackerProvider);
+    final state = ref.watch(generalaTrackerProvider);
     final notifier = ref.read(generalaTrackerProvider.notifier);
-    final cs       = Theme.of(context).colorScheme;
+    final cs = Theme.of(context).colorScheme;
 
     if (state.entities.isEmpty) return const SizedBox.shrink();
 
-    final activeIdx    = state.buffer.activeEntityIndex;
-    final category     = state.buffer.selectedCategory;
+    final activeIdx = state.buffer.activeEntityIndex;
+    final category = state.buffer.selectedCategory;
     final pendingScore = state.buffer.pendingScore;
-    final entity       = state.entities[activeIdx];
+    final entity = state.entities[activeIdx];
     final alreadyScored = entity.scores[category] != null;
 
     final dobleGeneralaBlocked =
@@ -37,11 +37,8 @@ class GeneralaInputPanel extends ConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-
-          // ── Fila 1: USUARIO | TIPO DE JUGADA ──────────────────────────────
           Row(
             children: [
-              // Dropdown jugador
               Expanded(
                 child: _PlayerDropdown(
                   entities: state.entities,
@@ -50,7 +47,6 @@ class GeneralaInputPanel extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              // Dropdown categoría
               Expanded(
                 child: _CategoryDropdown(
                   entity: entity,
@@ -63,7 +59,6 @@ class GeneralaInputPanel extends ConsumerWidget {
 
           const SizedBox(height: 12),
 
-          // ── Fila 2: botones de puntaje ─────────────────────────────────────
           _ScoreOptions(
             entity: entity,
             category: category,
@@ -75,7 +70,6 @@ class GeneralaInputPanel extends ConsumerWidget {
 
           const SizedBox(height: 8),
 
-          // ── Fila 3: "Sumando a X" pequeño ─────────────────────────────────
           Text(
             _summaryText(entity, pendingScore, alreadyScored),
             style: TextStyle(
@@ -88,7 +82,6 @@ class GeneralaInputPanel extends ConsumerWidget {
 
           const SizedBox(height: 10),
 
-          // ── Fila 4: botón SUMAR ────────────────────────────────────────────
           SizedBox(
             width: double.infinity,
             height: 50,
@@ -98,12 +91,15 @@ class GeneralaInputPanel extends ConsumerWidget {
                 backgroundColor: AppColors.green,
                 disabledBackgroundColor: cs.surfaceContainerHighest,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               child: Text(
                 'SUMAR A ${entity.name.toUpperCase()}',
                 style: const TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 15),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
               ),
             ),
           ),
@@ -113,17 +109,16 @@ class GeneralaInputPanel extends ConsumerWidget {
   }
 
   String _summaryText(
-      GeneralaEntity entity, int? pendingScore, bool alreadyScored) {
+    GeneralaEntity entity,
+    int? pendingScore,
+    bool alreadyScored,
+  ) {
     if (alreadyScored) return '✓ Categoría ya anotada para ${entity.name}';
     if (pendingScore == null) return 'Sumando a ${entity.name}';
     if (pendingScore == 0) return 'Tachando casilla para ${entity.name}';
     return 'Sumando $pendingScore pts a ${entity.name}';
   }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Dropdown: jugador
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _PlayerDropdown extends StatelessWidget {
   final List<GeneralaEntity> entities;
@@ -139,7 +134,7 @@ class _PlayerDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final entity = entities[activeIndex];
-    final fg = entity.color.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+    final fg = AppColors.contrastOn(entity.color);
 
     return Container(
       alignment: Alignment.center,
@@ -165,7 +160,7 @@ class _PlayerDropdown extends StatelessWidget {
                 child: Text(
                   e.name.toUpperCase(),
                   style: TextStyle(
-                    color: e.color.computeLuminance() > 0.5 ? Colors.black : Colors.white,
+                    color: AppColors.contrastOn(e.color),
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
                   ),
@@ -174,7 +169,9 @@ class _PlayerDropdown extends StatelessWidget {
               ),
             );
           }),
-          onChanged: (v) { if (v != null) onChanged(v); },
+          onChanged: (v) {
+            if (v != null) onChanged(v);
+          },
           selectedItemBuilder: (context) => List.generate(
             entities.length,
             (i) => Align(
@@ -182,7 +179,10 @@ class _PlayerDropdown extends StatelessWidget {
               child: Text(
                 entities[i].name.toUpperCase(),
                 style: TextStyle(
-                    color: fg, fontWeight: FontWeight.bold, fontSize: 12),
+                  color: fg,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -192,10 +192,6 @@ class _PlayerDropdown extends StatelessWidget {
     );
   }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Dropdown: categoría
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _CategoryDropdown extends StatelessWidget {
   final GeneralaEntity entity;
@@ -228,18 +224,20 @@ class _CategoryDropdown extends StatelessWidget {
           icon: Icon(Icons.keyboard_arrow_down, color: cs.onSurface, size: 18),
           dropdownColor: cs.surface,
           selectedItemBuilder: (context) => GeneralaCategory.values
-              .map((cat) => Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      cat.dropdownLabel,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: cs.onSurface,
-                      ),
-                      overflow: TextOverflow.ellipsis,
+              .map(
+                (cat) => Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    cat.dropdownLabel,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: cs.onSurface,
                     ),
-                  ))
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              )
               .toList(),
           items: GeneralaCategory.values.map((cat) {
             final isScored = entity.scores[cat] != null;
@@ -256,30 +254,31 @@ class _CategoryDropdown extends StatelessWidget {
                             : cs.onSurface,
                         fontWeight: FontWeight.w700,
                         fontSize: 12,
-                        decoration:
-                            isScored ? TextDecoration.lineThrough : null,
+                        decoration: isScored
+                            ? TextDecoration.lineThrough
+                            : null,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   if (isScored)
-                    Icon(Icons.check, size: 12,
-                        color: cs.onSurface.withValues(alpha: 0.4)),
+                    Icon(
+                      Icons.check,
+                      size: 12,
+                      color: cs.onSurface.withValues(alpha: 0.4),
+                    ),
                 ],
               ),
             );
           }).toList(),
-          onChanged: (v) { if (v != null) onChanged(v); },
+          onChanged: (v) {
+            if (v != null) onChanged(v);
+          },
         ),
       ),
     );
   }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Botones de selección de puntaje
-// Puntos arriba (wrap centrado) · Tachar abajo (centrado solo)
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _ScoreOptions extends StatelessWidget {
   final GeneralaEntity entity;
@@ -304,7 +303,6 @@ class _ScoreOptions extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    // Construir lista de opciones sin "Tachar"
     final pointOpts = <_Opt>[];
 
     if (category.isNumeric) {
@@ -313,16 +311,21 @@ class _ScoreOptions extends StatelessWidget {
         pointOpts.add(_Opt('${i * face} pts', i * face));
       }
     } else if (category.hasServidaOption) {
-      pointOpts.add(_Opt('No Serv. (${category.noServidaScore})', category.noServidaScore));
-      pointOpts.add(_Opt('Serv. (${category.servidaScore})', category.servidaScore));
+      pointOpts.add(
+        _Opt('No Serv. (${category.noServidaScore})', category.noServidaScore),
+      );
+      pointOpts.add(
+        _Opt('Serv. (${category.servidaScore})', category.servidaScore),
+      );
     } else {
-      pointOpts.add(_Opt('Hecha (${category.servidaScore})', category.servidaScore));
+      pointOpts.add(
+        _Opt('Hecha (${category.servidaScore})', category.servidaScore),
+      );
     }
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Puntos arriba
         Wrap(
           alignment: WrapAlignment.center,
           spacing: 6,
@@ -330,7 +333,6 @@ class _ScoreOptions extends StatelessWidget {
           children: pointOpts.map((opt) => _chip(context, opt)).toList(),
         ),
         const SizedBox(height: 8),
-        // Tachar abajo, centrado
         _chip(context, const _Opt('Tachar (0)', 0), isTachar: true),
       ],
     );
@@ -347,7 +349,7 @@ class _ScoreOptions extends StatelessWidget {
       borderColor = cs.error;
     } else if (isSelected) {
       bg = entity.color;
-      fg = entity.color.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+      fg = AppColors.contrastOn(entity.color);
       borderColor = entity.color;
     } else if (isTachar) {
       bg = cs.surfaceContainerHighest;
@@ -372,7 +374,10 @@ class _ScoreOptions extends StatelessWidget {
         child: Text(
           opt.label,
           style: TextStyle(
-              color: fg, fontWeight: FontWeight.w700, fontSize: 12),
+            color: fg,
+            fontWeight: FontWeight.w700,
+            fontSize: 12,
+          ),
         ),
       ),
     );

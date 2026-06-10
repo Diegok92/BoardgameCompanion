@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../providers/hp_tracker_provider.dart';
-import 'components/hp_shield.dart';
+import 'hp_shield.dart';
 import '../../widgets/tracker_dialogs.dart';
 import '../../widgets/player_badge.dart';
 
@@ -27,22 +27,35 @@ class HpPlayerCard extends StatefulWidget {
 }
 
 class _HpPlayerCardState extends State<HpPlayerCard> {
-  Widget _buildSinglePlayerCapsule(bool isWide, bool isCompact, Set<int> usedColors, List<String> availableInvitados, BuildContext context) {
+  Widget _buildSinglePlayerCapsule(
+    bool isWide,
+    bool isCompact,
+    Set<int> usedColors,
+    List<String> availableInvitados,
+    BuildContext context,
+  ) {
     return PlayerBadge(
       name: widget.player.name ?? 'Jugador ${widget.player.index + 1}',
       color: widget.player.color,
       height: isCompact ? 36 : 48,
       onTap: () {
-        final usedNames = widget.allPlayers.map((p) => p.name).where((n) => n != null).cast<String>().toList();
+        final usedNames = widget.allPlayers
+            .map((p) => p.name)
+            .where((n) => n != null)
+            .cast<String>()
+            .toList();
         final usedColorsList = widget.allPlayers.map((p) => p.color).toList();
-        
+
         TrackerDialogs.showEntityEditor(
           context: context,
-          entityName: widget.player.name ?? 'Jugador ${widget.player.index + 1}',
+          entityName:
+              widget.player.name ?? 'Jugador ${widget.player.index + 1}',
           entityId: widget.player.index.toString(),
           entityColor: widget.player.color,
           entityIndex: widget.player.index,
-          loggedInUsername: widget.player.index == 0 ? (widget.player.name ?? '') : null,
+          loggedInUsername: widget.player.index == 0
+              ? (widget.player.name ?? '')
+              : null,
           invitados: widget.invitados,
           assignedNames: usedNames,
           assignedColors: usedColorsList,
@@ -73,7 +86,13 @@ class _HpPlayerCardState extends State<HpPlayerCard> {
         bool isWide = constraints.maxWidth > constraints.maxHeight * 1.3;
         bool isCompact = !isSinglePlayer;
 
-        final capsule = _buildSinglePlayerCapsule(isWide, isCompact, usedColors, availableInvitados, context);
+        final capsule = _buildSinglePlayerCapsule(
+          isWide,
+          isCompact,
+          usedColors,
+          availableInvitados,
+          context,
+        );
         final shield = Expanded(
           child: Padding(
             padding: const EdgeInsets.all(4.0),
@@ -92,10 +111,7 @@ class _HpPlayerCardState extends State<HpPlayerCard> {
                 flex: isCompact ? 1 : 2,
                 child: Center(child: capsule),
               ),
-              Expanded(
-                flex: isCompact ? 1 : 3,
-                child: shield,
-              ),
+              Expanded(flex: isCompact ? 1 : 3, child: shield),
             ],
           );
         } else {

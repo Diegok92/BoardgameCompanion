@@ -2,13 +2,22 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 
 class CustomAlert {
-  static void show(BuildContext context, String message, {bool isError = false, String? title}) {
+  static void show(
+    BuildContext context,
+    String message, {
+    bool isError = false,
+    String? title,
+  }) {
     showDialog(
       context: context,
       barrierDismissible: true,
       barrierColor: Colors.black12,
       builder: (BuildContext dialogContext) {
-        return _CustomAlertDialog(message: message, isError: isError, title: title);
+        return _CustomAlertDialog(
+          message: message,
+          isError: isError,
+          title: title,
+        );
       },
     );
   }
@@ -19,7 +28,11 @@ class _CustomAlertDialog extends StatefulWidget {
   final bool isError;
   final String? title;
 
-  const _CustomAlertDialog({required this.message, this.isError = false, this.title});
+  const _CustomAlertDialog({
+    required this.message,
+    this.isError = false,
+    this.title,
+  });
 
   @override
   State<_CustomAlertDialog> createState() => _CustomAlertDialogState();
@@ -49,7 +62,9 @@ class _CustomAlertDialogState extends State<_CustomAlertDialog> {
     final colorScheme = Theme.of(context).colorScheme;
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      backgroundColor: widget.isError ? colorScheme.errorContainer : colorScheme.primaryContainer,
+      backgroundColor: widget.isError
+          ? colorScheme.errorContainer
+          : colorScheme.primaryContainer,
       elevation: 8,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
@@ -60,7 +75,9 @@ class _CustomAlertDialogState extends State<_CustomAlertDialog> {
               Text(
                 widget.title!,
                 style: TextStyle(
-                  color: widget.isError ? colorScheme.onErrorContainer : colorScheme.onPrimaryContainer,
+                  color: widget.isError
+                      ? colorScheme.onErrorContainer
+                      : colorScheme.onPrimaryContainer,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -71,7 +88,9 @@ class _CustomAlertDialogState extends State<_CustomAlertDialog> {
             Text(
               widget.message,
               style: TextStyle(
-                color: widget.isError ? colorScheme.onErrorContainer : colorScheme.onPrimaryContainer,
+                color: widget.isError
+                    ? colorScheme.onErrorContainer
+                    : colorScheme.onPrimaryContainer,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),

@@ -18,7 +18,11 @@ class AkropolisTrackerScreen extends ConsumerStatefulWidget {
   final int playerCount;
   final String? fullKey;
 
-  const AkropolisTrackerScreen({super.key, required this.playerCount, this.fullKey});
+  const AkropolisTrackerScreen({
+    super.key,
+    required this.playerCount,
+    this.fullKey,
+  });
 
   @override
   ConsumerState<AkropolisTrackerScreen> createState() =>
@@ -33,22 +37,12 @@ class _AkropolisTrackerScreenState
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final user = ref.read(authProvider);
       if (user != null) {
-        ref.read(akropolisTrackerProvider.notifier).initialize(widget.playerCount, user, fullKey: widget.fullKey);
+        ref
+            .read(akropolisTrackerProvider.notifier)
+            .initialize(widget.playerCount, user, fullKey: widget.fullKey);
       }
     });
   }
-
-  // _showEntityEditor removed, using TrackerDialogs.showEntityEditor
-  // _getExplanation removed, using AkropolisHexagonExtension
-  // _getHexColor removed, using AkropolisHexagonExtension
-
-  // Removed _getHexName
-
-  // Removed _showInfoDialog
-
-  // _showNumberPad removed, using TrackerDialogs.showNumberPadDialog
-
-  // _buildGridTable and _buildInputPanel extracted to widgets
 
   @override
   Widget build(BuildContext context) {

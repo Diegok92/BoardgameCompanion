@@ -81,28 +81,31 @@ class ChessClockNotifier extends Notifier<ChessClockState> {
     _currentKey = 'chess_clock_state_${user.id}';
 
     String? localDataStr = await _localStorage.getData(_currentKey);
-    
+
     if (localDataStr != null) {
       try {
         final decoded = jsonDecode(localDataStr);
         state = ChessClockState(
           playerOneName: decoded['playerOneName'] ?? user.username,
-          playerOneColor: decoded['playerOneColor'] != null ? Color(decoded['playerOneColor']) : (user.favoriteColor ?? AppColors.blue),
+          playerOneColor: decoded['playerOneColor'] != null
+              ? Color(decoded['playerOneColor'])
+              : (user.favoriteColor ?? AppColors.blue),
           playerOneSeconds: decoded['playerOneSeconds'] ?? 300,
           playerTwoName: decoded['playerTwoName'] ?? 'Jugador 2',
-          playerTwoColor: decoded['playerTwoColor'] != null ? Color(decoded['playerTwoColor']) : AppColors.red,
+          playerTwoColor: decoded['playerTwoColor'] != null
+              ? Color(decoded['playerTwoColor'])
+              : AppColors.red,
           playerTwoSeconds: decoded['playerTwoSeconds'] ?? 300,
           activePlayer: decoded['activePlayer'] ?? 1,
-          isRunning: false, // Always initialize paused
+          isRunning: false,
           initialSeconds: decoded['initialSeconds'] ?? 300,
         );
-        return false; // Not new
+        return false;
       } catch (e) {
-        // Fallback to default
+        // ignorado: cae al estado por defecto
       }
     }
 
-    // Default initialization
     final playerOneColor = user.favoriteColor ?? AppColors.blue;
     // El jugador 2 arranca con un color distinto al del usuario.
     final playerTwoColor = AppColors.availableColors.firstWhere(
@@ -121,7 +124,7 @@ class ChessClockNotifier extends Notifier<ChessClockState> {
       initialSeconds: 300,
     );
     await _saveState();
-    return true; // Is new
+    return true;
   }
 
   Future<void> setInitialSeconds(int seconds) async {
@@ -146,8 +149,12 @@ class ChessClockNotifier extends Notifier<ChessClockState> {
   }
 
   void start() {
-    if (state.isRunning || state.playerOneSeconds <= 0 || state.playerTwoSeconds <= 0) return;
-    
+    if (state.isRunning ||
+        state.playerOneSeconds <= 0 ||
+        state.playerTwoSeconds <= 0) {
+      return;
+    }
+
     state = state.copyWith(isRunning: true);
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (state.activePlayer == 1) {
@@ -163,8 +170,7 @@ class ChessClockNotifier extends Notifier<ChessClockState> {
           pause();
         }
       }
-      // Save state every second to prevent data loss if app is closed suddenly
-      _saveState();
+      _saveState(); // persiste en cada tick para no perder tiempo si la app se cierra abruptamente
     });
   }
 
@@ -205,11 +211,12 @@ class ChessClockNotifier extends Notifier<ChessClockState> {
       'initialSeconds': state.initialSeconds,
       'lastModified': DateTime.now().toIso8601String(),
     };
-    
+
     await _localStorage.saveData(_currentKey, jsonEncode(data));
   }
 }
 
-final chessClockProvider = NotifierProvider<ChessClockNotifier, ChessClockState>(() {
-  return ChessClockNotifier();
-});
+final chessClockProvider =
+    NotifierProvider<ChessClockNotifier, ChessClockState>(() {
+      return ChessClockNotifier();
+    });

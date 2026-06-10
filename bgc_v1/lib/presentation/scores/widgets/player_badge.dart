@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
 
 class PlayerBadge extends StatelessWidget {
   final String name;
@@ -30,7 +31,7 @@ class PlayerBadge extends StatelessWidget {
       child: Text(
         name.toUpperCase(),
         style: TextStyle(
-          color: color.computeLuminance() > 0.5 ? Colors.black : Colors.white,
+          color: AppColors.contrastOn(color),
           fontWeight: FontWeight.bold,
           fontSize: 14,
         ),
@@ -41,10 +42,7 @@ class PlayerBadge extends StatelessWidget {
     );
 
     if (onTap != null) {
-      return GestureDetector(
-        onTap: onTap,
-        child: badge,
-      );
+      return GestureDetector(onTap: onTap, child: badge);
     }
 
     return badge;

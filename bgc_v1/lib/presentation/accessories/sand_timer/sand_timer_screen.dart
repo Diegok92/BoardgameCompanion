@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/theme/app_colors.dart';
-import '../providers/auth_provider.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../providers/auth_provider.dart';
+import '../../widgets/bgc_app_bar.dart';
 import 'providers/sand_timer_provider.dart';
-import 'widgets/accessory_control_bar.dart';
-import 'widgets/accessory_resume_dialog.dart';
-import 'widgets/accessory_time_dialog.dart';
+import '../widgets/accessory_control_bar.dart';
+import '../widgets/accessory_resume_dialog.dart';
+import '../widgets/accessory_time_dialog.dart';
 
 class SandTimerScreen extends ConsumerStatefulWidget {
   const SandTimerScreen({super.key});
@@ -114,7 +114,6 @@ class _SandTimerScreenState extends ConsumerState<SandTimerScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final state = ref.watch(sandTimerProvider);
 
-    // Mostrar el diálogo de tiempo agotado cuando llega a 0.
     ref.listen<SandTimerState>(sandTimerProvider, (previous, next) {
       final justFinished =
           previous != null &&
@@ -138,7 +137,7 @@ class _SandTimerScreenState extends ConsumerState<SandTimerScreen> {
       },
       child: Scaffold(
         backgroundColor: colorScheme.surface,
-        appBar: _buildAppBar(context),
+        appBar: BgcAppBar(onBack: _goBack),
         body: SafeArea(
           child: Column(
             children: [
@@ -193,32 +192,6 @@ class _SandTimerScreenState extends ConsumerState<SandTimerScreen> {
       ),
     );
   }
-
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
-    return AppBar(
-      leading: IconButton(
-        icon: const Icon(Icons.chevron_left, size: 32),
-        onPressed: _goBack,
-      ),
-      title: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'BG Companion',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-            ),
-          ),
-          const SizedBox(width: 8),
-          SvgPicture.asset('assets/images/logo.svg', height: 24),
-        ],
-      ),
-      centerTitle: true,
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-    );
-  }
 }
 
 class HourglassPainter extends CustomPainter {
@@ -257,7 +230,6 @@ class HourglassPainter extends CustomPainter {
       ..lineTo(w, bottomY)
       ..close();
 
-    // Arena restante (mitad superior — el nivel cae desde arriba hacia la cintura)
     if (progress > 0.001) {
       canvas.save();
       canvas.clipPath(topTriangle);
@@ -271,7 +243,6 @@ class HourglassPainter extends CustomPainter {
       canvas.restore();
     }
 
-    // Arena acumulada (mitad inferior — crece con el tiempo)
     if (progress < 0.999) {
       canvas.save();
       canvas.clipPath(bottomTriangle);
@@ -285,7 +256,6 @@ class HourglassPainter extends CustomPainter {
       canvas.restore();
     }
 
-    // Contorno del reloj de arena
     final hourglassPath = Path()
       ..moveTo(0, topY)
       ..lineTo(w, topY)
@@ -308,7 +278,6 @@ class HourglassPainter extends CustomPainter {
       ..color = frameColor
       ..style = PaintingStyle.fill;
 
-    // Barra superior
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromLTWH(-3, 0, w + 6, barH),
@@ -316,7 +285,6 @@ class HourglassPainter extends CustomPainter {
       ),
       barPaint,
     );
-    // Barra inferior
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromLTWH(-3, bottomY, w + 6, barH),
@@ -325,7 +293,6 @@ class HourglassPainter extends CustomPainter {
       barPaint,
     );
 
-    // Hilo de arena cayendo (visible mientras corre y hay arena)
     if (isRunning && progress > 0.02) {
       canvas.drawLine(
         Offset(cx, midY),

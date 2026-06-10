@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/theme/app_colors.dart';
+import '../../widgets/player_badge.dart';
 import '../providers/truco_tracker_provider.dart';
 import 'truco_action_buttons.dart';
-import 'truco_players_footer.dart';
 import 'truco_score_section.dart';
 import 'truco_team_editor_dialog.dart';
-import 'truco_team_header.dart';
 
 class TrucoScoreColumn extends ConsumerWidget {
   final int teamIndex;
@@ -24,31 +24,35 @@ class TrucoScoreColumn extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(trucoTrackerProvider.notifier);
 
-    final teamColor = teamIndex == 0
-        ? const Color(0xFFE53935)
-        : const Color(0xFF2F80ED);
+    final teamColor = team.color;
 
     return Column(
       children: [
-        TrucoTeamHeader(title: team.name, color: teamColor),
+        PlayerBadge(
+          name: team.name,
+          color: teamColor,
+          width: double.infinity,
+          height: 38,
+          onTap: () => TrucoTeamEditorDialog.show(context, ref, teamIndex),
+        ),
 
         const SizedBox(height: 10),
 
         TrucoActionButtons(
           color: teamColor,
-          onAdd: () => notifier.addMalas(teamIndex, 1),
-          onRemove: () => notifier.addMalas(teamIndex, -1),
+          onAdd: () => notifier.addPoint(teamIndex, 1),
+          onRemove: () => notifier.addPoint(teamIndex, -1),
         ),
 
         const SizedBox(height: 8),
 
         TrucoScoreSection(
-          title: targetScore == 15 ? 'Puntos' : 'Malas',
-          labelColor: targetScore == 15
-              ? Theme.of(context).colorScheme.primary
-              : const Color(0xFFFF8A1C),
+          // En "A 15" hay una sola tira: el cartel sobra (son puntos obvios).
+          title: 'Malas',
+          labelColor: AppColors.trucoMalas,
           points: team.malas,
-          onAddPoint: () => notifier.addMalas(teamIndex, 1),
+          showLabel: targetScore == 30,
+          onAddPoint: () => notifier.addPoint(teamIndex, 1),
         ),
 
         if (targetScore == 30) ...[
@@ -56,17 +60,9 @@ class TrucoScoreColumn extends ConsumerWidget {
 
           TrucoScoreSection(
             title: 'Buenas',
-            labelColor: const Color(0xFF16A85A),
+            labelColor: AppColors.trucoBuenas,
             points: team.buenas,
-            onAddPoint: () => notifier.addBuenas(teamIndex, 1),
-          ),
-
-          const SizedBox(height: 8),
-
-          TrucoActionButtons(
-            color: teamColor,
-            onAdd: () => notifier.addBuenas(teamIndex, 1),
-            onRemove: () => notifier.addBuenas(teamIndex, -1),
+            onAddPoint: () => notifier.addPoint(teamIndex, 1),
           ),
         ],
 
@@ -92,10 +88,35 @@ class TrucoScoreColumn extends ConsumerWidget {
 
         const SizedBox(height: 8),
 
-        TrucoPlayersFooter(
-          teamIndex: teamIndex,
-          playerNames: team.playerNames,
-          onEdit: () => TrucoTeamEditorDialog.show(context, ref, teamIndex),
+        // Nombres de los jugadores. Al tocarlos se abre el mismo editor que el
+        // header (Nosotros/Ellos), para asignar invitados y color.
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => TrucoTeamEditorDialog.show(context, ref, teamIndex),
+          child: Column(
+            children: [
+              for (int i = 0; i < team.playerNames.length; i++)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 1),
+                  child: Text(
+                    team.playerNames[i] ??
+                        'Jugador ${(teamIndex * team.playerNames.length) + i + 1}',
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: team.playerNames[i] == null
+                          ? FontWeight.w600
+                          : FontWeight.w900,
+                      color: team.playerNames[i] == null
+                          ? Theme.of(context).colorScheme.onSurfaceVariant
+                                .withValues(alpha: 0.6)
+                          : Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ],
     );

@@ -6,13 +6,11 @@ import 'app_sizes.dart';
 class AppTheme {
   final bool isDarkMode;
 
-  AppTheme({
-    this.isDarkMode = false,
-  });
+  AppTheme({this.isDarkMode = false});
 
   ThemeData getTheme() {
     final colorScheme = ColorScheme.fromSeed(
-      seedColor: AppColors.blue, // Azul profesional
+      seedColor: AppColors.blue,
       brightness: isDarkMode ? Brightness.dark : Brightness.light,
     );
 
@@ -25,13 +23,16 @@ class AppTheme {
       appBarTheme: AppBarTheme(
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
-          statusBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
+          statusBarIconBrightness: isDarkMode
+              ? Brightness.light
+              : Brightness.dark,
           systemNavigationBarColor: colorScheme.surface,
-          systemNavigationBarIconBrightness: isDarkMode ? Brightness.light : Brightness.dark,
+          systemNavigationBarIconBrightness: isDarkMode
+              ? Brightness.light
+              : Brightness.dark,
         ),
       ),
 
-      // Configuración global de los TextFields
       inputDecorationTheme: InputDecorationTheme(
         hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
         contentPadding: const EdgeInsets.symmetric(
@@ -52,7 +53,6 @@ class AppTheme {
         ),
       ),
 
-      // Configuración global de los botones verdes (FilledButton)
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: colorScheme.primary,
@@ -67,7 +67,6 @@ class AppTheme {
         ),
       ),
 
-      // Configuración global de los botones con borde (OutlinedButton)
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: colorScheme.onSurface,
@@ -79,7 +78,6 @@ class AppTheme {
         ),
       ),
 
-      // Configuración global para botones de texto (links)
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: colorScheme.primary,
@@ -87,7 +85,6 @@ class AppTheme {
         ),
       ),
 
-      // Tipografías globales
       textTheme: TextTheme(
         headlineSmall: TextStyle(
           fontSize: 24,

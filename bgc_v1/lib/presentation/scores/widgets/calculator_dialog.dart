@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
 
 /// Diálogo calculadora reutilizable: permite componer una expresión con
 /// sumas y restas y devuelve el resultado evaluado al confirmar.
@@ -24,7 +25,8 @@ class CalculatorDialog extends StatefulWidget {
   }) {
     return showDialog<int>(
       context: context,
-      builder: (_) => CalculatorDialog(initialValue: initialValue, title: title),
+      builder: (_) =>
+          CalculatorDialog(initialValue: initialValue, title: title),
     );
   }
 
@@ -70,7 +72,6 @@ class _CalculatorDialogState extends State<CalculatorDialog> {
     try {
       if (exp.isEmpty) return 0;
 
-      // Permitir un negativo al principio
       bool startsWithNegative = exp.startsWith('-');
       if (startsWithNegative) {
         exp = exp.substring(1);
@@ -83,7 +84,6 @@ class _CalculatorDialogState extends State<CalculatorDialog> {
         var subTerms = term.split('-');
         int termVal = int.tryParse(subTerms[0]) ?? 0;
 
-        // Aplicar el negativo inicial al primer término
         if (t == 0 && startsWithNegative) {
           termVal = -termVal;
         }
@@ -155,6 +155,7 @@ class _CalculatorDialogState extends State<CalculatorDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
@@ -168,7 +169,6 @@ class _CalculatorDialogState extends State<CalculatorDialog> {
             ),
             const SizedBox(height: 16),
 
-            // Display
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
@@ -188,7 +188,6 @@ class _CalculatorDialogState extends State<CalculatorDialog> {
             ),
             const SizedBox(height: 16),
 
-            // Teclado
             Row(
               children: [
                 _buildButton('7'),
@@ -196,8 +195,8 @@ class _CalculatorDialogState extends State<CalculatorDialog> {
                 _buildButton('9'),
                 _buildButton(
                   'C',
-                  color: Colors.red[100],
-                  textColor: Colors.red,
+                  color: cs.errorContainer,
+                  textColor: cs.onErrorContainer,
                   onTap: _clear,
                 ),
               ],
@@ -209,8 +208,8 @@ class _CalculatorDialogState extends State<CalculatorDialog> {
                 _buildButton('6'),
                 _buildButton(
                   '⌫',
-                  color: Colors.orange[100],
-                  textColor: Colors.orange[800],
+                  color: cs.tertiaryContainer,
+                  textColor: cs.onTertiaryContainer,
                   onTap: _delete,
                 ),
               ],
@@ -222,8 +221,8 @@ class _CalculatorDialogState extends State<CalculatorDialog> {
                 _buildButton('3'),
                 _buildButton(
                   '+',
-                  color: Colors.blue[100],
-                  textColor: Colors.blue[800],
+                  color: cs.secondaryContainer,
+                  textColor: cs.onSecondaryContainer,
                 ),
               ],
             ),
@@ -232,14 +231,14 @@ class _CalculatorDialogState extends State<CalculatorDialog> {
                 _buildButton('0'),
                 _buildButton(
                   '=',
-                  color: Colors.blue[600],
-                  textColor: Colors.white,
+                  color: cs.primary,
+                  textColor: cs.onPrimary,
                   onTap: _calculate,
                 ),
                 _buildButton(
                   '-',
-                  color: Colors.blue[100],
-                  textColor: Colors.blue[800],
+                  color: cs.secondaryContainer,
+                  textColor: cs.onSecondaryContainer,
                 ),
               ],
             ),
@@ -249,7 +248,8 @@ class _CalculatorDialogState extends State<CalculatorDialog> {
               height: 54,
               child: FilledButton(
                 style: FilledButton.styleFrom(
-                  backgroundColor: Colors.green,
+                  backgroundColor: AppColors.green,
+                  foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),

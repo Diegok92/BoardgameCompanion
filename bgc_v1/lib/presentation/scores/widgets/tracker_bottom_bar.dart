@@ -19,7 +19,6 @@ class TrackerBottomBar extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          // Back Button
           Expanded(
             child: Align(
               alignment: Alignment.centerLeft,
@@ -31,11 +30,9 @@ class TrackerBottomBar extends StatelessWidget {
               ),
             ),
           ),
-          
-          // Center Widget (Custom reset logic / hp input depending on the tracker)
+
           centerWidget,
-          
-          // Save Button
+
           Expanded(
             child: Align(
               alignment: Alignment.centerRight,

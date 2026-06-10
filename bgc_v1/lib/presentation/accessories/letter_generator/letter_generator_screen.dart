@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:go_router/go_router.dart';
-import '../../core/theme/app_colors.dart';
-import '../providers/auth_provider.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../providers/auth_provider.dart';
+import '../../widgets/bgc_app_bar.dart';
 import 'providers/letter_generator_provider.dart';
-import 'widgets/accessory_resume_dialog.dart';
+import '../widgets/accessory_resume_dialog.dart';
 
 class LetterGeneratorScreen extends ConsumerStatefulWidget {
   const LetterGeneratorScreen({super.key});
@@ -31,9 +30,10 @@ class _LetterGeneratorScreenState extends ConsumerState<LetterGeneratorScreen>
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
-    _scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.elasticOut));
     WidgetsBinding.instance.addPostFrameCallback((_) => _init());
   }
 
@@ -92,7 +92,7 @@ class _LetterGeneratorScreenState extends ConsumerState<LetterGeneratorScreen>
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: _buildAppBar(context),
+      appBar: const BgcAppBar(),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
@@ -120,32 +120,6 @@ class _LetterGeneratorScreenState extends ConsumerState<LetterGeneratorScreen>
           ),
         ),
       ),
-    );
-  }
-
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
-    return AppBar(
-      leading: IconButton(
-        icon: const Icon(Icons.chevron_left, size: 32),
-        onPressed: () => context.pop(),
-      ),
-      title: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'BG Companion',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-            ),
-          ),
-          const SizedBox(width: 8),
-          SvgPicture.asset('assets/images/logo.svg', height: 24),
-        ],
-      ),
-      centerTitle: true,
-      backgroundColor: Colors.transparent,
-      elevation: 0,
     );
   }
 

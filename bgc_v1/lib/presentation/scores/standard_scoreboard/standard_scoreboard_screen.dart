@@ -196,8 +196,7 @@ class _StandardScoreboardScreenState
                 onPressed: () {
                   TrackerDialogs.showResetDialog(
                     context: context,
-                    content:
-                        'Todos los jugadores volverán al puntaje inicial.',
+                    content: 'Todos los jugadores volverán al puntaje inicial.',
                     onConfirm: () => ref
                         .read(standardScoreboardProvider.notifier)
                         .resetScores(),

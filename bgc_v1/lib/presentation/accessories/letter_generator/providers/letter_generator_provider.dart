@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../data/repositories/local_storage_repository.dart';
-import '../../../domain/repositories/i_local_storage_repository.dart';
-import '../../../domain/models/user_model.dart';
+import '../../../../data/repositories/local_storage_repository.dart';
+import '../../../../domain/repositories/i_local_storage_repository.dart';
+import '../../../../domain/models/user_model.dart';
 
 class LetterGeneratorState {
   final List<String> history;
@@ -36,7 +36,9 @@ class LetterGeneratorState {
   }) {
     return LetterGeneratorState(
       history: history ?? this.history,
-      currentLetter: clearCurrent ? null : (currentLetter ?? this.currentLetter),
+      currentLetter: clearCurrent
+          ? null
+          : (currentLetter ?? this.currentLetter),
       allowRepeat: allowRepeat ?? this.allowRepeat,
     );
   }
@@ -48,8 +50,33 @@ class LetterGeneratorNotifier extends Notifier<LetterGeneratorState> {
   String _currentKey = '';
 
   static const List<String> alphabet = [
-    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
-    'N', 'Ñ', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+    'A',
+    'B',
+    'C',
+    'D',
+    'E',
+    'F',
+    'G',
+    'H',
+    'I',
+    'J',
+    'K',
+    'L',
+    'M',
+    'N',
+    'Ñ',
+    'O',
+    'P',
+    'Q',
+    'R',
+    'S',
+    'T',
+    'U',
+    'V',
+    'W',
+    'X',
+    'Y',
+    'Z',
   ];
 
   @override
@@ -77,7 +104,7 @@ class LetterGeneratorNotifier extends Notifier<LetterGeneratorState> {
         );
         return state.history.isEmpty;
       } catch (_) {
-        // Si falla el parseo, cae al estado vacío de abajo.
+        // ignorado: cae al estado vacío de abajo
       }
     }
 

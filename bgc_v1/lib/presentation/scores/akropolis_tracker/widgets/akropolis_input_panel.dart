@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../providers/akropolis_tracker_provider.dart';
 import '../../widgets/tracker_dialogs.dart';
 
@@ -19,19 +20,22 @@ class AkropolisInputPanel extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         children: [
-          // Row 1: Player Select, Hex Select, Preview
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Player Select
               Container(
                 alignment: Alignment.center,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: activeEntity.color,
                   borderRadius: BorderRadius.circular(8),
@@ -42,19 +46,24 @@ class AkropolisInputPanel extends ConsumerWidget {
                     isDense: true,
                     icon: Icon(
                       Icons.keyboard_arrow_down,
-                      color: activeEntity.color.computeLuminance() > 0.5 ? Colors.black : Colors.white,
+                      color: AppColors.contrastOn(activeEntity.color),
                     ),
                     dropdownColor: Theme.of(context).colorScheme.surface,
                     items: List.generate(state.entities.length, (index) {
                       return DropdownMenuItem(
                         value: index,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           color: state.entities[index].color,
                           child: Text(
                             state.entities[index].name.toUpperCase(),
                             style: TextStyle(
-                              color: state.entities[index].color.computeLuminance() > 0.5 ? Colors.black : Colors.white,
+                              color: AppColors.contrastOn(
+                                state.entities[index].color,
+                              ),
                               fontWeight: FontWeight.bold,
                               fontSize: 12,
                             ),
@@ -69,13 +78,17 @@ class AkropolisInputPanel extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              // Hex Select
               Container(
                 alignment: Alignment.center,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
-                  border: Border.all(color: Theme.of(context).colorScheme.outline),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: DropdownButtonHideUnderline(
@@ -88,7 +101,9 @@ class AkropolisInputPanel extends ConsumerWidget {
                       return DropdownMenuItem(
                         value: hex,
                         child: Icon(
-                          hex == AkropolisHexagon.stones ? Icons.square : Icons.hexagon,
+                          hex == AkropolisHexagon.stones
+                              ? Icons.square
+                              : Icons.hexagon,
                           color: hex.color,
                         ),
                       );
@@ -98,7 +113,9 @@ class AkropolisInputPanel extends ConsumerWidget {
                         return Container(
                           alignment: Alignment.center,
                           child: Icon(
-                            hex == AkropolisHexagon.stones ? Icons.square : Icons.hexagon,
+                            hex == AkropolisHexagon.stones
+                                ? Icons.square
+                                : Icons.hexagon,
                             color: hex.color,
                           ),
                         );
@@ -111,9 +128,11 @@ class AkropolisInputPanel extends ConsumerWidget {
                 ),
               ),
               const Spacer(),
-              // Preview
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: activeEntity.color,
                   borderRadius: BorderRadius.circular(12),
@@ -124,7 +143,7 @@ class AkropolisInputPanel extends ConsumerWidget {
                     Text(
                       'Sumando a ${activeEntity.name}',
                       style: TextStyle(
-                        color: activeEntity.color.computeLuminance() > 0.5 ? Colors.black : Colors.white,
+                        color: AppColors.contrastOn(activeEntity.color),
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
                       ),
@@ -132,7 +151,7 @@ class AkropolisInputPanel extends ConsumerWidget {
                     Text(
                       '${buffer.totalPoints} pts',
                       style: TextStyle(
-                        color: activeEntity.color.computeLuminance() > 0.5 ? Colors.black : Colors.white,
+                        color: AppColors.contrastOn(activeEntity.color),
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
@@ -143,19 +162,18 @@ class AkropolisInputPanel extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 24),
-          // Row 2: Inputs
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (!isStones) ...[
-                // Star
                 GestureDetector(
                   onTap: () {
                     TrackerDialogs.showNumberPadDialog(
                       context: context,
                       title: 'Cantidad de Estrellas',
                       initialValue: buffer.starsValue,
-                      explanation: 'Suma la cantidad de estrellas del color del hexagono seleccionado.',
+                      explanation:
+                          'Suma la cantidad de estrellas del color del hexagono seleccionado.',
                       onConfirm: (val) {
                         notifier.updateBuffer(starsValue: val);
                       },
@@ -178,12 +196,13 @@ class AkropolisInputPanel extends ConsumerWidget {
                 ),
                 const SizedBox(width: 32),
               ],
-              // Hexagon
               GestureDetector(
                 onTap: () {
                   TrackerDialogs.showNumberPadDialog(
                     context: context,
-                    title: isStones ? 'Cantidad de Piedras' : 'Tamaño del Distrito',
+                    title: isStones
+                        ? 'Cantidad de Piedras'
+                        : 'Tamaño del Distrito',
                     initialValue: buffer.districtValue,
                     explanation: isStones
                         ? 'Suma la cantidad de piedras sobrantes.'
@@ -213,7 +232,6 @@ class AkropolisInputPanel extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 24),
-              // Explanation
               Expanded(
                 child: Text(
                   buffer.selectedHexagon.explanation,
@@ -228,19 +246,23 @@ class AkropolisInputPanel extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 24),
-          // Row 3: Submit Button
           SizedBox(
             width: double.infinity,
             height: 54,
             child: FilledButton(
               style: FilledButton.styleFrom(
                 backgroundColor: Colors.green,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               onPressed: () {
                 notifier.commitBuffer();
               },
-              child: const Text('SUMAR AL TOTAL', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+              child: const Text(
+                'SUMAR AL TOTAL',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
             ),
           ),
         ],

@@ -1,14 +1,12 @@
-import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../data/local_catalog/local_games_catalog.dart';
-import '../../../../data/repositories/local_storage_repository.dart';
+import '../../../../data/repositories/tracker_local_store.dart';
 import '../../../../domain/models/game_model.dart';
 import '../../../../domain/models/user_model.dart';
-import '../../../../domain/repositories/i_local_storage_repository.dart';
 
 /// Un jugador del anotador estándar de puntos (VP).
 /// index 0 es siempre el usuario logueado.
@@ -60,9 +58,7 @@ class StandardScoreboardState {
 }
 
 class StandardScoreboardNotifier extends Notifier<StandardScoreboardState> {
-  final ILocalStorageRepository _localStorage = LocalStorageRepository();
-  String _currentUserId = '';
-  String _currentKey = '';
+  final TrackerLocalStore _store = TrackerLocalStore();
 
   @override
   StandardScoreboardState build() {
@@ -70,21 +66,18 @@ class StandardScoreboardNotifier extends Notifier<StandardScoreboardState> {
   }
 
   Future<void> initialize(int playerCount, User user, {String? fullKey}) async {
-    _currentUserId = user.id;
     state = StandardScoreboardState(players: []);
 
-    String? localDataStr;
-    if (fullKey != null) {
-      _currentKey = fullKey;
-      localDataStr = await _localStorage.getData(fullKey);
-    } else {
-      _currentKey =
-          'scoreboard_state_${user.id}_${playerCount}_${DateTime.now().millisecondsSinceEpoch}';
-    }
+    _store.resolveKey(
+      fullKey: fullKey,
+      prefix: 'scoreboard',
+      userId: user.id,
+      playerCount: playerCount,
+    );
 
-    if (localDataStr != null) {
+    final decoded = await _store.load();
+    if (decoded != null) {
       try {
-        final decoded = jsonDecode(localDataStr);
         final playersJson = decoded['players'] as List;
         final restoredPlayers = playersJson
             .map(
@@ -104,9 +97,7 @@ class StandardScoreboardNotifier extends Notifier<StandardScoreboardState> {
           initialScore: decoded['initialScore'] ?? 0,
         );
         return;
-      } catch (_) {
-        // Si falla el parseo, se cae al estado inicial de abajo.
-      }
+      } catch (_) {}
     }
 
     state = StandardScoreboardState(
@@ -192,11 +183,7 @@ class StandardScoreboardNotifier extends Notifier<StandardScoreboardState> {
   }
 
   Future<void> saveLocalState() async {
-    if (state.players.isEmpty ||
-        _currentUserId.isEmpty ||
-        _currentKey.isEmpty) {
-      return;
-    }
+    if (state.players.isEmpty || !_store.hasKey) return;
 
     final data = {
       'players': state.players
@@ -211,15 +198,13 @@ class StandardScoreboardNotifier extends Notifier<StandardScoreboardState> {
           .toList(),
       'selectedGameId': state.selectedGame?.id,
       'initialScore': state.initialScore,
-      'lastModified': DateTime.now().toIso8601String(),
     };
 
-    await _localStorage.saveData(_currentKey, jsonEncode(data));
+    await _store.save(data);
   }
 
   Future<void> clearLocalState() async {
-    if (_currentUserId.isEmpty || _currentKey.isEmpty) return;
-    await _localStorage.removeData(_currentKey);
+    await _store.clear();
   }
 }
 

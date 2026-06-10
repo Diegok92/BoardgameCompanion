@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:go_router/go_router.dart';
 import 'providers/stats_provider.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/bgc_app_bar.dart';
 
 class StatsScreen extends ConsumerStatefulWidget {
   const StatsScreen({super.key});
@@ -35,48 +34,30 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
       );
     }
 
-    final winRate = state.totalPartidas > 0 
-      ? (state.ganadas / state.totalPartidas * 100).round() 
-      : 0;
+    final winRate = state.totalPartidas > 0
+        ? (state.ganadas / state.totalPartidas * 100).round()
+        : 0;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.chevron_left, size: 32),
-          onPressed: () => context.pop(),
-        ),
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'BG Companion',
-              style: textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
-            ),
-            const SizedBox(width: 8),
-            SvgPicture.asset('assets/images/logo.svg', height: 24),
-          ],
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
+      appBar: const BgcAppBar(),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Cabecera Usuario
               Row(
                 children: [
                   CircleAvatar(
                     radius: 36,
-                    backgroundColor: user?.favoriteColor ?? colorScheme.primaryContainer,
-                    child: Icon(Icons.person, size: 40, color: colorScheme.onSurfaceVariant),
+                    backgroundColor:
+                        user?.favoriteColor ?? colorScheme.primaryContainer,
+                    child: Icon(
+                      Icons.person,
+                      size: 40,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -85,38 +66,44 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                       children: [
                         Text(
                           user?.username ?? 'Usuario',
-                          style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                          style: textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         Text(
                           'Estadísticas de Partidas Registradas',
-                          style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ],
                     ),
-                  )
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
 
-              // Filtros
               Row(
                 children: [
                   Expanded(
                     child: _buildDropdown(
-                      'JUEGO', 
-                      state.selectedJuego, 
-                      ref.read(statsProvider.notifier).uniqueJuegos, 
-                      (val) => ref.read(statsProvider.notifier).setJuegoFilter(val!),
+                      'JUEGO',
+                      state.selectedJuego,
+                      ref.read(statsProvider.notifier).uniqueJuegos,
+                      (val) =>
+                          ref.read(statsProvider.notifier).setJuegoFilter(val!),
                       colorScheme,
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: _buildDropdown(
-                      'CONTRA', 
-                      state.selectedOpponent, 
-                      ref.read(statsProvider.notifier).uniqueOpponents, 
-                      (val) => ref.read(statsProvider.notifier).setOpponentFilter(val!),
+                      'CONTRA',
+                      state.selectedOpponent,
+                      ref.read(statsProvider.notifier).uniqueOpponents,
+                      (val) => ref
+                          .read(statsProvider.notifier)
+                          .setOpponentFilter(val!),
                       colorScheme,
                       isOutlined: true,
                     ),
@@ -125,11 +112,12 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Rendimiento Total
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                  color: colorScheme.surfaceContainerHighest.withValues(
+                    alpha: 0.3,
+                  ),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(color: colorScheme.outlineVariant),
                 ),
@@ -139,14 +127,20 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('RENDIMIENTO TOTAL', style: textTheme.labelLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurfaceVariant,
-                        )),
-                        Text('$winRate%', style: textTheme.displayLarge?.copyWith(
-                          fontWeight: FontWeight.w900,
-                          color: colorScheme.primary,
-                        )),
+                        Text(
+                          'RENDIMIENTO TOTAL',
+                          style: textTheme.labelLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        Text(
+                          '$winRate%',
+                          style: textTheme.displayLarge?.copyWith(
+                            fontWeight: FontWeight.w900,
+                            color: colorScheme.primary,
+                          ),
+                        ),
                       ],
                     ),
                     SizedBox(
@@ -174,47 +168,83 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Partidas Jugadas
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 20,
+                ),
                 decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                  color: colorScheme.surfaceContainerHighest.withValues(
+                    alpha: 0.5,
+                  ),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Partidas Jugadas', style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                    Text('${state.totalPartidas}', style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+                    Text(
+                      'Partidas Jugadas',
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      '${state.totalPartidas}',
+                      style: textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
 
-              // Grilla 2x2
               Row(
                 children: [
-                  Expanded(child: _buildStatCard('Ganadas', state.ganadas, Colors.green.shade600, Colors.green.shade50)),
+                  Expanded(
+                    child: _buildStatCard(
+                      'Ganadas',
+                      state.ganadas,
+                      Colors.green.shade600,
+                    ),
+                  ),
                   const SizedBox(width: 16),
-                  Expanded(child: _buildStatCard('Perdidas', state.perdidas, Colors.red.shade600, Colors.red.shade50)),
+                  Expanded(
+                    child: _buildStatCard(
+                      'Perdidas',
+                      state.perdidas,
+                      Colors.red.shade600,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
               Row(
                 children: [
-                  Expanded(child: _buildStatCard('Empatadas', state.empatadas, Colors.grey.shade700, Colors.grey.shade100)),
+                  Expanded(
+                    child: _buildStatCard(
+                      'Empatadas',
+                      state.empatadas,
+                      Colors.grey.shade600,
+                    ),
+                  ),
                   const SizedBox(width: 16),
-                  Expanded(child: _buildStatCard('Racha de Victorias', state.rachaActual, Colors.orange.shade700, Colors.orange.shade50)),
+                  Expanded(
+                    child: _buildStatCard(
+                      'Racha de Victorias',
+                      state.rachaActual,
+                      Colors.orange.shade700,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 32),
 
-              // Botón Compartir
               SizedBox(
                 width: double.infinity,
                 height: 56,
                 child: FilledButton(
-                  onPressed: () {}, // Sin funcionalidad por ahora
+                  onPressed: () {},
                   style: FilledButton.styleFrom(
                     backgroundColor: colorScheme.primary,
                     shape: RoundedRectangleBorder(
@@ -223,10 +253,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                   ),
                   child: const Text(
                     'COMPARTIR ESTADISTICAS',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
@@ -238,7 +265,14 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     );
   }
 
-  Widget _buildDropdown(String label, String value, List<String> items, Function(String?) onChanged, ColorScheme colorScheme, {bool isOutlined = false}) {
+  Widget _buildDropdown(
+    String label,
+    String value,
+    List<String> items,
+    Function(String?) onChanged,
+    ColorScheme colorScheme, {
+    bool isOutlined = false,
+  }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
@@ -250,9 +284,16 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
         child: DropdownButton<String>(
           value: value,
           isExpanded: true,
-          icon: Icon(Icons.keyboard_arrow_down, color: isOutlined ? colorScheme.primary : colorScheme.onPrimaryContainer),
+          icon: Icon(
+            Icons.keyboard_arrow_down,
+            color: isOutlined
+                ? colorScheme.primary
+                : colorScheme.onPrimaryContainer,
+          ),
           style: TextStyle(
-            color: isOutlined ? colorScheme.primary : colorScheme.onPrimaryContainer,
+            color: isOutlined
+                ? colorScheme.primary
+                : colorScheme.onPrimaryContainer,
             fontWeight: FontWeight.bold,
             fontSize: 13,
           ),
@@ -272,13 +313,14 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     );
   }
 
-  Widget _buildStatCard(String title, int value, Color textColor, Color bgColor) {
+  Widget _buildStatCard(String title, int value, Color accent) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: bgColor,
+        // El fondo se tiñe a partir del acento (se adapta a claro/oscuro).
+        color: accent.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: textColor.withValues(alpha: 0.3)),
+        border: Border.all(color: accent.withValues(alpha: 0.4)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -286,7 +328,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
           Text(
             title,
             style: TextStyle(
-              color: textColor,
+              color: accent,
               fontWeight: FontWeight.bold,
               fontSize: 14,
             ),
@@ -295,7 +337,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
           Text(
             '$value',
             style: TextStyle(
-              color: textColor,
+              color: accent,
               fontWeight: FontWeight.w900,
               fontSize: 32,
             ),

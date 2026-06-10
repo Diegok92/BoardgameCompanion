@@ -1,8 +1,6 @@
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/settings_model.dart';
 
-// Provider global para las configuraciones de la aplicación
 final settingsProvider = NotifierProvider<SettingsNotifier, Settings>(() {
   return SettingsNotifier();
 });
@@ -10,10 +8,7 @@ final settingsProvider = NotifierProvider<SettingsNotifier, Settings>(() {
 class SettingsNotifier extends Notifier<Settings> {
   @override
   Settings build() {
-    // Estado inicial por defecto
-    return const Settings(
-      isDarkMode: false,
-    );
+    return const Settings(isDarkMode: false);
   }
 
   void toggleDarkMode(bool isDark) {
